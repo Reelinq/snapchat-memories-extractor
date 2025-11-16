@@ -2,6 +2,7 @@ import json
 import os
 import requests
 import time
+from ui import print_status, update_progress, clear_lines
 
 # Read the JSON file
 with open('data/memories_history.json', 'r', encoding='utf-8') as f:
@@ -18,8 +19,6 @@ failed = 0
 start_time = time.time()
 total_bytes = 0
 
-print(f"Starting download of {total_files} files...\n")
-
 # Download each file from the JSON data
 for index, memory in enumerate(data['Saved Media'], 1):
     download_link = memory['Media Download Url']
@@ -34,10 +33,8 @@ for index, memory in enumerate(data['Saved Media'], 1):
     filename = f"{filename_base}{extension}"
     filepath = os.path.join(downloads_folder, filename)
 
-    # Print progress
-    elapsed_time = time.time() - start_time
-    percent = (index / total_files) * 100
-    print(f"[{index}/{total_files}] ({percent:.1f}%) Downloading: {filename}... ", end='', flush=True)
+    # Update progress display
+    update_progress(index, total_files, successful, failed, start_time, filename)
 
     try:
         # Try Media Download Url first
@@ -50,7 +47,6 @@ for index, memory in enumerate(data['Saved Media'], 1):
         file_size = os.path.getsize(filepath)
         total_bytes += file_size
         successful += 1
-        print("✓")
 
     except requests.exceptions.HTTPError as e:
         # If 405 error, try the regular Download Link
@@ -66,28 +62,15 @@ for index, memory in enumerate(data['Saved Media'], 1):
                 file_size = os.path.getsize(filepath)
                 total_bytes += file_size
                 successful += 1
-                print("✓ (alt link)")
 
             except Exception as e2:
                 failed += 1
-                print(f"✗ Failed: {str(e2)}")
         else:
             failed += 1
-            print(f"✗ Failed: {str(e)}")
     except Exception as e:
         failed += 1
-        print(f"✗ Failed: {str(e)}")
 
 # Final status
+clear_lines(10)
 total_time = time.time() - start_time
-total_mb = total_bytes / (1024 * 1024)
-print(f"\n{'='*60}")
-print(f"✅ DOWNLOAD COMPLETE!")
-print(f"{'='*60}")
-print(f"Total files: {total_files}")
-print(f"Successful: {successful}")
-print(f"Failed: {failed}")
-print(f"Total size: {total_mb:.2f} MB")
-print(f"Time elapsed: {total_time:.1f} seconds")
-print(f"Average speed: {total_mb/total_time:.2f} MB/s" if total_time > 0 else "Average speed: N/A")
-print(f"{'='*60}")
+print_status(total_files, total_files, successful, failed, total_time, "✅ COMPLETE!")
