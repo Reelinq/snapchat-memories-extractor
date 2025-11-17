@@ -52,11 +52,17 @@ for index, memory in enumerate(memories, 1):
         with open(filepath, 'wb') as f:
             f.write(response.content)
 
-        # Add metadata for images and videos
-        if memory.media_type == "Image":
-            add_image_data(Path(filepath), memory)
-        else:  # Video
-            add_video_metadata(Path(filepath), memory)
+        # Add metadata for images and videos - fail if datetime missing
+        try:
+            if memory.media_type == "Image":
+                add_image_data(Path(filepath), memory)
+            else:  # Video
+                add_video_metadata(Path(filepath), memory)
+        except Exception:
+            # Delete file if metadata writing failed
+            if os.path.exists(filepath):
+                os.remove(filepath)
+            raise  # Re-raise to mark as failed
 
         file_size = os.path.getsize(filepath)
         total_bytes += file_size
@@ -73,11 +79,17 @@ for index, memory in enumerate(memories, 1):
                 with open(filepath, 'wb') as f:
                     f.write(response.content)
 
-                # Add metadata for images and videos
-                if memory.media_type == "Image":
-                    add_image_data(Path(filepath), memory)
-                else:  # Video
-                    add_video_metadata(Path(filepath), memory)
+                # Add metadata for images and videos - fail if datetime missing
+                try:
+                    if memory.media_type == "Image":
+                        add_image_data(Path(filepath), memory)
+                    else:  # Video
+                        add_video_metadata(Path(filepath), memory)
+                except Exception:
+                    # Delete file if metadata writing failed
+                    if os.path.exists(filepath):
+                        os.remove(filepath)
+                    raise  # Re-raise to mark as failed
 
                 file_size = os.path.getsize(filepath)
                 total_bytes += file_size
