@@ -3,6 +3,8 @@ import os
 import requests
 import time
 from pathlib import Path
+import zipfile
+from io import BytesIO
 from ui import print_status, update_progress, clear_lines
 from models import Memory
 from metadata_utils import add_image_data, add_video_metadata
@@ -52,28 +54,61 @@ for index, item in enumerate(raw_items, 1):
             response = requests.get(fallback_url, timeout=30)
             response.raise_for_status()
 
-        with open(filepath, 'wb') as f:
-            f.write(response.content)
+        # Detect if the content is a ZIP archive
+        is_zip = False
+        content_type = response.headers.get('Content-Type', '').lower()
+        if 'zip' in content_type:
+            is_zip = True
+        else:
+            content_head = response.content[:4]
+            if content_head.startswith(b'PK\x03\x04'):
+                is_zip = True
 
-        # Add metadata for images and videos - fail if datetime missing
+        # Prepare bytes and handling mode, then fall through to unified save/metadata
+        image = False
+        content_bytes = None
+        if is_zip:
+            with zipfile.ZipFile(BytesIO(response.content)) as zf:
+                # Expect exactly one JPG in the ZIP (ignore PNG)
+                jpg_names = [n for n in zf.namelist() if n.lower().endswith(('.jpg', '.jpeg'))]
+                if not jpg_names:
+                    raise Exception("ZIP did not contain a JPG image")
+                # Choose a stable first JPG (prefer fewer subdirs, then shorter name)
+                name = sorted(jpg_names, key=lambda s: (s.count('/'), len(s), s))[0]
+                content_bytes = zf.read(name)
+            # Override target path and force image handling
+            filepath = os.path.join(downloads_folder, f"{memory.filename}.jpg")
+            image = True
+        else:
+            content_bytes = response.content
+            image = (memory.media_type == "Image")
+
+        # Save file once, then write metadata based on handling mode
+        with open(filepath, 'wb') as f:
+            f.write(content_bytes)
+
         try:
-            if memory.media_type == "Image":
+            if image:
                 add_image_data(Path(filepath), memory)
-            else:  # Video
+            else:
                 add_video_metadata(Path(filepath), memory)
         except Exception:
-            # Delete file if metadata writing failed
             if os.path.exists(filepath):
                 os.remove(filepath)
-            raise  # Re-raise to mark as failed
+            raise
 
         file_size = os.path.getsize(filepath)
         total_bytes += file_size
         successful += 1
         success_indices.add(index - 1)
-        # Persist JSON after each success
-        remaining = [itm for i, itm in enumerate(raw_items) if i not in success_indices]
-        data['Saved Media'] = remaining
+        # Persist JSON after each success (remove current item by URL match)
+        data['Saved Media'] = [
+            itm for itm in data.get('Saved Media', [])
+            if not (
+                (memory.media_download_url and itm.get('Media Download Url') == memory.media_download_url)
+                or (memory.download_link and itm.get('Download Link') == memory.download_link)
+            )
+        ]
         with open(json_path, 'w', encoding='utf-8') as f:
             json.dump(data, f, ensure_ascii=False, indent=4)
 
@@ -85,28 +120,56 @@ for index, item in enumerate(raw_items, 1):
                 response = requests.get(fallback_url, timeout=30)
                 response.raise_for_status()
 
-                with open(filepath, 'wb') as f:
-                    f.write(response.content)
+                # Detect if the content is a ZIP archive (fallback path)
+                is_zip = False
+                content_type = response.headers.get('Content-Type', '').lower()
+                if 'zip' in content_type:
+                    is_zip = True
+                else:
+                    content_head = response.content[:4]
+                    if content_head.startswith(b'PK\x03\x04'):
+                        is_zip = True
 
-                # Add metadata for images and videos - fail if datetime missing
+                # Prepare bytes and handling mode as above, then unify save/metadata
+                image = False
+                content_bytes = None
+                if is_zip:
+                    with zipfile.ZipFile(BytesIO(response.content)) as zf:
+                        jpg_names = [n for n in zf.namelist() if n.lower().endswith(('.jpg', '.jpeg'))]
+                        if not jpg_names:
+                            raise Exception("ZIP did not contain a JPG image")
+                        name = sorted(jpg_names, key=lambda s: (s.count('/'), len(s), s))[0]
+                        content_bytes = zf.read(name)
+                    filepath = os.path.join(downloads_folder, f"{memory.filename}.jpg")
+                    image = True
+                else:
+                    content_bytes = response.content
+                    image = (memory.media_type == "Image")
+
+                with open(filepath, 'wb') as f:
+                    f.write(content_bytes)
+
                 try:
-                    if memory.media_type == "Image":
+                    if image:
                         add_image_data(Path(filepath), memory)
-                    else:  # Video
+                    else:
                         add_video_metadata(Path(filepath), memory)
                 except Exception:
-                    # Delete file if metadata writing failed
                     if os.path.exists(filepath):
                         os.remove(filepath)
-                    raise  # Re-raise to mark as failed
+                    raise
 
                 file_size = os.path.getsize(filepath)
                 total_bytes += file_size
                 successful += 1
                 success_indices.add(index - 1)
-                # Persist JSON after each success
-                remaining = [itm for i, itm in enumerate(raw_items) if i not in success_indices]
-                data['Saved Media'] = remaining
+                data['Saved Media'] = [
+                    itm for itm in data.get('Saved Media', [])
+                    if not (
+                        (memory.media_download_url and itm.get('Media Download Url') == memory.media_download_url)
+                        or (memory.download_link and itm.get('Download Link') == memory.download_link)
+                    )
+                ]
                 with open(json_path, 'w', encoding='utf-8') as f:
                     json.dump(data, f, ensure_ascii=False, indent=4)
             except Exception:
