@@ -5,7 +5,7 @@ import time
 from pathlib import Path
 from ui import print_status, update_progress, clear_lines
 from models import Memory
-from exif_utils import add_exif_data
+from metadata_utils import add_image_data, add_video_metadata
 
 # Read the JSON file
 with open('data/memories_history.json', 'r', encoding='utf-8') as f:
@@ -52,9 +52,11 @@ for index, memory in enumerate(memories, 1):
         with open(filepath, 'wb') as f:
             f.write(response.content)
 
-        # Add EXIF data for images
+        # Add metadata for images and videos
         if memory.media_type == "Image":
-            add_exif_data(Path(filepath), memory)
+            add_image_data(Path(filepath), memory)
+        else:  # Video
+            add_video_metadata(Path(filepath), memory)
 
         file_size = os.path.getsize(filepath)
         total_bytes += file_size
@@ -71,9 +73,11 @@ for index, memory in enumerate(memories, 1):
                 with open(filepath, 'wb') as f:
                     f.write(response.content)
 
-                # Add EXIF data for images
+                # Add metadata for images and videos
                 if memory.media_type == "Image":
-                    add_exif_data(Path(filepath), memory)
+                    add_image_data(Path(filepath), memory)
+                else:  # Video
+                    add_video_metadata(Path(filepath), memory)
 
                 file_size = os.path.getsize(filepath)
                 total_bytes += file_size
