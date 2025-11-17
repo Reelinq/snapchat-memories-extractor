@@ -8,25 +8,28 @@ from models import Memory
 from metadata_utils import add_image_data, add_video_metadata
 
 # Read the JSON file
-with open('data/memories_history.json', 'r', encoding='utf-8') as f:
+json_path = 'data/memories_history.json'
+with open(json_path, 'r', encoding='utf-8') as f:
     data = json.load(f)
 
 # Create downloads folder in repo root if it doesn't exist
 downloads_folder = "downloads"
 os.makedirs(downloads_folder, exist_ok=True)
 
-# Map JSON entries to Memory models
-memories = [Memory.model_validate(m) for m in data.get('Saved Media', [])]
+# Keep raw items to enable pruning of successful downloads
+raw_items = data.get('Saved Media', [])
+success_indices = set()
 
 # Initialize counters and timers
-total_files = len(memories)
+total_files = len(raw_items)
 successful = 0
 failed = 0
 start_time = time.time()
 total_bytes = 0
 
 # Download each file represented by Memory models
-for index, memory in enumerate(memories, 1):
+for index, item in enumerate(raw_items, 1):
+    memory = Memory.model_validate(item)
     filename = memory.filename_with_ext
     filepath = os.path.join(downloads_folder, filename)
 
@@ -67,6 +70,12 @@ for index, memory in enumerate(memories, 1):
         file_size = os.path.getsize(filepath)
         total_bytes += file_size
         successful += 1
+        success_indices.add(index - 1)
+        # Persist JSON after each success
+        remaining = [itm for i, itm in enumerate(raw_items) if i not in success_indices]
+        data['Saved Media'] = remaining
+        with open(json_path, 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=4)
 
     except requests.exceptions.HTTPError as e:
         # If 405 error on primary, try fallback URL
@@ -94,12 +103,27 @@ for index, memory in enumerate(memories, 1):
                 file_size = os.path.getsize(filepath)
                 total_bytes += file_size
                 successful += 1
+                success_indices.add(index - 1)
+                # Persist JSON after each success
+                remaining = [itm for i, itm in enumerate(raw_items) if i not in success_indices]
+                data['Saved Media'] = remaining
+                with open(json_path, 'w', encoding='utf-8') as f:
+                    json.dump(data, f, ensure_ascii=False, indent=4)
             except Exception:
                 failed += 1
         else:
             failed += 1
     except Exception:
         failed += 1
+
+# After processing, prune successfully downloaded items from JSON and save
+# Final sync is not strictly necessary due to per-success writes,
+# but keep it to ensure consistency at end of run.
+if success_indices:
+    remaining = [itm for i, itm in enumerate(raw_items) if i not in success_indices]
+    data['Saved Media'] = remaining
+    with open(json_path, 'w', encoding='utf-8') as f:
+        json.dump(data, f, ensure_ascii=False, indent=4)
 
 # Final status
 clear_lines(10)
