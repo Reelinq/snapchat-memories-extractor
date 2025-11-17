@@ -3,6 +3,7 @@ import os
 import requests
 import time
 from ui import print_status, update_progress, clear_lines
+from models import Memory
 
 # Read the JSON file
 with open('data/memories_history.json', 'r', encoding='utf-8') as f:
@@ -12,34 +13,40 @@ with open('data/memories_history.json', 'r', encoding='utf-8') as f:
 downloads_folder = "downloads"
 os.makedirs(downloads_folder, exist_ok=True)
 
+# Map JSON entries to Memory models
+memories = [Memory.model_validate(m) for m in data.get('Saved Media', [])]
+
 # Initialize counters and timers
-total_files = len(data['Saved Media'])
+total_files = len(memories)
 successful = 0
 failed = 0
 start_time = time.time()
 total_bytes = 0
 
-# Download each file from the JSON data
-for index, memory in enumerate(data['Saved Media'], 1):
-    download_link = memory['Media Download Url']
-    date = memory['Date']
-    media_type = memory['Media Type']
-
-    # Replace spaces with underscores and colons with hyphens for valid Windows filename
-    filename_base = date.replace(' ', '_').replace(':', '-')
-
-    # Determine file extension based on media type
-    extension = '.jpg' if media_type == 'Image' else '.mp4'
-    filename = f"{filename_base}{extension}"
+# Download each file represented by Memory models
+for index, memory in enumerate(memories, 1):
+    filename = memory.filename_with_ext
     filepath = os.path.join(downloads_folder, filename)
 
     # Update progress display
     update_progress(index, total_files, successful, failed, start_time, filename)
 
+    # Determine initial and fallback URLs
+    primary_url = memory.media_download_url
+    fallback_url = memory.download_link
+
     try:
-        # Try Media Download Url first
-        response = requests.get(download_link, timeout=30)
-        response.raise_for_status()
+        if not primary_url and not fallback_url:
+            failed += 1
+            continue
+
+        # Try Media Download Url first when available
+        if primary_url:
+            response = requests.get(primary_url, timeout=30)
+            response.raise_for_status()
+        else:
+            response = requests.get(fallback_url, timeout=30)
+            response.raise_for_status()
 
         with open(filepath, 'wb') as f:
             f.write(response.content)
@@ -48,12 +55,12 @@ for index, memory in enumerate(data['Saved Media'], 1):
         total_bytes += file_size
         successful += 1
 
+    # If 405 error on primary, try fallback URL
     except requests.exceptions.HTTPError as e:
-        # If 405 error, try the regular Download Link
-        if e.response.status_code == 405:
+        status = getattr(e.response, 'status_code', None)
+        if status == 405 and fallback_url:
             try:
-                alt_link = memory['Download Link']
-                response = requests.get(alt_link, timeout=30)
+                response = requests.get(fallback_url, timeout=30)
                 response.raise_for_status()
 
                 with open(filepath, 'wb') as f:
@@ -62,12 +69,11 @@ for index, memory in enumerate(data['Saved Media'], 1):
                 file_size = os.path.getsize(filepath)
                 total_bytes += file_size
                 successful += 1
-
-            except Exception as e2:
+            except Exception:
                 failed += 1
         else:
             failed += 1
-    except Exception as e:
+    except Exception:
         failed += 1
 
 # Final status
