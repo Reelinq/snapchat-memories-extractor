@@ -2,8 +2,10 @@ import json
 import os
 import requests
 import time
+from pathlib import Path
 from ui import print_status, update_progress, clear_lines
 from models import Memory
+from exif_utils import add_exif_data
 
 # Read the JSON file
 with open('data/memories_history.json', 'r', encoding='utf-8') as f:
@@ -31,7 +33,6 @@ for index, memory in enumerate(memories, 1):
     # Update progress display
     update_progress(index, total_files, successful, failed, start_time, filename)
 
-    # Determine initial and fallback URLs
     primary_url = memory.media_download_url
     fallback_url = memory.download_link
 
@@ -51,12 +52,16 @@ for index, memory in enumerate(memories, 1):
         with open(filepath, 'wb') as f:
             f.write(response.content)
 
+        # Add EXIF data for images
+        if memory.media_type == "Image":
+            add_exif_data(Path(filepath), memory)
+
         file_size = os.path.getsize(filepath)
         total_bytes += file_size
         successful += 1
 
-    # If 405 error on primary, try fallback URL
     except requests.exceptions.HTTPError as e:
+        # If 405 error on primary, try fallback URL
         status = getattr(e.response, 'status_code', None)
         if status == 405 and fallback_url:
             try:
@@ -65,6 +70,10 @@ for index, memory in enumerate(memories, 1):
 
                 with open(filepath, 'wb') as f:
                     f.write(response.content)
+
+                # Add EXIF data for images
+                if memory.media_type == "Image":
+                    add_exif_data(Path(filepath), memory)
 
                 file_size = os.path.getsize(filepath)
                 total_bytes += file_size
