@@ -87,16 +87,20 @@ for index, item in enumerate(raw_items, 1):
         content_bytes = None
         if is_zip:
             with zipfile.ZipFile(BytesIO(response.content)) as zf:
-                # Expect exactly one JPG in the ZIP (ignore PNG)
-                jpg_names = [n for n in zf.namelist() if n.lower().endswith(('.jpg', '.jpeg'))]
-                if not jpg_names:
-                    raise Exception("ZIP did not contain a JPG image")
-                # Choose a stable first JPG (prefer fewer subdirs, then shorter name)
-                name = sorted(jpg_names, key=lambda s: (s.count('/'), len(s), s))[0]
-                content_bytes = zf.read(name)
-            # Override target path and force image handling
-            filepath = os.path.join(downloads_folder, f"{memory.filename}.jpg")
-            image = True
+                # Check for JPG or MP4 in the ZIP (ignore PNG)
+                jpg_name = [n for n in zf.namelist() if n.lower().endswith(('.jpg', '.jpeg'))]
+                mp4_name = [n for n in zf.namelist() if n.lower().endswith('.mp4')]
+
+                if jpg_name:
+                    content_bytes = zf.read(jpg_name[0])
+                    filepath = os.path.join(downloads_folder, f"{memory.filename}.jpg")
+                    image = True
+                elif mp4_name:
+                    content_bytes = zf.read(mp4_name[0])
+                    filepath = os.path.join(downloads_folder, f"{memory.filename}.mp4")
+                    image = False
+                else:
+                    raise Exception("ZIP did not contain a JPG or MP4 file")
         else:
             content_bytes = response.content
             image = (memory.media_type == "Image")
@@ -149,13 +153,19 @@ for index, item in enumerate(raw_items, 1):
                 content_bytes = None
                 if is_zip:
                     with zipfile.ZipFile(BytesIO(response.content)) as zf:
-                        jpg_names = [n for n in zf.namelist() if n.lower().endswith(('.jpg', '.jpeg'))]
-                        if not jpg_names:
-                            raise Exception("ZIP did not contain a JPG image")
-                        name = sorted(jpg_names, key=lambda s: (s.count('/'), len(s), s))[0]
-                        content_bytes = zf.read(name)
-                    filepath = os.path.join(downloads_folder, f"{memory.filename}.jpg")
-                    image = True
+                        jpg_name = [n for n in zf.namelist() if n.lower().endswith(('.jpg', '.jpeg'))]
+                        mp4_name = [n for n in zf.namelist() if n.lower().endswith('.mp4')]
+
+                        if jpg_name:
+                            content_bytes = zf.read(jpg_name[0])
+                            filepath = os.path.join(downloads_folder, f"{memory.filename}.jpg")
+                            image = True
+                        elif mp4_name:
+                            content_bytes = zf.read(mp4_name[0])
+                            filepath = os.path.join(downloads_folder, f"{memory.filename}.mp4")
+                            image = False
+                        else:
+                            raise Exception("ZIP did not contain a JPG or MP4 file")
                 else:
                     content_bytes = response.content
                     image = (memory.media_type == "Image")
