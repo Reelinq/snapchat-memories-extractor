@@ -2,10 +2,13 @@ from pathlib import Path
 import piexif
 import re
 import subprocess
-import shutil
 from datetime import datetime
 from PIL import Image
 from models import Memory
+import imageio_ffmpeg
+
+# Get bundled ffmpeg from imageio-ffmpeg package
+FFMPEG_EXE = imageio_ffmpeg.get_ffmpeg_exe()
 
 def add_image_data(image_path: Path, memory: Memory):
     img = Image.open(image_path)
@@ -78,16 +81,30 @@ def add_video_metadata(video_path: Path, memory: Memory):
             except ValueError:
                 pass
 
-    # Use ffmpeg to set creation time
-    if shutil.which('ffmpeg'):
-        temp_path = video_path.with_suffix('.tmp.mp4')
-
+    # Use imageio-ffmpeg bundled binary to set creation time and GPS location
+    temp_path = video_path.with_suffix('.tmp.mp4')
+    try:
+        # Build metadata args
         metadata_args = [
             '-metadata', f'creation_time={creation_time}',
         ]
 
+        # Add GPS location metadata if available
+        # Use multiple formats for maximum compatibility
+        if latitude is not None and longitude is not None:
+            # ISO 6709 format: +latitude+longitude/ (standard format)
+            lat_sign = '+' if latitude >= 0 else ''
+            lon_sign = '+' if longitude >= 0 else ''
+            iso6709 = f"{lat_sign}{latitude:.6f}{lon_sign}{longitude:.6f}/"
+
+            metadata_args.extend([
+                '-metadata', f'location={iso6709}',
+                '-metadata', f'com.apple.quicktime.location.ISO6709={iso6709}',
+                '-metadata', f'Keys:GPSCoordinates={latitude}, {longitude}',
+            ])
+
         cmd = [
-            'ffmpeg',
+            FFMPEG_EXE,
             '-i', str(video_path),
             '-c', 'copy',
             *metadata_args,
@@ -107,26 +124,7 @@ def add_video_metadata(video_path: Path, memory: Memory):
         else:
             if temp_path.exists():
                 temp_path.unlink()
-
-    # Use exiftool for GPS
-    if latitude is not None and longitude is not None and shutil.which('exiftool'):
-        lat_ref = 'N' if latitude >= 0 else 'S'
-        lon_ref = 'E' if longitude >= 0 else 'W'
-
-        cmd = [
-            'exiftool',
-            '-overwrite_original',
-            f'-GPSLatitude={abs(latitude)}',
-            f'-GPSLatitudeRef={lat_ref}',
-            f'-GPSLongitude={abs(longitude)}',
-            f'-GPSLongitudeRef={lon_ref}',
-            f'-Keys:GPSCoordinates={latitude}, {longitude}',
-            str(video_path)
-        ]
-
-        subprocess.run(
-            cmd,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-            timeout=30
-        )
+    except Exception as e:
+        if temp_path.exists():
+            temp_path.unlink()
+        print(f"Warning: Failed to write metadata to {video_path.name}: {e}")
