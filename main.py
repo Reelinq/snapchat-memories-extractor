@@ -18,6 +18,24 @@ with open(json_path, 'r', encoding='utf-8') as f:
 downloads_folder = "downloads"
 os.makedirs(downloads_folder, exist_ok=True)
 
+# Track used names to avoid overwrites; seed with existing files
+used_names = set()
+try:
+    used_names = {p.name for p in Path(downloads_folder).iterdir() if p.is_file()}
+except Exception:
+    used_names = set()
+
+# Resolve duplicate filenames by appending Windows-style " (n)" before extension
+def resolve_unique_path(path: str) -> str:
+    base, ext = os.path.splitext(path)
+    candidate = path
+    suffix = 1
+    while os.path.exists(candidate) or os.path.basename(candidate) in used_names:
+        candidate = f"{base} ({suffix}){ext}"
+        suffix += 1
+    used_names.add(os.path.basename(candidate))
+    return candidate
+
 # Keep raw items to enable pruning of successful downloads
 raw_items = data.get('Saved Media', [])
 success_indices = set()
@@ -83,7 +101,8 @@ for index, item in enumerate(raw_items, 1):
             content_bytes = response.content
             image = (memory.media_type == "Image")
 
-        # Save file once, then write metadata based on handling mode
+        # Resolve final unique path and save once, then write metadata
+        filepath = resolve_unique_path(filepath)
         with open(filepath, 'wb') as f:
             f.write(content_bytes)
 
@@ -101,14 +120,9 @@ for index, item in enumerate(raw_items, 1):
         total_bytes += file_size
         successful += 1
         success_indices.add(index - 1)
-        # Persist JSON after each success (remove current item by URL match)
-        data['Saved Media'] = [
-            itm for itm in data.get('Saved Media', [])
-            if not (
-                (memory.media_download_url and itm.get('Media Download Url') == memory.media_download_url)
-                or (memory.download_link and itm.get('Download Link') == memory.download_link)
-            )
-        ]
+        # Persist JSON after each success
+        remaining = [itm for i, itm in enumerate(raw_items) if i not in success_indices]
+        data['Saved Media'] = remaining
         with open(json_path, 'w', encoding='utf-8') as f:
             json.dump(data, f, ensure_ascii=False, indent=4)
 
@@ -146,6 +160,7 @@ for index, item in enumerate(raw_items, 1):
                     content_bytes = response.content
                     image = (memory.media_type == "Image")
 
+                filepath = resolve_unique_path(filepath)
                 with open(filepath, 'wb') as f:
                     f.write(content_bytes)
 
@@ -163,13 +178,8 @@ for index, item in enumerate(raw_items, 1):
                 total_bytes += file_size
                 successful += 1
                 success_indices.add(index - 1)
-                data['Saved Media'] = [
-                    itm for itm in data.get('Saved Media', [])
-                    if not (
-                        (memory.media_download_url and itm.get('Media Download Url') == memory.media_download_url)
-                        or (memory.download_link and itm.get('Download Link') == memory.download_link)
-                    )
-                ]
+                remaining = [itm for i, itm in enumerate(raw_items) if i not in success_indices]
+                data['Saved Media'] = remaining
                 with open(json_path, 'w', encoding='utf-8') as f:
                     json.dump(data, f, ensure_ascii=False, indent=4)
             except Exception:
