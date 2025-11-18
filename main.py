@@ -25,13 +25,13 @@ try:
 except Exception:
     used_names = set()
 
-# Resolve duplicate filenames by appending Windows-style " (n)" before extension
+# Resolve duplicate filenames by appending _n suffix before extension
 def resolve_unique_path(path: str) -> str:
     base, ext = os.path.splitext(path)
     candidate = path
     suffix = 1
     while os.path.exists(candidate) or os.path.basename(candidate) in used_names:
-        candidate = f"{base} ({suffix}){ext}"
+        candidate = f"{base}_{suffix}{ext}"
         suffix += 1
     used_names.add(os.path.basename(candidate))
     return candidate
