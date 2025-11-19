@@ -1,25 +1,35 @@
 from typing import Optional
-from pydantic import BaseModel, Field
+from datetime import datetime
+from pydantic import BaseModel, Field, model_validator
 
 class Memory(BaseModel):
     date: str = Field(alias="Date")
-    download_link: Optional[str] = Field(default=None, alias="Download Link")
-    media_download_url: Optional[str] = Field(default=None, alias="Media Download Url")
+    media_download_url: str = Field(alias="Media Download Url")
     media_type: str = Field(alias="Media Type")
     location: Optional[str] = Field(default=None, alias="Location")
+
+    exif_datetime: str = ""
+    video_creation_time: str = ""
+
+
+    @model_validator(mode='after')
+    def parse_datetime(self):
+        dt = datetime.strptime(self.date, "%Y-%m-%d %H:%M:%S UTC")
+        self.exif_datetime = dt.strftime("%Y:%m:%d %H:%M:%S")
+        self.video_creation_time = dt.strftime("%Y-%m-%dT%H:%M:%S")
+        return self
+
 
     @property
     def filename(self) -> str:
         date_part = self.date.split(" UTC")[0]
         return date_part.replace(" ", "_").replace(":", "-")
 
+
     @property
     def extension(self) -> str:
         return ".jpg" if self.media_type == "Image" else ".mp4"
 
-    @property
-    def preferred_url(self) -> Optional[str]:
-        return self.media_download_url or self.download_link
 
     @property
     def filename_with_ext(self) -> str:
