@@ -1,5 +1,6 @@
 import sys
 import unicodedata
+
 # Convert bytes to human readable format
 def format_size(bytes):
     for unit in ['B', 'KB', 'MB', 'GB']:
@@ -7,6 +8,7 @@ def format_size(bytes):
             return f"{bytes:.1f}{unit}"
         bytes /= 1024.0
     return f"{bytes:.1f}TB"
+
 
 # Convert seconds to human readable format
 def format_time(seconds):
@@ -17,10 +19,12 @@ def format_time(seconds):
     else:
         return f"{seconds//3600:.0f}h {(seconds%3600)//60:.0f}m"
 
+
 # Clear n lines in terminal
 def clear_lines(n):
     for _ in range(n):
         sys.stdout.write('\033[F\033[K')
+
 
 # Compute displayed width of a string in terminal (accounts for emojis)
 def display_width(s: str) -> int:
@@ -43,11 +47,13 @@ def display_width(s: str) -> int:
         w += 1
     return w
 
+
 # Pad content to exact visible width (total_width columns)
 def pad_line(content, total_width=70):
     vis = display_width(content)
     padding_needed = total_width - vis
     return content + (' ' * max(0, padding_needed))
+
 
 def print_status(current, total, successful, failed, elapsed_time, current_file=""):
     remaining = total - current
@@ -94,6 +100,7 @@ def print_status(current, total, successful, failed, elapsed_time, current_file=
     print(f"╠{'═'*70}╣")
     print(f"║{pad_line(line5)}║")
     print(f"╚{'═'*70}╝")
+
 
 # Update progress display for current download
 def update_progress(index, total_files, successful, failed, start_time, filename):
