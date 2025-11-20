@@ -15,9 +15,9 @@ class ImageMetadataWriter:
 
             self._write_datetime(exif_dict)
 
-            location_coords = self.memory.location.replace('Latitude, Longitude: ', '')
-            latitude, longitude = map(float, location_coords.split(', '))
-            if not (latitude == 0.0 and longitude == 0.0):
+            coords = self.memory.location_coords
+            if coords:
+                latitude, longitude = coords
                 self._write_gps(exif_dict, latitude, longitude)
 
             exif_bytes = piexif.dump(exif_dict)
@@ -65,9 +65,9 @@ class VideoMetadataWriter:
     def write_metadata(self, file_path: Path) -> None:
         metadata_args = self._write_datetime()
 
-        location_coords = self.memory.location.replace('Latitude, Longitude: ', '')
-        latitude, longitude = map(float, location_coords.split(', '))
-        if not (latitude == 0.0 and longitude == 0.0):
+        coords = self.memory.location_coords
+        if coords:
+            latitude, longitude = coords
             metadata_args.extend(self._write_gps(latitude, longitude))
 
         # Run ffmpeg

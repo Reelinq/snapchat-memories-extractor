@@ -34,3 +34,14 @@ class Memory(BaseModel):
     @property
     def filename_with_ext(self) -> str:
         return f"{self.filename}{self.extension}"
+
+
+    @property
+    def location_coords(self) -> tuple[float, float] | None:
+        location_coords = self.location.replace('Latitude, Longitude: ', '')
+        latitude, longitude = map(float, location_coords.split(', '))
+
+        if latitude == 0.0 and longitude == 0.0:
+            return None
+
+        return (latitude, longitude)
