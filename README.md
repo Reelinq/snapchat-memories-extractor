@@ -19,7 +19,7 @@ Download all your Snapchat memories with metadata (date, location) embedded dire
 
 1. **Clone or download this repository**
    ```bash
-   git clone git@github.com:Reelinq/snapchat-memories-extractor.git
+   git clone https://github.com/Reelinq/snapchat-memories-extractor.git
    cd snapchat-memories-extractor
    ```
 
@@ -34,7 +34,7 @@ Download all your Snapchat memories with metadata (date, location) embedded dire
    **macOS/Linux:**
    ```bash
    python3 -m venv .venv
-   source .venv/bin/activate
+   source .venv/Scripts/activate
    ```
 
 3. **Install all dependencies**
