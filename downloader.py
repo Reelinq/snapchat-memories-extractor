@@ -1,6 +1,8 @@
 import json
 import time
 from typing import List, Dict
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import threading
 import requests
 from config import Config
 from models import Memory
@@ -22,6 +24,12 @@ class MemoryDownloader:
         self.start_time = 0.0
         self.errors: List[Dict[str, str]] = []
 
+        # Thread synchronization
+        self.stats_lock = threading.Lock()
+        self.json_lock = threading.Lock()
+        self.display_lock = threading.Lock()
+        self.ui_shown = False
+
 
     def run(self) -> None:
         data = self._load_json()
@@ -29,29 +37,83 @@ class MemoryDownloader:
         success_indices = set()
         total_files = len(raw_items)
         self.start_time = time.time()
+        completed_count = 0
 
-        for index, item in enumerate(raw_items, 1):
-            memory = Memory.model_validate(item)
-            filename = memory.filename_with_ext
+        # Create memory objects with their indices
+        tasks = [(index, Memory.model_validate(item)) for index, item in enumerate(raw_items)]
 
-            update_progress(index, total_files, self.successful, self.failed, self.start_time, filename)
+        with ThreadPoolExecutor(max_workers=self.config.max_concurrent_downloads) as executor:
+            future_to_task = {
+                executor.submit(self._download_task, index, memory): (index, memory)
+                for index, memory in tasks
+            }
 
-            try:
-                if self._download_and_process(memory):
-                    self.successful += 1
-                    success_indices.add(index - 1)
-                    self._prune_json(data, raw_items, success_indices)
-                else:
-                    self.failed += 1
-            except Exception as e:
-                self.failed += 1
-                self.errors.append({
-                    'filename': filename,
-                    'url': memory.media_download_url,
-                    'code': 'ERR'
-                })
+            # Process completed tasks
+            for future in as_completed(future_to_task):
+                index, memory = future_to_task[future]
+                completed_count += 1
 
-        self._prune_json(data, raw_items, success_indices)
+                try:
+                    success = future.result()
+
+                    with self.stats_lock:
+                        if success:
+                            self.successful += 1
+                            success_indices.add(index)
+                        else:
+                            self.failed += 1
+
+                        # Capture current stats for display
+                        current_successful = self.successful
+                        current_failed = self.failed
+
+                    # Update progress display outside the lock
+                    with self.display_lock:
+                        if self.ui_shown:
+                            clear_lines(11)
+                        self.ui_shown = True
+                        print_status(
+                            completed_count,
+                            total_files,
+                            current_successful,
+                            current_failed,
+                            time.time() - self.start_time,
+                            f"Downloading: {memory.filename_with_ext}"
+                        )
+
+                    # Periodically prune the JSON file
+                    if len(success_indices) % 10 == 0:
+                        with self.json_lock:
+                            self._prune_json(data, raw_items, success_indices)
+
+                except Exception as e:
+                    with self.stats_lock:
+                        self.failed += 1
+                        current_failed = self.failed
+                        self.errors.append({
+                            'filename': memory.filename_with_ext,
+                            'url': memory.media_download_url,
+                            'code': 'ERR'
+                        })
+
+                    # Update progress for failed download
+                    with self.display_lock:
+                        if self.ui_shown:
+                            clear_lines(11)
+                        self.ui_shown = True
+                        print_status(
+                            completed_count,
+                            total_files,
+                            self.successful,
+                            current_failed,
+                            time.time() - self.start_time,
+                            f"Downloading: {memory.filename_with_ext}"
+                        )
+
+        # Final prune
+        with self.json_lock:
+            self._prune_json(data, raw_items, success_indices)
+
         clear_lines(10)
         total_time = time.time() - self.start_time
         print_status(total_files, total_files, self.successful, self.failed, total_time, "✅ COMPLETE!")
@@ -65,17 +127,31 @@ class MemoryDownloader:
             return json.load(file)
 
 
+    def _download_task(self, index: int, memory: Memory) -> bool:
+        try:
+            return self._download_and_process(memory)
+        except Exception as e:
+            with self.stats_lock:
+                self.errors.append({
+                    'filename': memory.filename_with_ext,
+                    'url': memory.media_download_url,
+                    'code': 'ERR'
+                })
+            return False
+
+
     def _download_and_process(self, memory: Memory) -> bool:
         try:
             response = requests.get(memory.media_download_url, timeout=self.config.request_timeout)
 
             # Check status code and extract it before raising
             if response.status_code >= 400:
-                self.errors.append({
-                    'filename': memory.filename_with_ext,
-                    'url': memory.media_download_url,
-                    'code': str(response.status_code)
-                })
+                with self.stats_lock:
+                    self.errors.append({
+                        'filename': memory.filename_with_ext,
+                        'url': memory.media_download_url,
+                        'code': str(response.status_code)
+                    })
                 return False
 
             response.raise_for_status()
@@ -91,18 +167,20 @@ class MemoryDownloader:
                 return self._process_regular(response.content, memory)
 
         except requests.exceptions.RequestException as e:
-            self.errors.append({
-                'filename': memory.filename_with_ext,
-                'url': memory.media_download_url,
-                'code': 'NET'
-            })
+            with self.stats_lock:
+                self.errors.append({
+                    'filename': memory.filename_with_ext,
+                    'url': memory.media_download_url,
+                    'code': 'NET'
+                })
             return False
         except Exception as e:
-            self.errors.append({
-                'filename': memory.filename_with_ext,
-                'url': memory.media_download_url,
-                'code': 'ERR'
-            })
+            with self.stats_lock:
+                self.errors.append({
+                    'filename': memory.filename_with_ext,
+                    'url': memory.media_download_url,
+                    'code': 'ERR'
+                })
             return False
 
 
@@ -120,17 +198,19 @@ class MemoryDownloader:
             writer = ImageMetadataWriter(memory) if is_image else VideoMetadataWriter(memory, self.config.ffmpeg_timeout)
             writer.write_metadata(filepath)
 
-            self.total_bytes += filepath.stat().st_size
+            with self.stats_lock:
+                self.total_bytes += filepath.stat().st_size
             return True
 
         except Exception as e:
             if filepath:
                 filepath.unlink(missing_ok=True)
-            self.errors.append({
-                'filename': memory.filename_with_ext,
-                'url': memory.media_download_url,
-                'code': 'ZIP'
-            })
+            with self.stats_lock:
+                self.errors.append({
+                    'filename': memory.filename_with_ext,
+                    'url': memory.media_download_url,
+                    'code': 'ZIP'
+                })
             return False
 
 
@@ -145,16 +225,18 @@ class MemoryDownloader:
             writer = ImageMetadataWriter(memory) if is_image else VideoMetadataWriter(memory, self.config.ffmpeg_timeout)
             writer.write_metadata(filepath)
 
-            self.total_bytes += filepath.stat().st_size
+            with self.stats_lock:
+                self.total_bytes += filepath.stat().st_size
             return True
 
         except Exception as e:
             filepath.unlink(missing_ok=True)
-            self.errors.append({
-                'filename': memory.filename_with_ext,
-                'url': memory.media_download_url,
-                'code': 'FILE'
-            })
+            with self.stats_lock:
+                self.errors.append({
+                    'filename': memory.filename_with_ext,
+                    'url': memory.media_download_url,
+                    'code': 'FILE'
+                })
             return False
 
 
