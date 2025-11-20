@@ -7,7 +7,7 @@ from models import Memory
 from filename_resolver import FileNameResolver
 from zip_processor import ZipProcessor
 from metadata_writers import ImageMetadataWriter, VideoMetadataWriter
-from ui import print_status, update_progress, clear_lines
+from ui import print_status, update_progress, clear_lines, print_error_summary
 
 class MemoryDownloader:
     def __init__(self, config: Config):
@@ -20,6 +20,7 @@ class MemoryDownloader:
         self.failed = 0
         self.total_bytes = 0
         self.start_time = 0.0
+        self.errors: List[Dict[str, str]] = []
 
 
     def run(self) -> None:
@@ -42,13 +43,21 @@ class MemoryDownloader:
                     self._prune_json(data, raw_items, success_indices)
                 else:
                     self.failed += 1
-            except Exception:
+            except Exception as e:
                 self.failed += 1
+                self.errors.append({
+                    'filename': filename,
+                    'url': memory.media_download_url,
+                    'code': 'ERR'
+                })
 
         self._prune_json(data, raw_items, success_indices)
         clear_lines(10)
         total_time = time.time() - self.start_time
         print_status(total_files, total_files, self.successful, self.failed, total_time, "✅ COMPLETE!")
+
+        if self.errors:
+            print_error_summary(self.errors)
 
 
     def _load_json(self) -> Dict:
@@ -59,6 +68,16 @@ class MemoryDownloader:
     def _download_and_process(self, memory: Memory) -> bool:
         try:
             response = requests.get(memory.media_download_url, timeout=self.config.request_timeout)
+
+            # Check status code and extract it before raising
+            if response.status_code >= 400:
+                self.errors.append({
+                    'filename': memory.filename_with_ext,
+                    'url': memory.media_download_url,
+                    'code': str(response.status_code)
+                })
+                return False
+
             response.raise_for_status()
 
             is_zip = self.content_processor.is_zip(
@@ -71,11 +90,24 @@ class MemoryDownloader:
             else:
                 return self._process_regular(response.content, memory)
 
-        except Exception:
+        except requests.exceptions.RequestException as e:
+            self.errors.append({
+                'filename': memory.filename_with_ext,
+                'url': memory.media_download_url,
+                'code': 'NET'
+            })
+            return False
+        except Exception as e:
+            self.errors.append({
+                'filename': memory.filename_with_ext,
+                'url': memory.media_download_url,
+                'code': 'ERR'
+            })
             return False
 
 
     def _process_zip(self, content: bytes, memory: Memory) -> bool:
+        filepath = None
         try:
             media_bytes, extension = self.content_processor.extract_media_from_zip(content)
 
@@ -91,9 +123,14 @@ class MemoryDownloader:
             self.total_bytes += filepath.stat().st_size
             return True
 
-        except Exception:
-            if filepath.exists():
-                filepath.unlink()
+        except Exception as e:
+            if filepath:
+                filepath.unlink(missing_ok=True)
+            self.errors.append({
+                'filename': memory.filename_with_ext,
+                'url': memory.media_download_url,
+                'code': 'ZIP'
+            })
             return False
 
 
@@ -111,9 +148,13 @@ class MemoryDownloader:
             self.total_bytes += filepath.stat().st_size
             return True
 
-        except Exception:
-            if filepath.exists():
-                filepath.unlink()
+        except Exception as e:
+            filepath.unlink(missing_ok=True)
+            self.errors.append({
+                'filename': memory.filename_with_ext,
+                'url': memory.media_download_url,
+                'code': 'FILE'
+            })
             return False
 
 
