@@ -19,7 +19,7 @@ Download all your Snapchat memories with metadata (date, location) embedded dire
 
 1. **Clone or download this repository**
    ```bash
-   git clone https://github.com/yourusername/snapchat-memories-extractor.git
+   git clone git@github.com:Reelinq/snapchat-memories-extractor.git
    cd snapchat-memories-extractor
    ```
 
