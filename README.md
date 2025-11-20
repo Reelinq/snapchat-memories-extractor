@@ -57,6 +57,39 @@ Download all your Snapchat memories with metadata (date, location) embedded dire
 
 Your files will be saved to `downloads/` with full metadata embedded.
 
+## Command-Line Arguments
+
+The downloader supports command-line arguments to customize behavior:
+
+### `--concurrent N`
+
+Control the number of simultaneous downloads.
+
+**Default**: `5` concurrent downloads
+
+**Examples**:
+```bash
+# Use default (5 concurrent downloads)
+python main.py
+
+# Conservative - 3 concurrent downloads
+python main.py --concurrent 3
+
+# Faster - 10 concurrent downloads
+python main.py --concurrent 10
+
+# Sequential - 1 download at a time (slowest, but safest)
+python main.py --concurrent 1
+```
+
+**Recommendations**:
+- **3-5 concurrent downloads**: Safe default, respectful to Snapchat's servers
+- **10-15 concurrent downloads**: Faster, works well on most home connections
+- **20+ concurrent downloads**: May trigger rate limiting or server throttling
+- **1 concurrent download**: Use only if experiencing connection issues
+
+⚠️ **Note**: Setting too high may result in rate limiting or failed downloads. If you experience issues, reduce the concurrent value.
+
 ## Troubleshooting
 
 ### Download links expired
