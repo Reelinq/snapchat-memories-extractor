@@ -145,6 +145,8 @@ python main.py --no-overlay
 
 </details>
 
+---
+
 ## 🔧 Troubleshooting
 
 <details>
