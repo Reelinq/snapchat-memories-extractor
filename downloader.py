@@ -234,9 +234,10 @@ class MemoryDownloader:
                 filepath.write_bytes(media_bytes)
 
             # Write metadata for all files
-            is_image = memory.media_type == "Image"
-            writer = ImageMetadataWriter(memory) if is_image else VideoMetadataWriter(memory, self.config.ffmpeg_timeout)
-            writer.write_metadata(filepath)
+            if self.config.write_metadata:
+                is_image = memory.media_type == "Image"
+                writer = ImageMetadataWriter(memory) if is_image else VideoMetadataWriter(memory, self.config.ffmpeg_timeout)
+                writer.write_metadata(filepath)
 
             with self.stats_lock:
                 self.total_bytes += filepath.stat().st_size
@@ -261,9 +262,10 @@ class MemoryDownloader:
         try:
             filepath.write_bytes(content)
 
-            is_image = memory.media_type == "Image"
-            writer = ImageMetadataWriter(memory) if is_image else VideoMetadataWriter(memory, self.config.ffmpeg_timeout)
-            writer.write_metadata(filepath)
+            if self.config.write_metadata:
+                is_image = memory.media_type == "Image"
+                writer = ImageMetadataWriter(memory) if is_image else VideoMetadataWriter(memory, self.config.ffmpeg_timeout)
+                writer.write_metadata(filepath)
 
             with self.stats_lock:
                 self.total_bytes += filepath.stat().st_size

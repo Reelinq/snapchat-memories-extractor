@@ -11,6 +11,7 @@ class Config:
     ffmpeg_timeout: int = 60
     max_concurrent_downloads: int = 5
     apply_overlay: bool = True  # Default is to apply PNG overlay
+    write_metadata: bool = True  # Default is to write metadata to photos and videos
     max_attempts: int = 3  # Number of times to run the entire download process
 
 
@@ -33,6 +34,11 @@ class Config:
             help='Skip applying PNG overlay on media (default: overlay is applied)'
         )
         parser.add_argument(
+            '--no-metadata',
+            action='store_true',
+            help='Skip writing metadata to photos and videos (default: metadata is written)'
+        )
+        parser.add_argument(
             '--attempts',
             type=int,
             default=3,
@@ -44,5 +50,6 @@ class Config:
         return cls(
             max_concurrent_downloads=args.concurrent,
             apply_overlay=not args.no_overlay,
+            write_metadata=not args.no_metadata,
             max_attempts=args.attempts
         )
