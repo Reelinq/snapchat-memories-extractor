@@ -75,7 +75,7 @@ python main.py
 You can customize the downloader's behavior using command-line arguments:
 
 <details>
-<summary><b>🔄 Concurrent Downloads: --concurrent N</b></summary>
+<summary><b>🔄 Concurrent Downloads: -c / --concurrent N</b></summary>
 
 **What it does:**
 - Controls the number of simultaneous downloads
@@ -92,17 +92,17 @@ python main.py
 
 Conservative - 3 concurrent downloads:
 ```bash
-python main.py --concurrent 3
+python main.py -c 3
 ```
 
 Faster - 10 concurrent downloads:
 ```bash
-python main.py --concurrent 10
+python main.py -c 10
 ```
 
 Sequential - 1 download at a time (slowest, but safest):
 ```bash
-python main.py --concurrent 1
+python main.py -c 1
 ```
 
 **💡 Recommendations:**
@@ -116,7 +116,7 @@ python main.py --concurrent 1
 </details>
 
 <details>
-<summary><b>🔁 Retry Attempts: --attempts N</b></summary>
+<summary><b>🔁 Retry Attempts: -a / --attempts N</b></summary>
 
 **What it does:**
 - Automatically retries the entire download process if files fail
@@ -133,12 +133,12 @@ python main.py
 
 Single attempt - no retries:
 ```bash
-python main.py --attempts 1
+python main.py -a 1
 ```
 
 Aggressive retries - try up to 5 times:
 ```bash
-python main.py --attempts 5
+python main.py -a 5
 ```
 
 **💡 Recommendations:**
@@ -157,7 +157,7 @@ python main.py --attempts 5
 </details>
 
 <details>
-<summary><b>🎨 Media Overlays: --no-overlay</b></summary>
+<summary><b>🎨 Media Overlays: -O / --no-overlay</b></summary>
 
 **What it does:**
 - Snapchat stores your memories with separate layers for text, stickers, drawings, etc. you added
@@ -175,7 +175,7 @@ python main.py
 
 Skip overlays - downloads original photos/videos WITHOUT any edits:
 ```bash
-python main.py --no-overlay
+python main.py -O
 ```
 
 **💡 Recommendations:**
@@ -187,7 +187,7 @@ python main.py --no-overlay
 </details>
 
 <details>
-<summary><b>📝 Metadata Embedding: --no-metadata</b></summary>
+<summary><b>📝 Metadata Embedding: -M / --no-metadata</b></summary>
 
 **What it does:**
 - **By default**, this tool embeds date/time and GPS location metadata into your downloaded photos and videos
@@ -204,7 +204,7 @@ python main.py
 
 Skip metadata - downloads files WITHOUT embedded metadata:
 ```bash
-python main.py --no-metadata
+python main.py -M
 ```
 
 **💡 Recommendations:**
