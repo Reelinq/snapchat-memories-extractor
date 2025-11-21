@@ -186,6 +186,35 @@ python main.py --no-overlay
 
 </details>
 
+<details>
+<summary><b>📝 Metadata Embedding: --no-metadata</b></summary>
+
+**What it does:**
+- **By default**, this tool embeds date/time and GPS location metadata into your downloaded photos and videos
+- **Images**: Writes EXIF data (DateTimeOriginal, GPS coordinates) directly into the image file
+- **Videos**: Writes creation time and GPS location into the video metadata
+- Use `--no-metadata` if you want to skip writing metadata entirely
+
+**Examples**:
+
+Default behavior - embeds date/time and location metadata:
+```bash
+python main.py
+```
+
+Skip metadata - downloads files WITHOUT embedded metadata:
+```bash
+python main.py --no-metadata
+```
+
+**💡 Recommendations:**
+- **Default (with metadata)**: Best for organizing photos by date and viewing them in photo apps with proper timestamps and locations
+- **With `--no-metadata`**: Use if you prefer to manage metadata separately or want faster downloads (metadata writing adds processing time)
+
+> **Note**: When metadata is embedded, your photos will display the correct capture date in photo viewers, and you can view the location where each memory was taken (if location data was available).
+
+</details>
+
 ---
 
 ## 🔧 Troubleshooting
