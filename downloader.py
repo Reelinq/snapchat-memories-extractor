@@ -32,6 +32,24 @@ class MemoryDownloader:
 
 
     def run(self) -> None:
+        for run_attempt in range(self.config.max_attempts):
+            if run_attempt > 0:
+                print(f"\n🔄 Starting attempt {run_attempt + 1}/{self.config.max_attempts}...\n")
+                time.sleep(2)
+
+                self.successful = 0
+                self.failed = 0
+                self.total_bytes = 0
+                self.errors.clear()
+                self.ui_shown = False
+
+            self._run_download_batch()
+
+            if self.failed == 0 or run_attempt == self.config.max_attempts - 1:
+                break
+
+
+    def _run_download_batch(self) -> None:
         data = self._load_json()
         raw_items = data.get('Saved Media', [])
         success_indices = set()

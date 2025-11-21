@@ -11,6 +11,7 @@ class Config:
     ffmpeg_timeout: int = 60
     max_concurrent_downloads: int = 5
     apply_overlay: bool = True  # Default is to apply PNG overlay
+    max_attempts: int = 3  # Number of times to run the entire download process
 
 
     def __post_init__(self):
@@ -31,9 +32,17 @@ class Config:
             action='store_true',
             help='Skip applying PNG overlay on media (default: overlay is applied)'
         )
+        parser.add_argument(
+            '--attempts',
+            type=int,
+            default=3,
+            metavar='N',
+            help='Number of times to run the entire download process (default: 3)'
+        )
         args = parser.parse_args()
 
         return cls(
             max_concurrent_downloads=args.concurrent,
-            apply_overlay=not args.no_overlay
+            apply_overlay=not args.no_overlay,
+            max_attempts=args.attempts
         )
