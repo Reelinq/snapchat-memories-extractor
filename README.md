@@ -5,6 +5,7 @@ Download all your Snapchat memories with metadata (date, location) embedded dire
 ## Features
 
 - ✅ Downloads images and videos from Snapchat export JSON
+- ✅ **Automatically overlays PNG captions** on photos and videos from ZIP archives
 - ✅ Embeds EXIF metadata (date taken, GPS coordinates) into images
 - ✅ Writes creation time and GPS into video files
 - ✅ Progressive JSON pruning (safe to Ctrl+C and resume)
@@ -63,22 +64,31 @@ The downloader supports command-line arguments to customize behavior:
 
 ### `--concurrent N`
 
-Control the number of simultaneous downloads.
-
-**Default**: `5` concurrent downloads
+**What it does**:
+- Controls the number of simultaneous downloads
+- **Default**: `5` concurrent downloads
+- Higher values = faster downloads, but may trigger rate limiting
+- Lower values = slower but more stable
 
 **Examples**:
+
+Use default (5 concurrent downloads):
 ```bash
-# Use default (5 concurrent downloads)
 python main.py
+```
 
-# Conservative - 3 concurrent downloads
+Conservative - 3 concurrent downloads:
+```bash
 python main.py --concurrent 3
+```
 
-# Faster - 10 concurrent downloads
+Faster - 10 concurrent downloads:
+```bash
 python main.py --concurrent 10
+```
 
-# Sequential - 1 download at a time (slowest, but safest)
+Sequential - 1 download at a time (slowest, but safest):
+```bash
 python main.py --concurrent 1
 ```
 
@@ -89,6 +99,33 @@ python main.py --concurrent 1
 - **1 concurrent download**: Use only if experiencing connection issues
 
 ⚠️ **Note**: Setting too high may result in rate limiting or failed downloads. If you experience issues, reduce the concurrent value.
+
+### `--no-overlay`
+
+**What it does**:
+- Snapchat stores your memories with separate layers for text, stickers, drawings, etc. you added
+- **By default**, this tool automatically applies those edits on top of your photos and videos, just like you see them in the Snapchat app
+- **Images**: Text, stickers, drawings, etc. are permanently added to the image
+- **Videos**: Text, stickers, drawings, etc. are burned into the video throughout playback
+- Use `--no-overlay` if you want the original media **without** any of your edits
+
+**Examples**:
+
+Default behavior - downloads photos/videos WITH text, stickers, drawings, etc.:
+```bash
+python main.py
+```
+
+Skip overlays - downloads original photos/videos WITHOUT any edits:
+```bash
+python main.py --no-overlay
+```
+
+**Recommendations**:
+- **Default (with overlays)**: Best for preserving your memories exactly as you saved them in Snapchat
+- **With `--no-overlay`**: Best if you want clean, unedited original photos/videos for editing or archival purposes
+
+**Example**: If you saved a photo with "Best day ever! 🎉" text, heart stickers, and some doodles on it in Snapchat, the default download will include all of that. With `--no-overlay`, you get the clean original photo without any edits.
 
 ## Troubleshooting
 
