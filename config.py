@@ -22,28 +22,28 @@ class Config:
     def from_args(cls) -> 'Config':
         parser = argparse.ArgumentParser(description='Snapchat Memories Downloader')
         parser.add_argument(
-            '--concurrent',
+           '--concurrent', '-c',
             type=int,
             default=5,
             metavar='N',
-            help='Number of concurrent downloads (default: 5)'
+            help='Concurrent downloads (default: 5). Short: -c'
         )
         parser.add_argument(
-            '--no-overlay',
+            '--no-overlay', '-O',
             action='store_true',
-            help='Skip applying PNG overlay on media (default: overlay is applied)'
+            help='Skip applying PNG overlay (default: overlay applied). Short: -O'
         )
         parser.add_argument(
-            '--no-metadata',
+            '--no-metadata', '-M',
             action='store_true',
-            help='Skip writing metadata to photos and videos (default: metadata is written)'
+            help='Skip writing metadata (default: metadata written). Short: -M'
         )
         parser.add_argument(
-            '--attempts',
+            '--attempts', '-a',
             type=int,
             default=3,
             metavar='N',
-            help='Number of times to run the entire download process (default: 3)'
+            help='Max retry attempts (default: 3). Short: -a'
         )
         args = parser.parse_args()
 
