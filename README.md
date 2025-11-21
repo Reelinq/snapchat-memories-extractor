@@ -75,7 +75,7 @@ python main.py
 You can customize the downloader's behavior using command-line arguments:
 
 <details>
-<summary><b>🔄 Concurrent Downloads: `--concurrent N`</b></summary>
+<summary><b>🔄 Concurrent Downloads: --concurrent N</b></summary>
 
 **What it does:**
 - Controls the number of simultaneous downloads
@@ -116,7 +116,48 @@ python main.py --concurrent 1
 </details>
 
 <details>
-<summary><b>🎨 Media Overlays: `--no-overlay`</b></summary>
+<summary><b>🔁 Retry Attempts: --attempts N</b></summary>
+
+**What it does:**
+- Automatically retries the entire download process if files fail
+- **Default**: `3` attempts (runs the download process up to 3 times)
+- Useful for handling temporary network errors, server timeouts, or rate limiting
+- Stops early if all downloads succeed before max attempts
+
+**Examples**:
+
+Default - try up to 3 times:
+```bash
+python main.py
+```
+
+Single attempt - no retries:
+```bash
+python main.py --attempts 1
+```
+
+Aggressive retries - try up to 5 times:
+```bash
+python main.py --attempts 5
+```
+
+**💡 Recommendations:**
+- **3 attempts** (default): Good balance for most situations
+- **1 attempt**: Use if you want manual control over retries
+- **5+ attempts**: Use for unstable connections or large archives
+
+**How it works:**
+1. First attempt downloads all files from the JSON
+2. If any files fail, waits 2 seconds then retries ALL failed files
+3. Continues until all files succeed or max attempts reached
+4. Progress resets between attempts for clarity
+
+> **Example**: If 5 out of 100 files fail on attempt 1, attempt 2 only retries those 5 failed files.
+
+</details>
+
+<details>
+<summary><b>🎨 Media Overlays: --no-overlay</b></summary>
 
 **What it does:**
 - Snapchat stores your memories with separate layers for text, stickers, drawings, etc. you added
@@ -157,7 +198,7 @@ Snapchat download links expire after a period of time. If downloads fail, try to
 </details>
 
 <details>
-<summary><b>📄 Missing `memories_history.json`</b></summary>
+<summary><b>📄 Missing 'memories_history.json'</b></summary>
 
 When exporting your data from Snapchat, make sure you select **both** options:
 - ✅ **Export your Memories**
