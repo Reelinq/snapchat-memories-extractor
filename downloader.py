@@ -187,13 +187,35 @@ class MemoryDownloader:
     def _process_zip(self, content: bytes, memory: Memory) -> bool:
         filepath = None
         try:
-            media_bytes, extension = self.content_processor.extract_media_from_zip(content)
+            media_bytes, extension, overlay_png = self.content_processor.extract_media_from_zip(
+                content,
+                extract_overlay=self.config.apply_overlay
+            )
 
-            filepath = self.config.downloads_folder / f"{memory.filename}{extension}"
-            filepath = self.filename_resolver.resolve_unique_path(filepath)
+            # Apply overlay if enabled
+            if self.config.apply_overlay and overlay_png:
+                is_image = memory.media_type == "Image"
 
-            filepath.write_bytes(media_bytes)
+                if is_image:
+                    media_bytes = self.content_processor.apply_overlay_to_image(media_bytes, overlay_png)
+                else:
+                    # For videos, apply overlay directly to the output path
+                    filepath = self.config.downloads_folder / f"{memory.filename}{extension}"
+                    filepath = self.filename_resolver.resolve_unique_path(filepath)
 
+                    self.content_processor.apply_overlay_to_video(
+                        media_bytes,
+                        overlay_png,
+                        filepath,
+                        self.config.ffmpeg_timeout
+                    )
+
+            if filepath is None:
+                filepath = self.config.downloads_folder / f"{memory.filename}{extension}"
+                filepath = self.filename_resolver.resolve_unique_path(filepath)
+                filepath.write_bytes(media_bytes)
+
+            # Write metadata for all files
             is_image = memory.media_type == "Image"
             writer = ImageMetadataWriter(memory) if is_image else VideoMetadataWriter(memory, self.config.ffmpeg_timeout)
             writer.write_metadata(filepath)

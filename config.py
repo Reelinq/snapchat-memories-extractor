@@ -10,6 +10,7 @@ class Config:
     request_timeout: int = 30
     ffmpeg_timeout: int = 60
     max_concurrent_downloads: int = 5
+    apply_overlay: bool = True  # Default is to apply PNG overlay
 
 
     def __post_init__(self):
@@ -25,6 +26,14 @@ class Config:
             metavar='N',
             help='Number of concurrent downloads (default: 5)'
         )
+        parser.add_argument(
+            '--no-overlay',
+            action='store_true',
+            help='Skip applying PNG overlay on media (default: overlay is applied)'
+        )
         args = parser.parse_args()
 
-        return cls(max_concurrent_downloads=args.concurrent)
+        return cls(
+            max_concurrent_downloads=args.concurrent,
+            apply_overlay=not args.no_overlay
+        )
