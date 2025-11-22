@@ -3,19 +3,15 @@ import time
 from typing import List, Dict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import threading
-import requests
 from config import Config
 from models import Memory
-from filename_resolver import FileNameResolver
-from zip_processor import ZipProcessor
-from metadata_writers import ImageMetadataWriter, VideoMetadataWriter
+from services.download_service import DownloadService
 from ui.display import print_status, clear_lines, print_error_summary
 
 class MemoryDownloader:
     def __init__(self, config: Config):
         self.config = config
-        self.filename_resolver = FileNameResolver(config.downloads_folder)
-        self.content_processor = ZipProcessor()
+        self.download_service = DownloadService(config)
 
         # Statistics
         self.successful = 0
@@ -147,137 +143,23 @@ class MemoryDownloader:
 
     def _download_task(self, index: int, memory: Memory) -> bool:
         try:
-            return self._download_and_process(memory)
+            success = self.download_service.download_and_process(memory)
+
+            # Merge errors from download service
+            with self.stats_lock:
+                if self.download_service.errors:
+                    self.errors.extend(self.download_service.errors)
+                    self.download_service.errors.clear()
+                self.total_bytes += self.download_service.total_bytes
+                self.download_service.total_bytes = 0
+
+            return success
         except Exception as e:
             with self.stats_lock:
                 self.errors.append({
                     'filename': memory.filename_with_ext,
                     'url': memory.media_download_url,
                     'code': 'ERR'
-                })
-            return False
-
-
-    def _download_and_process(self, memory: Memory) -> bool:
-        try:
-            response = requests.get(memory.media_download_url, timeout=self.config.request_timeout)
-
-            # Check status code and extract it before raising
-            if response.status_code >= 400:
-                with self.stats_lock:
-                    self.errors.append({
-                        'filename': memory.filename_with_ext,
-                        'url': memory.media_download_url,
-                        'code': str(response.status_code)
-                    })
-                return False
-
-            response.raise_for_status()
-
-            is_zip = self.content_processor.is_zip(
-                response.content,
-                response.headers.get('Content-Type', '')
-            )
-
-            if is_zip:
-                return self._process_zip(response.content, memory)
-            else:
-                return self._process_regular(response.content, memory)
-
-        except requests.exceptions.RequestException as e:
-            with self.stats_lock:
-                self.errors.append({
-                    'filename': memory.filename_with_ext,
-                    'url': memory.media_download_url,
-                    'code': 'NET'
-                })
-            return False
-        except Exception as e:
-            with self.stats_lock:
-                self.errors.append({
-                    'filename': memory.filename_with_ext,
-                    'url': memory.media_download_url,
-                    'code': 'ERR'
-                })
-            return False
-
-
-    def _process_zip(self, content: bytes, memory: Memory) -> bool:
-        filepath = None
-        try:
-            media_bytes, extension, overlay_png = self.content_processor.extract_media_from_zip(
-                content,
-                extract_overlay=self.config.apply_overlay
-            )
-
-            # Apply overlay if enabled
-            if self.config.apply_overlay and overlay_png:
-                is_image = memory.media_type == "Image"
-
-                if is_image:
-                    media_bytes = self.content_processor.apply_overlay_to_image(media_bytes, overlay_png)
-                else:
-                    # For videos, apply overlay directly to the output path
-                    filepath = self.config.downloads_folder / f"{memory.filename}{extension}"
-                    filepath = self.filename_resolver.resolve_unique_path(filepath)
-
-                    self.content_processor.apply_overlay_to_video(
-                        media_bytes,
-                        overlay_png,
-                        filepath,
-                        self.config.ffmpeg_timeout
-                    )
-
-            if filepath is None:
-                filepath = self.config.downloads_folder / f"{memory.filename}{extension}"
-                filepath = self.filename_resolver.resolve_unique_path(filepath)
-                filepath.write_bytes(media_bytes)
-
-            # Write metadata for all files
-            if self.config.write_metadata:
-                is_image = memory.media_type == "Image"
-                writer = ImageMetadataWriter(memory) if is_image else VideoMetadataWriter(memory, self.config.ffmpeg_timeout)
-                writer.write_metadata(filepath)
-
-            with self.stats_lock:
-                self.total_bytes += filepath.stat().st_size
-            return True
-
-        except Exception as e:
-            if filepath:
-                filepath.unlink(missing_ok=True)
-            with self.stats_lock:
-                self.errors.append({
-                    'filename': memory.filename_with_ext,
-                    'url': memory.media_download_url,
-                    'code': 'ZIP'
-                })
-            return False
-
-
-    def _process_regular(self, content: bytes, memory: Memory) -> bool:
-        filepath = self.config.downloads_folder / memory.filename_with_ext
-        filepath = self.filename_resolver.resolve_unique_path(filepath)
-
-        try:
-            filepath.write_bytes(content)
-
-            if self.config.write_metadata:
-                is_image = memory.media_type == "Image"
-                writer = ImageMetadataWriter(memory) if is_image else VideoMetadataWriter(memory, self.config.ffmpeg_timeout)
-                writer.write_metadata(filepath)
-
-            with self.stats_lock:
-                self.total_bytes += filepath.stat().st_size
-            return True
-
-        except Exception as e:
-            filepath.unlink(missing_ok=True)
-            with self.stats_lock:
-                self.errors.append({
-                    'filename': memory.filename_with_ext,
-                    'url': memory.media_download_url,
-                    'code': 'FILE'
                 })
             return False
 
