@@ -3,6 +3,7 @@ from filename_resolver import FileNameResolver
 from models import Memory
 from config import Config
 from services.metadata_service import MetadataService
+from services.overlay_service import OverlayService
 from typing import List, Dict
 import requests
 import threading
@@ -13,6 +14,7 @@ class DownloadService:
 		self.filename_resolver = FileNameResolver(config.downloads_folder)
 		self.content_processor = ZipProcessor()
 		self.metadata_service = MetadataService()
+		self.overlay_service = OverlayService()
 		self.stats_lock = threading.Lock()
 		self.errors: List[Dict[str, str]] = []
 		self.total_bytes = 0
@@ -64,11 +66,11 @@ class DownloadService:
 			if self.config.apply_overlay and overlay_png:
 				is_image = memory.media_type == "Image"
 				if is_image:
-					media_bytes = self.content_processor.apply_overlay_to_image(media_bytes, overlay_png)
+					media_bytes = self.overlay_service.apply_overlay_to_image(media_bytes, overlay_png)
 				else:
 					filepath = self.config.downloads_folder / f"{memory.filename}{extension}"
 					filepath = self.filename_resolver.resolve_unique_path(filepath)
-					self.content_processor.apply_overlay_to_video(
+					self.overlay_service.apply_overlay_to_video(
 						media_bytes,
 						overlay_png,
 						filepath,
