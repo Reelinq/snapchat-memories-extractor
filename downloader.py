@@ -9,7 +9,7 @@ from models import Memory
 from filename_resolver import FileNameResolver
 from zip_processor import ZipProcessor
 from metadata_writers import ImageMetadataWriter, VideoMetadataWriter
-from ui import print_status, update_progress, clear_lines, print_error_summary
+from ui.display import print_status, clear_lines, print_error_summary
 
 class MemoryDownloader:
     def __init__(self, config: Config):
