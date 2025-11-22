@@ -2,7 +2,7 @@ from zip_processor import ZipProcessor
 from filename_resolver import FileNameResolver
 from models import Memory
 from config import Config
-from metadata_writers import ImageMetadataWriter, VideoMetadataWriter
+from services.metadata_service import MetadataService
 from typing import List, Dict
 import requests
 import threading
@@ -12,6 +12,7 @@ class DownloadService:
 		self.config = config
 		self.filename_resolver = FileNameResolver(config.downloads_folder)
 		self.content_processor = ZipProcessor()
+		self.metadata_service = MetadataService()
 		self.stats_lock = threading.Lock()
 		self.errors: List[Dict[str, str]] = []
 		self.total_bytes = 0
@@ -79,8 +80,7 @@ class DownloadService:
 				filepath.write_bytes(media_bytes)
 			if self.config.write_metadata:
 				is_image = memory.media_type == "Image"
-				writer = ImageMetadataWriter(memory) if is_image else VideoMetadataWriter(memory, self.config.ffmpeg_timeout)
-				writer.write_metadata(filepath)
+				self.metadata_service.write_metadata(memory, filepath, is_image, self.config.ffmpeg_timeout)
 			with self.stats_lock:
 				self.total_bytes += filepath.stat().st_size
 			return True
@@ -102,8 +102,7 @@ class DownloadService:
 			filepath.write_bytes(content)
 			if self.config.write_metadata:
 				is_image = memory.media_type == "Image"
-				writer = ImageMetadataWriter(memory) if is_image else VideoMetadataWriter(memory, self.config.ffmpeg_timeout)
-				writer.write_metadata(filepath)
+				self.metadata_service.write_metadata(memory, filepath, is_image, self.config.ffmpeg_timeout)
 			with self.stats_lock:
 				self.total_bytes += filepath.stat().st_size
 			return True
