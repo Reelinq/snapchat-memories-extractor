@@ -39,7 +39,7 @@ class DownloadService:
 				return self._process_zip(response.content, memory)
 			else:
 				return self._process_regular(response.content, memory)
-		except requests.exceptions.RequestException:
+		except requests.exceptions.RequestException as e:
 			with self.stats_lock:
 				self.errors.append({
 					'filename': memory.filename_with_ext,
@@ -47,7 +47,7 @@ class DownloadService:
 					'code': 'NET'
 				})
 			return False
-		except Exception:
+		except Exception as e:
 			with self.stats_lock:
 				self.errors.append({
 					'filename': memory.filename_with_ext,
@@ -86,7 +86,7 @@ class DownloadService:
 			with self.stats_lock:
 				self.total_bytes += filepath.stat().st_size
 			return True
-		except Exception:
+		except Exception as e:
 			if filepath:
 				filepath.unlink(missing_ok=True)
 			with self.stats_lock:
@@ -108,7 +108,7 @@ class DownloadService:
 			with self.stats_lock:
 				self.total_bytes += filepath.stat().st_size
 			return True
-		except Exception:
+		except Exception as e:
 			filepath.unlink(missing_ok=True)
 			with self.stats_lock:
 				self.errors.append({

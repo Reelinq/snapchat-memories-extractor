@@ -1,4 +1,5 @@
 ﻿downloads/
+logs/
 .venv/
 __pycache__/
 data/*.json

@@ -112,27 +112,3 @@ def update_progress(index, total_files, successful, failed, start_time, filename
 
 	elapsed = time.time() - start_time
 	print_status(index - 1, total_files, successful, failed, elapsed, f"Downloading: {filename}")
-
-
-# Print error summary at the end
-def print_error_summary(errors):
-	if not errors:
-		return
-
-	# ANSI red color code
-	red = "\x1b[31m"
-	reset = "\x1b[0m"
-
-	print("\nErrors:")
-	for error in errors:
-		code = error.get('code', 'ERR')
-		filename = error['filename']
-		url = error.get('url', '')
-
-		# Make code clickable with ANSI hyperlink
-		if url:
-			clickable_code = f"\x1b]8;;{url}\x1b\\{red}[{code}]{reset}\x1b]8;;\x1b\\"
-			print(f"{clickable_code} {red}{filename}{reset}")
-		else:
-			print(f"{red}[{code}] {filename}{reset}")
-# UI display logic moved from ui.py

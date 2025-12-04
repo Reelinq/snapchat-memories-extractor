@@ -2,17 +2,20 @@ import time
 from typing import List, Dict, Set
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import threading
+import logging
 from config import Config
 from models import Memory
 from memory_repository import MemoryRepository
 from services.download_service import DownloadService
-from ui.display import print_status, clear_lines, print_error_summary
+from ui.display import print_status, clear_lines
+from logger import get_logger
 
 class MemoryDownloader:
     def __init__(self, config: Config):
         self.config = config
         self.repository = MemoryRepository(config.json_path)
         self.download_service = DownloadService(config)
+        self.logger = get_logger("snapchat_extractor")
 
         # Statistics
         self.successful = 0
@@ -30,7 +33,7 @@ class MemoryDownloader:
     def run(self) -> None:
         for run_attempt in range(self.config.max_attempts):
             if run_attempt > 0:
-                print(f"\n🔄 Starting attempt {run_attempt + 1}/{self.config.max_attempts}...\n")
+                self.logger.info(f"Starting attempt {run_attempt + 1}/{self.config.max_attempts}...")
                 time.sleep(2)
 
                 self.successful = 0
@@ -125,7 +128,7 @@ class MemoryDownloader:
                             )
 
             except KeyboardInterrupt:
-                print("\n⚠️  Interrupted by user")
+                self.logger.warning("Download interrupted by user")
                 executor.shutdown(wait=False, cancel_futures=True)
                 # Prune what we have so far
                 if success_indices:
@@ -139,8 +142,15 @@ class MemoryDownloader:
         total_time = time.time() - self.start_time
         print_status(total_files, total_files, self.successful, self.failed, total_time, "✅ COMPLETE!")
 
-        if self.errors:
-            print_error_summary(self.errors)
+        # Log all errors to JSON
+        for error in self.errors:
+            code = error.get('code', 'ERR')
+            filename = error['filename']
+            url = error.get('url', '')
+            self.logger.error(f"Download failed: {filename} (code: {code})", extra={"extra_data": {"code": code, "filename": filename, "url": url}})
+
+        if self.failed > 0:
+            self.logger.info(f"Check logs for details on {self.failed} failed downloads")
 
 
     def _download_task(self, index: int, memory: Memory) -> bool:
