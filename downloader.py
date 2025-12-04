@@ -61,67 +61,76 @@ class MemoryDownloader:
                 for index, memory in tasks
             }
 
-            # Process completed tasks
-            for future in as_completed(future_to_task):
-                index, memory = future_to_task[future]
-                completed_count += 1
+            try:
+                # Process completed tasks
+                for future in as_completed(future_to_task):
+                    index, memory = future_to_task[future]
+                    completed_count += 1
 
-                try:
-                    success = future.result()
+                    try:
+                        success = future.result()
 
-                    with self.stats_lock:
-                        if success:
-                            self.successful += 1
-                            success_indices.add(index)
-                        else:
+                        with self.stats_lock:
+                            if success:
+                                self.successful += 1
+                                success_indices.add(index)
+                            else:
+                                self.failed += 1
+
+                            # Capture current stats for display
+                            current_successful = self.successful
+                            current_failed = self.failed
+
+                        # Update progress display outside the lock
+                        with self.display_lock:
+                            if self.ui_shown:
+                                clear_lines(11)
+                            self.ui_shown = True
+                            print_status(
+                                completed_count,
+                                total_files,
+                                current_successful,
+                                current_failed,
+                                time.time() - self.start_time,
+                                f"Downloading: {memory.filename_with_ext}"
+                            )
+
+                        # Periodically prune the JSON file
+                        if len(success_indices) % 10 == 0:
+                            self.repository.prune(success_indices)
+                            success_indices.clear()
+
+                    except Exception as e:
+                        with self.stats_lock:
                             self.failed += 1
+                            current_failed = self.failed
+                            self.errors.append({
+                                'filename': memory.filename_with_ext,
+                                'url': memory.media_download_url,
+                                'code': 'ERR'
+                            })
 
-                        # Capture current stats for display
-                        current_successful = self.successful
-                        current_failed = self.failed
+                        # Update progress for failed download
+                        with self.display_lock:
+                            if self.ui_shown:
+                                clear_lines(11)
+                            self.ui_shown = True
+                            print_status(
+                                completed_count,
+                                total_files,
+                                self.successful,
+                                current_failed,
+                                time.time() - self.start_time,
+                                f"Downloading: {memory.filename_with_ext}"
+                            )
 
-                    # Update progress display outside the lock
-                    with self.display_lock:
-                        if self.ui_shown:
-                            clear_lines(11)
-                        self.ui_shown = True
-                        print_status(
-                            completed_count,
-                            total_files,
-                            current_successful,
-                            current_failed,
-                            time.time() - self.start_time,
-                            f"Downloading: {memory.filename_with_ext}"
-                        )
-
-                    # Periodically prune the JSON file
-                    if len(success_indices) % 10 == 0:
-                        self.repository.prune(success_indices)
-                        success_indices.clear()
-
-                except Exception as e:
-                    with self.stats_lock:
-                        self.failed += 1
-                        current_failed = self.failed
-                        self.errors.append({
-                            'filename': memory.filename_with_ext,
-                            'url': memory.media_download_url,
-                            'code': 'ERR'
-                        })
-
-                    # Update progress for failed download
-                    with self.display_lock:
-                        if self.ui_shown:
-                            clear_lines(11)
-                        self.ui_shown = True
-                        print_status(
-                            completed_count,
-                            total_files,
-                            self.successful,
-                            current_failed,
-                            time.time() - self.start_time,
-                            f"Downloading: {memory.filename_with_ext}"
-                        )
+            except KeyboardInterrupt:
+                print("\n⚠️  Interrupted by user")
+                executor.shutdown(wait=False, cancel_futures=True)
+                # Prune what we have so far
+                if success_indices:
+                    self.repository.prune(success_indices)
+                raise
 
         # Final prune
         self.repository.prune(success_indices)
