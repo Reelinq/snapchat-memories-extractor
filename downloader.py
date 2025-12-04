@@ -98,10 +98,10 @@ class MemoryDownloader:
                                 f"Downloading: {memory.filename_with_ext}"
                             )
 
-                        # Periodically prune the JSON file
-                        if len(success_indices) % 10 == 0:
-                            self.repository.prune(success_indices)
-                            success_indices.clear()
+                        # Periodically log but don't clear success_indices
+                        # We need to track all indices for final prune
+                        if len(success_indices) % 10 == 0 and success_indices:
+                            self.logger.debug(f"Successfully processed {len(success_indices)} items so far")
 
                     except Exception as e:
                         with self.stats_lock:
