@@ -9,7 +9,11 @@ from imageio_ffmpeg import get_ffmpeg_exe
 class OverlayService:
 	def apply_overlay_to_image(self, image_bytes: bytes, overlay_bytes: bytes) -> bytes:
 		base_image = Image.open(BytesIO(image_bytes))
-		overlay_image = Image.open(BytesIO(overlay_bytes))
+		
+		try:
+			overlay_image = Image.open(BytesIO(overlay_bytes))
+		except Exception as e:
+			raise Exception(f"Failed to open overlay image: {str(e)}")
 
 		# Convert base to RGBA if needed for compositing
 		if base_image.mode != 'RGBA':
@@ -66,7 +70,11 @@ class OverlayService:
 				raise Exception("Could not determine video dimensions")
 
 			# Resize overlay PNG to match video dimensions
-			overlay_image = Image.open(BytesIO(overlay_bytes))
+			try:
+				overlay_image = Image.open(BytesIO(overlay_bytes))
+			except Exception as e:
+				raise Exception(f"Failed to open overlay image: {str(e)}")
+			
 			if overlay_image.size != (video_width, video_height):
 				overlay_image = overlay_image.resize((video_width, video_height), Image.Resampling.LANCZOS)
 
