@@ -6,6 +6,15 @@ from PIL import Image
 import imageio_ffmpeg
 
 class MetadataService:
+	# Cache ffmpeg path to avoid repeated lookups
+	_ffmpeg_exe_cache = None
+
+	@classmethod
+	def _get_ffmpeg_exe(cls) -> str:
+		if cls._ffmpeg_exe_cache is None:
+			cls._ffmpeg_exe_cache = imageio_ffmpeg.get_ffmpeg_exe()
+		return cls._ffmpeg_exe_cache
+
 	def write_metadata(self, memory: Memory, file_path: Path, is_image: bool, ffmpeg_timeout: int = 60):
 		if is_image:
 			self._write_image_metadata(memory, file_path)
@@ -37,7 +46,7 @@ class MetadataService:
 			img.save(str(file_path), exif=exif_bytes, quality=95)
 
 	def _write_video_metadata(self, memory: Memory, file_path: Path, ffmpeg_timeout: int) -> None:
-		ffmpeg_exe = imageio_ffmpeg.get_ffmpeg_exe()
+		ffmpeg_exe = self._get_ffmpeg_exe()
 		metadata_args = ['-metadata', f'creation_time={memory.video_creation_time}']
 
 		# Add GPS metadata if available

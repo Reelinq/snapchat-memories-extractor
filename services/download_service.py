@@ -37,7 +37,7 @@ class DownloadService:
 
 	def download_and_process(self, memory: Memory) -> bool:
 		try:
-			# Always stream downloads for efficient memory usage
+			# Stream downloads for efficient memory usage
 			response = self.session.get(
 				memory.media_download_url,
 				timeout=self.config.request_timeout,

@@ -7,9 +7,18 @@ import tempfile
 from imageio_ffmpeg import get_ffmpeg_exe
 
 class OverlayService:
+	# Cache ffmpeg path to avoid repeated lookups
+	_ffmpeg_exe_cache = None
+
+	@classmethod
+	def _get_ffmpeg_exe(cls) -> str:
+		if cls._ffmpeg_exe_cache is None:
+			cls._ffmpeg_exe_cache = get_ffmpeg_exe()
+		return cls._ffmpeg_exe_cache
+
 	def apply_overlay_to_image(self, image_bytes: bytes, overlay_bytes: bytes) -> bytes:
 		base_image = Image.open(BytesIO(image_bytes))
-		
+
 		try:
 			overlay_image = Image.open(BytesIO(overlay_bytes))
 		except Exception as e:
@@ -46,8 +55,8 @@ class OverlayService:
 
 		overlay_temp_path = None  # Initialize to None for cleanup tracking
 		try:
-			# Get video dimensions using ffmpeg
-			ffmpeg_exe = get_ffmpeg_exe()
+			# Get video dimensions using ffmpeg (use cached path)
+			ffmpeg_exe = self._get_ffmpeg_exe()
 			probe_cmd = [
 				ffmpeg_exe,
 				'-i', video_temp_path,
@@ -74,7 +83,7 @@ class OverlayService:
 				overlay_image = Image.open(BytesIO(overlay_bytes))
 			except Exception as e:
 				raise Exception(f"Failed to open overlay image: {str(e)}")
-			
+
 			if overlay_image.size != (video_width, video_height):
 				overlay_image = overlay_image.resize((video_width, video_height), Image.Resampling.LANCZOS)
 
