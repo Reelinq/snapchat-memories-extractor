@@ -237,9 +237,9 @@ High compression for smaller files (85):
 python main.py -q 85
 ```
 
-Maximum quality (99):
+Maximum quality (100):
 ```bash
-python main.py -q 99
+python main.py -q 100
 ```
 
 Very aggressive compression (75):
@@ -251,7 +251,7 @@ python main.py -q 75
 - **95 (default)**: Best balance for high quality with minimal file size
 - **85**: Good for storage/backups, slight quality loss (often imperceptible)
 - **75**: Aggressive compression, noticeably smaller files (~30-50% size reduction), visible quality loss on close inspection
-- **99**: Maximum quality, larger files, rarely worth the trade-off from 95
+- **100**: Maximum quality, larger files, rarely worth the trade-off from 95
 
 **Impact on performance:**
 - **Lower quality**: Faster JPEG encoding (10-30% speedup), smaller file sizes (30-50% reduction)
