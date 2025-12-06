@@ -155,6 +155,19 @@ class MemoryDownloader:
 
     def _download_task(self, index: int, memory: Memory) -> bool:
         try:
+            if self.config.strict_location and memory.location_coords is None:
+                with self.stats_lock:
+                    self.errors.append({
+                        'filename': memory.filename_with_ext,
+                        'url': memory.media_download_url,
+                        'code': 'LOC'
+                    })
+                self.logger.warning(
+                    "Skipping download due to missing location: %s",
+                    memory.filename_with_ext
+                )
+                return False
+
             success = self.download_service.download_and_process(memory)
 
             # Merge errors from download service

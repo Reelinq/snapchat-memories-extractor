@@ -38,8 +38,14 @@ class Memory(BaseModel):
 
     @property
     def location_coords(self) -> tuple[float, float] | None:
-        location_coords = self.location.replace('Latitude, Longitude: ', '')
-        latitude, longitude = map(float, location_coords.split(', '))
+        if not self.location:
+            return None
+
+        try:
+            location_coords = self.location.replace('Latitude, Longitude: ', '')
+            latitude, longitude = map(float, location_coords.split(', '))
+        except (ValueError, AttributeError):
+            return None
 
         if latitude == 0.0 and longitude == 0.0:
             return None
