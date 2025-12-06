@@ -5,10 +5,45 @@ import re
 import subprocess
 import tempfile
 from imageio_ffmpeg import get_ffmpeg_exe
+from concurrent.futures import ProcessPoolExecutor
+from typing import Optional
+
+
+def _image_overlay_worker(image_bytes: bytes, overlay_bytes: bytes, quality: int = 95) -> bytes:
+	# Standalone CPU-bound worker for image overlay (picklable for ProcessPool)
+	base_image = Image.open(BytesIO(image_bytes))
+	overlay_image = Image.open(BytesIO(overlay_bytes))
+
+	# Convert base to RGBA if needed for compositing
+	if base_image.mode != 'RGBA':
+		base_image = base_image.convert('RGBA')
+
+	# Ensure overlay has alpha channel
+	if overlay_image.mode != 'RGBA':
+		overlay_image = overlay_image.convert('RGBA')
+
+	# Resize overlay to match base image size if needed
+	if overlay_image.size != base_image.size:
+		overlay_image = overlay_image.resize(base_image.size, Image.Resampling.LANCZOS)
+
+	# Composite the images
+	combined = Image.alpha_composite(base_image, overlay_image)
+
+	# Convert back to RGB for JPEG
+	combined_rgb = combined.convert('RGB')
+
+	# Save to bytes
+	output = BytesIO()
+	combined_rgb.save(output, format='JPEG', quality=quality)
+	return output.getvalue()
+
 
 class OverlayService:
 	# Cache ffmpeg path to avoid repeated lookups
 	_ffmpeg_exe_cache = None
+	# Shared ProcessPoolExecutor for CPU-bound image overlay operations
+	_process_pool: Optional[ProcessPoolExecutor] = None
+	_pool_max_workers = 4  # Default CPU worker count
 
 	@classmethod
 	def _get_ffmpeg_exe(cls) -> str:
@@ -16,36 +51,28 @@ class OverlayService:
 			cls._ffmpeg_exe_cache = get_ffmpeg_exe()
 		return cls._ffmpeg_exe_cache
 
-	def apply_overlay_to_image(self, image_bytes: bytes, overlay_bytes: bytes) -> bytes:
-		base_image = Image.open(BytesIO(image_bytes))
+	@classmethod
+	def get_process_pool(cls, max_workers: Optional[int] = None) -> ProcessPoolExecutor:
+		if cls._process_pool is None:
+			workers = max_workers or cls._pool_max_workers
+			cls._process_pool = ProcessPoolExecutor(max_workers=workers)
+		return cls._process_pool
 
-		try:
-			overlay_image = Image.open(BytesIO(overlay_bytes))
-		except Exception as e:
-			raise Exception(f"Failed to open overlay image: {str(e)}")
+	@classmethod
+	def shutdown_process_pool(cls) -> None:
+		if cls._process_pool is not None:
+			cls._process_pool.shutdown(wait=True)
+			cls._process_pool = None
 
-		# Convert base to RGBA if needed for compositing
-		if base_image.mode != 'RGBA':
-			base_image = base_image.convert('RGBA')
-
-		# Ensure overlay has alpha channel
-		if overlay_image.mode != 'RGBA':
-			overlay_image = overlay_image.convert('RGBA')
-
-		# Resize overlay to match base image size if needed
-		if overlay_image.size != base_image.size:
-			overlay_image = overlay_image.resize(base_image.size, Image.Resampling.LANCZOS)
-
-		# Composite the images
-		combined = Image.alpha_composite(base_image, overlay_image)
-
-		# Convert back to RGB for JPEG
-		combined_rgb = combined.convert('RGB')
-
-		# Save to bytes
-		output = BytesIO()
-		combined_rgb.save(output, format='JPEG', quality=95)
-		return output.getvalue()
+	def apply_overlay_to_image(self, image_bytes: bytes, overlay_bytes: bytes, use_process_pool: bool = True) -> bytes:
+		if use_process_pool:
+			# Submit to ProcessPool for parallel CPU execution
+			pool = self.get_process_pool()
+			future = pool.submit(_image_overlay_worker, image_bytes, overlay_bytes, 95)
+			return future.result()
+		else:
+			# Fallback: synchronous execution in current thread
+			return _image_overlay_worker(image_bytes, overlay_bytes, 95)
 
 	def apply_overlay_to_video(self, video_bytes: bytes, overlay_bytes: bytes, output_path: Path, ffmpeg_timeout: int = 60) -> None:
 		# Create temporary files for video and overlay

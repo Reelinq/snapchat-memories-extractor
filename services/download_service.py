@@ -34,6 +34,8 @@ class DownloadService:
 
 	def close(self) -> None:
 		self.session.close()
+		from services.overlay_service import OverlayService
+		OverlayService.shutdown_process_pool()
 
 	def download_and_process(self, memory: Memory) -> bool:
 		try:
