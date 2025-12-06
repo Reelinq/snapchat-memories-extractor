@@ -37,7 +37,12 @@ class DownloadService:
 
 	def download_and_process(self, memory: Memory) -> bool:
 		try:
-			response = self.session.get(memory.media_download_url, timeout=self.config.request_timeout)
+			# Always stream downloads for efficient memory usage
+			response = self.session.get(
+				memory.media_download_url,
+				timeout=self.config.request_timeout,
+				stream=True
+			)
 			if response.status_code >= 400:
 				with self.stats_lock:
 					self.errors.append({
@@ -47,14 +52,21 @@ class DownloadService:
 					})
 				return False
 			response.raise_for_status()
+
+			# Stream content in chunks to avoid RAM spikes
+			content = b''
+			for chunk in response.iter_content(chunk_size=self.config.stream_chunk_size):
+				if chunk:
+					content += chunk
+
 			is_zip = self.content_processor.is_zip(
-				response.content,
+				content,
 				response.headers.get('Content-Type', '')
 			)
 			if is_zip:
-				return self._process_zip(response.content, memory)
+				return self._process_zip(content, memory)
 			else:
-				return self._process_regular(response.content, memory)
+				return self._process_regular(content, memory)
 		except requests.exceptions.RequestException as e:
 			with self.stats_lock:
 				self.errors.append({
