@@ -94,5 +94,5 @@ class MetadataService:
 		return (
 			(degrees, 1),
 			(minutes, 1),
-			(int(seconds * 100), 100)
+			(int(seconds * 1000000), 1000000)
 		)
