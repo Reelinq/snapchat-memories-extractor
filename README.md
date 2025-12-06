@@ -215,6 +215,52 @@ python main.py -M
 
 </details>
 
+<details>
+<summary><b>🖼️ JPEG Quality: -q / --jpeg-quality Q</b></summary>
+
+**What it does:**
+- Controls the compression quality of JPEG image encoding when applying overlays or writing metadata
+- **Default**: `95` (high quality, minimal compression)
+- **Range**: 1-100 (1 = maximum compression, 100 = maximum quality)
+- Lower values = smaller files but visible quality loss
+- Higher values = better quality but larger files
+
+**Examples**:
+
+Default quality (95):
+```bash
+python main.py
+```
+
+High compression for smaller files (85):
+```bash
+python main.py -q 85
+```
+
+Maximum quality (99):
+```bash
+python main.py -q 99
+```
+
+Very aggressive compression (75):
+```bash
+python main.py -q 75
+```
+
+**💡 Recommendations:**
+- **95 (default)**: Best balance for high quality with minimal file size
+- **85**: Good for storage/backups, slight quality loss (often imperceptible)
+- **75**: Aggressive compression, noticeably smaller files (~30-50% size reduction), visible quality loss on close inspection
+- **99**: Maximum quality, larger files, rarely worth the trade-off from 95
+
+**Impact on performance:**
+- **Lower quality**: Faster JPEG encoding (10-30% speedup), smaller file sizes (30-50% reduction)
+- **Higher quality**: Slower encoding, larger files
+
+> **Example**: Using `-q 85` instead of `-q 95` can reduce file sizes from ~4 MB to ~2-3 MB per image, while maintaining good visual quality for most uses.
+
+</details>
+
 ---
 
 ## 🔧 Troubleshooting
