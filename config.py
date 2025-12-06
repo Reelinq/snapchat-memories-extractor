@@ -13,6 +13,7 @@ class Config:
     ffmpeg_timeout: int = 60
     max_concurrent_downloads: int = 5
     stream_chunk_size: int = 1024 * 1024  # 1 MB chunks for streaming
+    prune_batch_size: int = 25  # Commit JSON after N successes (0 = only at end)
     apply_overlay: bool = True  # Default is to apply PNG overlay
     write_metadata: bool = True  # Default is to write metadata to photos and videos
     max_attempts: int = 3  # Number of times to run the entire download process

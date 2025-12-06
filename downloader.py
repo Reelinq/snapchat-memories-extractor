@@ -30,6 +30,10 @@ class MemoryDownloader:
         self.errors: List[Dict[str, str]] = []
         self.ui_shown = False
 
+        # Batch pruning state
+        self.pending_prune_indices: Set[int] = set()
+        self.last_prune_count = 0
+
     def _suppress_console_logging(self, suppress: bool = True):
         for handler in self.logger.handlers:
             if isinstance(handler, logging.StreamHandler) and handler.stream.name == '<stdout>':
@@ -39,6 +43,20 @@ class MemoryDownloader:
     def close(self) -> None:
         #Release resources such as shared HTTP sessions
         self.download_service.close()
+
+    def _batch_prune_if_needed(self, force: bool = False) -> None:
+        should_prune = (
+            force and self.pending_prune_indices
+        ) or (
+            self.config.prune_batch_size > 0
+            and len(self.pending_prune_indices) >= self.config.prune_batch_size
+        )
+
+        if should_prune:
+            self.repository.prune(self.pending_prune_indices)
+            self.last_prune_count = len(self.pending_prune_indices)
+            self.logger.debug(f"Batched prune: removed {self.last_prune_count} items from JSON")
+            self.pending_prune_indices.clear()
 
 
     def run(self) -> None:
@@ -66,6 +84,10 @@ class MemoryDownloader:
         self.start_time = time.time()
         completed_count = 0
 
+        # Reset batch state
+        self.pending_prune_indices.clear()
+        self.last_prune_count = 0
+
         # Suppress console logging during UI updates
         self._suppress_console_logging(True)
 
@@ -91,12 +113,16 @@ class MemoryDownloader:
                             if success:
                                 self.successful += 1
                                 success_indices.add(index)
+                                self.pending_prune_indices.add(index)
                             else:
                                 self.failed += 1
 
                             # Capture current stats for display
                             current_successful = self.successful
                             current_failed = self.failed
+
+                        # Batch prune if threshold reached
+                        self._batch_prune_if_needed()
 
                         # Update progress display outside the lock
                         with self.display_lock:
@@ -144,13 +170,12 @@ class MemoryDownloader:
             except KeyboardInterrupt:
                 self.logger.warning("Download interrupted by user")
                 executor.shutdown(wait=False, cancel_futures=True)
-                # Prune what we have so far
-                if success_indices:
-                    self.repository.prune(success_indices)
+                # Force prune pending items on interrupt
+                self._batch_prune_if_needed(force=True)
                 raise
 
         # Final prune
-        self.repository.prune(success_indices)
+        self._batch_prune_if_needed(force=True)
 
         clear_lines(10)
         total_time = time.time() - self.start_time
