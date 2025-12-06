@@ -14,7 +14,12 @@ class MemoryDownloader:
     def __init__(self, config: Config):
         self.config = config
         self.repository = MemoryRepository(config.json_path)
-        self.download_service = DownloadService(config)
+        
+        # Thread synchronization
+        self.stats_lock = threading.Lock()
+        self.display_lock = threading.Lock()
+        
+        self.download_service = DownloadService(config, self.stats_lock)
         self.logger = get_logger("snapchat_extractor")
 
         # Statistics
@@ -23,10 +28,6 @@ class MemoryDownloader:
         self.total_bytes = 0
         self.start_time = 0.0
         self.errors: List[Dict[str, str]] = []
-
-        # Thread synchronization
-        self.stats_lock = threading.Lock()
-        self.display_lock = threading.Lock()
         self.ui_shown = False
 
     def _suppress_console_logging(self, suppress: bool = True):

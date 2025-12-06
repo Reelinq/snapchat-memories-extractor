@@ -10,13 +10,13 @@ import requests
 import threading
 
 class DownloadService:
-	def __init__(self, config: Config):
+	def __init__(self, config: Config, stats_lock: threading.Lock):
 		self.config = config
 		self.filename_resolver = FileNameResolver(config.downloads_folder)
 		self.content_processor = ZipProcessor()
 		self.metadata_service = MetadataService()
 		self.overlay_service = OverlayService()
-		self.stats_lock = threading.Lock()
+		self.stats_lock = stats_lock
 		self.errors: List[Dict[str, str]] = []
 		self.total_bytes = 0
 
