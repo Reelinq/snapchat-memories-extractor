@@ -40,6 +40,7 @@ class OverlayService:
 			video_temp.write(video_bytes)
 			video_temp_path = video_temp.name
 
+		overlay_temp_path = None  # Initialize to None for cleanup tracking
 		try:
 			# Get video dimensions using ffmpeg
 			ffmpeg_exe = get_ffmpeg_exe()
@@ -106,5 +107,5 @@ class OverlayService:
 		finally:
 			# Clean up temp files
 			Path(video_temp_path).unlink(missing_ok=True)
-			if 'overlay_temp_path' in locals():
+			if overlay_temp_path is not None:
 				Path(overlay_temp_path).unlink(missing_ok=True)
