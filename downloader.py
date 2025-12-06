@@ -37,6 +37,9 @@ class MemoryDownloader:
         self.pending_prune_indices: Set[int] = set()
         self.last_prune_count = 0
 
+        # Interrupt state
+        self._interrupted = False
+
     def _suppress_console_logging(self, suppress: bool = True):
         for handler in self.logger.handlers:
             if isinstance(handler, logging.StreamHandler) and handler.stream.name == '<stdout>':
@@ -44,9 +47,11 @@ class MemoryDownloader:
 
 
     def close(self) -> None:
-        #Release resources such as shared HTTP sessions
+        # Release resources: shared HTTP sessions and ThreadPoolExecutor
         self.download_service.close()
-        self.executor.shutdown(wait=True)
+        # Don't wait for threads if interrupted; exit immediately
+        wait = not self._interrupted
+        self.executor.shutdown(wait=wait)
 
     def _batch_prune_if_needed(self, force: bool = False) -> None:
         should_prune = (
@@ -173,7 +178,9 @@ class MemoryDownloader:
 
         except KeyboardInterrupt:
             self.logger.warning("Download interrupted by user")
-            # Don't shutdown executor; keep it for next retry
+            self._interrupted = True
+            # Don't wait for executor; cancel pending tasks and exit
+            self.executor.shutdown(wait=False, cancel_futures=True)
             # Force prune pending items on interrupt
             self._batch_prune_if_needed(force=True)
             raise
