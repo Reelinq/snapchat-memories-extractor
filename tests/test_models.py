@@ -28,5 +28,15 @@ class TestModels(unittest.TestCase):
         self.assertIsNone(m.location_coords)
         self.assertEqual(m.extension, ".mp4")
 
+    def test_memory_missing_location(self):
+        data = {
+            "Date": "2023-12-05 12:34:56 UTC",
+            "Media Download Url": "http://example.com/media.mp4",
+            "Media Type": "Video",
+            "Location": None
+        }
+        m = Memory(**data)
+        self.assertIsNone(m.location_coords)
+
 if __name__ == "__main__":
     unittest.main()
