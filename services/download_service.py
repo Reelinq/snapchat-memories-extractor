@@ -8,6 +8,7 @@ from services.media_processor import get_media_processor
 from typing import List, Dict
 import requests
 import threading
+from requests.adapters import HTTPAdapter
 
 class DownloadService:
 	def __init__(self, config: Config, stats_lock: threading.Lock):
@@ -19,10 +20,24 @@ class DownloadService:
 		self.stats_lock = stats_lock
 		self.errors: List[Dict[str, str]] = []
 		self.total_bytes = 0
+		self.session = self._build_session()
+
+	def _build_session(self) -> requests.Session:
+		session = requests.Session()
+		adapter = HTTPAdapter(
+			pool_connections=self.config.max_concurrent_downloads,
+			pool_maxsize=self.config.max_concurrent_downloads * 2,
+		)
+		session.mount("http://", adapter)
+		session.mount("https://", adapter)
+		return session
+
+	def close(self) -> None:
+		self.session.close()
 
 	def download_and_process(self, memory: Memory) -> bool:
 		try:
-			response = requests.get(memory.media_download_url, timeout=self.config.request_timeout)
+			response = self.session.get(memory.media_download_url, timeout=self.config.request_timeout)
 			if response.status_code >= 400:
 				with self.stats_lock:
 					self.errors.append({
