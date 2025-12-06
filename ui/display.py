@@ -90,7 +90,7 @@ def print_status(current, total, successful, failed, elapsed_time, current_file=
 	line5 = f"  📄 {display_file}"
 
 	# Print status box with exact padding
-	print(f"\n╔{'═'*70}╗")
+	print(f"╔{'═'*70}╗")
 	print(f"║{pad_line(line1)}║")
 	print(f"╠{'═'*70}╣")
 	print(f"║{pad_line(line2)}║")

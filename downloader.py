@@ -29,6 +29,11 @@ class MemoryDownloader:
         self.display_lock = threading.Lock()
         self.ui_shown = False
 
+    def _suppress_console_logging(self, suppress: bool = True):
+        for handler in self.logger.handlers:
+            if isinstance(handler, logging.StreamHandler) and handler.stream.name == '<stdout>':
+                handler.setLevel(logging.CRITICAL if suppress else logging.INFO)
+
 
     def run(self) -> None:
         for run_attempt in range(self.config.max_attempts):
@@ -54,6 +59,9 @@ class MemoryDownloader:
         total_files = len(raw_items)
         self.start_time = time.time()
         completed_count = 0
+
+        # Suppress console logging during UI updates
+        self._suppress_console_logging(True)
 
         # Create memory objects with their indices
         tasks = [(index, Memory.model_validate(item)) for index, item in enumerate(raw_items)]
@@ -87,7 +95,7 @@ class MemoryDownloader:
                         # Update progress display outside the lock
                         with self.display_lock:
                             if self.ui_shown:
-                                clear_lines(11)
+                                clear_lines(10)
                             self.ui_shown = True
                             print_status(
                                 completed_count,
@@ -116,7 +124,7 @@ class MemoryDownloader:
                         # Update progress for failed download
                         with self.display_lock:
                             if self.ui_shown:
-                                clear_lines(11)
+                                clear_lines(10)
                             self.ui_shown = True
                             print_status(
                                 completed_count,
@@ -141,6 +149,9 @@ class MemoryDownloader:
         clear_lines(10)
         total_time = time.time() - self.start_time
         print_status(total_files, total_files, self.successful, self.failed, total_time, "✅ COMPLETE!")
+
+        # Re-enable console logging before error reporting
+        self._suppress_console_logging(False)
 
         # Log all errors to JSON
         for error in self.errors:
