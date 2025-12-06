@@ -64,15 +64,15 @@ class OverlayService:
 			cls._process_pool.shutdown(wait=True)
 			cls._process_pool = None
 
-	def apply_overlay_to_image(self, image_bytes: bytes, overlay_bytes: bytes, use_process_pool: bool = True) -> bytes:
+	def apply_overlay_to_image(self, image_bytes: bytes, overlay_bytes: bytes, jpeg_quality: int = 95, use_process_pool: bool = True) -> bytes:
 		if use_process_pool:
 			# Submit to ProcessPool for parallel CPU execution
 			pool = self.get_process_pool()
-			future = pool.submit(_image_overlay_worker, image_bytes, overlay_bytes, 95)
+			future = pool.submit(_image_overlay_worker, image_bytes, overlay_bytes, jpeg_quality)
 			return future.result()
 		else:
 			# Fallback: synchronous execution in current thread
-			return _image_overlay_worker(image_bytes, overlay_bytes, 95)
+			return _image_overlay_worker(image_bytes, overlay_bytes, jpeg_quality)
 
 	def apply_overlay_to_video(self, video_bytes: bytes, overlay_bytes: bytes, output_path: Path, ffmpeg_timeout: int = 60) -> None:
 		# Create temporary files for video and overlay

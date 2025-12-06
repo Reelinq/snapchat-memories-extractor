@@ -109,14 +109,15 @@ class DownloadService:
 					media_bytes,
 					overlay_png,
 					filepath,
-					self.config.ffmpeg_timeout
+					self.config.ffmpeg_timeout,
+					self.config.jpeg_quality
 				)
 
 			if filepath is None or not filepath.exists():
 				filepath.write_bytes(media_bytes)
 
 			if self.config.write_metadata:
-				processor.write_metadata(memory, filepath, self.config.ffmpeg_timeout)
+				processor.write_metadata(memory, filepath, self.config.ffmpeg_timeout, self.config.jpeg_quality)
 
 			with self.stats_lock:
 				self.total_bytes += filepath.stat().st_size
@@ -143,7 +144,7 @@ class DownloadService:
 					self.overlay_service,
 					self.metadata_service
 				)
-				processor.write_metadata(memory, filepath, self.config.ffmpeg_timeout)
+				processor.write_metadata(memory, filepath, self.config.ffmpeg_timeout, self.config.jpeg_quality)
 			with self.stats_lock:
 				self.total_bytes += filepath.stat().st_size
 			return True

@@ -15,13 +15,13 @@ class MetadataService:
 			cls._ffmpeg_exe_cache = imageio_ffmpeg.get_ffmpeg_exe()
 		return cls._ffmpeg_exe_cache
 
-	def write_metadata(self, memory: Memory, file_path: Path, is_image: bool, ffmpeg_timeout: int = 60):
+	def write_metadata(self, memory: Memory, file_path: Path, is_image: bool, ffmpeg_timeout: int = 60, jpeg_quality: int = 95):
 		if is_image:
-			self._write_image_metadata(memory, file_path)
+			self._write_image_metadata(memory, file_path, jpeg_quality)
 		else:
 			self._write_video_metadata(memory, file_path, ffmpeg_timeout)
 
-	def _write_image_metadata(self, memory: Memory, file_path: Path) -> None:
+	def _write_image_metadata(self, memory: Memory, file_path: Path, jpeg_quality: int = 95) -> None:
 		with Image.open(file_path) as img:
 			exif_dict = {"0th": {}, "Exif": {}, "GPS": {}}
 
@@ -43,7 +43,7 @@ class MetadataService:
 				exif_dict["GPS"][piexif.GPSIFD.GPSLongitudeRef] = b'E' if longitude >= 0 else b'W'
 
 			exif_bytes = piexif.dump(exif_dict)
-			img.save(str(file_path), exif=exif_bytes, quality=95)
+			img.save(str(file_path), exif=exif_bytes, quality=jpeg_quality)
 
 	def _write_video_metadata(self, memory: Memory, file_path: Path, ffmpeg_timeout: int) -> None:
 		ffmpeg_exe = self._get_ffmpeg_exe()

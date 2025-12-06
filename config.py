@@ -14,6 +14,7 @@ class Config:
     max_concurrent_downloads: int = 5
     stream_chunk_size: int = 1024 * 1024  # 1 MB chunks for streaming
     prune_batch_size: int = 25  # Commit JSON after N successes (0 = only at end)
+    jpeg_quality: int = 95  # JPEG encode quality (1-100, higher = better quality/larger files)
     apply_overlay: bool = True  # Default is to apply PNG overlay
     write_metadata: bool = True  # Default is to write metadata to photos and videos
     max_attempts: int = 3  # Number of times to run the entire download process
@@ -57,6 +58,13 @@ class Config:
             action='store_true',
             help='Fail downloads when location metadata is missing. Short: -s'
         )
+        parser.add_argument(
+            '--jpeg-quality', '-q',
+            type=int,
+            default=95,
+            metavar='Q',
+            help='JPEG quality 1-100 (default: 95). Short: -q'
+        )
         args = parser.parse_args()
 
         return cls(
@@ -64,5 +72,6 @@ class Config:
             apply_overlay=not args.no_overlay,
             write_metadata=not args.no_metadata,
             max_attempts=args.attempts,
-            strict_location=args.strict_location
+            strict_location=args.strict_location,
+            jpeg_quality=args.jpeg_quality
         )
