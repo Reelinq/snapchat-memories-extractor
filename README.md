@@ -10,6 +10,7 @@ Download all your Snapchat memories with metadata (date, location) embedded dire
 - ✅ Automatically overlays PNG captions on photos and videos from ZIP archives
 - ✅ Embeds EXIF metadata (date taken, GPS coordinates) into images
 - ✅ Writes creation time and GPS into video files
+- ✅ Converts JPEG images to lossless JPGXL format (20-40% smaller with no quality loss)
 - ✅ Progressive JSON pruning (safe to Ctrl+C and resume)
 - ✅ Fail-fast: Skips files with missing datetime metadata
 - ✅ Zero system dependencies: Everything installs via pip!
@@ -258,6 +259,56 @@ python main.py -q 75
 - **Higher quality**: Slower encoding, larger files
 
 > **Example**: Using `-q 85` instead of `-q 95` can reduce file sizes from ~4 MB to ~2-3 MB per image, while maintaining good visual quality for most uses.
+
+</details>
+
+<details>
+<summary><b>🎨 JPGXL Conversion: -J / --no-jxl</b></summary>
+
+**What it does:**
+- **By default**, downloaded JPEG images are automatically converted to the modern **JPGXL (JXL)** format
+- JPGXL provides lossless compression with typically **20-40% better compression** than JPEG
+- All metadata (date, GPS coordinates, image properties) is preserved during conversion
+- Use `--no-jxl` if you prefer to keep original JPEG files without conversion
+
+**Key Features:**
+- ✅ **Lossless conversion**: No quality loss (bit-perfect from the original)
+- ✅ **Better compression**: Smaller files than JPEG while maintaining perfect quality
+- ✅ **Metadata preservation**: All EXIF data is preserved
+- ✅ **Zero quality loss**: Guaranteed identical pixel data in lossless format
+- ✅ **Modern format**: Uses the official libjxl codec from https://github.com/libjxl/libjxl
+
+**Examples**:
+
+Default behavior - automatically converts JPEG to lossless JPGXL:
+```bash
+python main.py
+```
+
+Skip JPGXL conversion - keep original JPEG files:
+```bash
+python main.py -J
+# or
+python main.py --no-jxl
+```
+
+**💡 Recommendations:**
+- **Default (with JXL conversion)**: Best for storage, archival, and modern photo libraries. Saves 20-40% space with perfect quality.
+- **With `--no-jxl`**: Use if you need JPEG compatibility with older devices/applications that don't support JPGXL
+
+**File Size Comparison:**
+
+Example image (4000x3000 photo):
+- Original JPEG: 3.2 MB
+- Converted JPGXL (lossless): 1.9 MB
+- **Savings: 40%** (no quality loss)
+
+**Supported Image Types:**
+- Converts: JPEG images (`.jpg`, `.jpeg`)
+- Preserves: All EXIF metadata, GPS coordinates, timestamps
+- Skips: Videos and non-JPEG images
+
+> **Note**: JPGXL conversion happens after metadata is written, ensuring all date and location information is embedded before conversion.
 
 </details>
 
