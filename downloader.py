@@ -7,6 +7,7 @@ from config import Config
 from models import Memory
 from memory_repository import MemoryRepository
 from services.download_service import DownloadService
+from services.jxl_converter import JXLConverter
 from ui.display import print_status, clear_lines
 from logger import get_logger
 
@@ -183,6 +184,8 @@ class MemoryDownloader:
             self.executor.shutdown(wait=False, cancel_futures=True)
             # Force prune pending items on interrupt
             self._batch_prune_if_needed(force=True)
+            # Convert any JPEGs that didn't complete conversion before exit
+            self._convert_remaining_jpegs_on_interrupt()
             raise
 
         # Final prune
@@ -204,6 +207,60 @@ class MemoryDownloader:
 
         if self.failed > 0:
             self.logger.info(f"Check logs for details on {self.failed} failed downloads")
+
+    def _backfill_existing_jpegs_to_jxl(self) -> None:
+        if not self.config.convert_to_jxl:
+            return
+
+        jpeg_paths = list(self.config.downloads_folder.glob('*.jpg')) + list(self.config.downloads_folder.glob('*.jpeg'))
+        if not jpeg_paths:
+            return
+
+        converted_count = 0
+        for jpg_path in jpeg_paths:
+            # Skip if a JXL already exists
+            jxl_path = jpg_path.with_suffix('.jxl')
+            if jxl_path.exists():
+                continue
+
+            if not JXLConverter.is_convertible_image(jpg_path):
+                continue
+
+            new_path = JXLConverter.convert_to_jxl(jpg_path)
+            if new_path.suffix.lower() == '.jxl':
+                converted_count += 1
+
+        if converted_count > 0:
+            print(f"🔄 Converted {converted_count} leftover JPEG(s) to JPGXL format")
+            self.logger.info(f"Backfilled {converted_count} JPEG(s) to JPGXL format")
+
+    def _convert_remaining_jpegs_on_interrupt(self) -> None:
+        if not self.config.convert_to_jxl:
+            return
+
+        jpeg_paths = list(self.config.downloads_folder.glob('*.jpg')) + list(self.config.downloads_folder.glob('*.jpeg'))
+        if not jpeg_paths:
+            return
+
+        print(f"\n🔄 Converting {len(jpeg_paths)} JPEG(s) to JPGXL before exit...")
+        converted_count = 0
+
+        for jpg_path in jpeg_paths:
+            # Skip if a JXL already exists
+            jxl_path = jpg_path.with_suffix('.jxl')
+            if jxl_path.exists():
+                continue
+
+            if not JXLConverter.is_convertible_image(jpg_path):
+                continue
+
+            new_path = JXLConverter.convert_to_jxl(jpg_path)
+            if new_path.suffix.lower() == '.jxl':
+                converted_count += 1
+
+        if converted_count > 0:
+            print(f"✅ Converted {converted_count} JPEG(s) to JPGXL")
+            self.logger.info(f"Post-interrupt conversion: {converted_count} JPEG(s) to JPGXL")
 
 
     def _download_task(self, index: int, memory: Memory) -> bool:

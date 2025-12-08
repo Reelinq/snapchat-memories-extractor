@@ -5,6 +5,7 @@ from config import Config
 from services.metadata_service import MetadataService
 from services.overlay_service import OverlayService
 from services.media_processor import get_media_processor
+from services.jxl_converter import JXLConverter
 from typing import List, Dict
 import requests
 import threading
@@ -97,7 +98,8 @@ class DownloadService:
 			processor = get_media_processor(
 				memory.media_type,
 				self.overlay_service,
-				self.metadata_service
+				self.metadata_service,
+				self.config.convert_to_jxl
 			)
 
 			if filepath is None:
@@ -117,7 +119,9 @@ class DownloadService:
 				filepath.write_bytes(media_bytes)
 
 			if self.config.write_metadata:
-				processor.write_metadata(memory, filepath, self.config.ffmpeg_timeout, self.config.jpeg_quality)
+				filepath = processor.write_metadata(memory, filepath, self.config.ffmpeg_timeout, self.config.jpeg_quality)
+			elif self.config.convert_to_jxl and memory.media_type == "Image" and JXLConverter.is_convertible_image(filepath):
+				filepath = JXLConverter.convert_to_jxl(filepath)
 
 			with self.stats_lock:
 				self.total_bytes += filepath.stat().st_size
@@ -142,9 +146,12 @@ class DownloadService:
 				processor = get_media_processor(
 					memory.media_type,
 					self.overlay_service,
-					self.metadata_service
+					self.metadata_service,
+					self.config.convert_to_jxl
 				)
-				processor.write_metadata(memory, filepath, self.config.ffmpeg_timeout, self.config.jpeg_quality)
+				filepath = processor.write_metadata(memory, filepath, self.config.ffmpeg_timeout, self.config.jpeg_quality)
+			elif self.config.convert_to_jxl and memory.media_type == "Image" and JXLConverter.is_convertible_image(filepath):
+				filepath = JXLConverter.convert_to_jxl(filepath)
 			with self.stats_lock:
 				self.total_bytes += filepath.stat().st_size
 			return True

@@ -20,6 +20,7 @@ class Config:
     max_attempts: int = 3  # Number of times to run the entire download process
     log_level: int = logging.INFO  # Logging level
     strict_location: bool = False  # Fail downloads when location metadata is missing
+    convert_to_jxl: bool = True  # Default is to convert JPEG images to lossless JPGXL format
 
     def __post_init__(self):
         self.downloads_folder.mkdir(exist_ok=True)
@@ -65,6 +66,11 @@ class Config:
             metavar='Q',
             help='JPEG quality 1-100 (default: 95). Short: -q'
         )
+        parser.add_argument(
+            '--no-jxl', '-J',
+            action='store_true',
+            help='Skip JPGXL conversion and keep original JPEG (default: convert to lossless JPGXL). Short: -J'
+        )
         args = parser.parse_args()
 
         return cls(
@@ -73,5 +79,6 @@ class Config:
             write_metadata=not args.no_metadata,
             max_attempts=args.attempts,
             strict_location=args.strict_location,
-            jpeg_quality=args.jpeg_quality
+            jpeg_quality=args.jpeg_quality,
+            convert_to_jxl=not args.no_jxl
         )
