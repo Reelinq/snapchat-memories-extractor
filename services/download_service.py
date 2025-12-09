@@ -38,6 +38,24 @@ class DownloadService:
 		from services.overlay_service import OverlayService
 		OverlayService.shutdown_process_pool()
 
+	def _record_error(self, memory: Memory, code: str) -> None:
+		with self.stats_lock:
+			self.errors.append({
+				'filename': memory.filename_with_ext,
+				'url': memory.media_download_url,
+				'code': code
+			})
+
+	@staticmethod
+	def _status_code_to_error(code: int) -> str:
+		if code == 429:
+			return 'RATE_LIMIT'
+		if code == 502:
+			return 'BAD_GATEWAY'
+		if code in (403, 404):
+			return 'EXPIRED_LINK'
+		return str(code)
+
 	def download_and_process(self, memory: Memory) -> bool:
 		try:
 			# Stream downloads for efficient memory usage
@@ -47,12 +65,7 @@ class DownloadService:
 				stream=True
 			)
 			if response.status_code >= 400:
-				with self.stats_lock:
-					self.errors.append({
-						'filename': memory.filename_with_ext,
-						'url': memory.media_download_url,
-						'code': str(response.status_code)
-					})
+				self._record_error(memory, self._status_code_to_error(response.status_code))
 				return False
 			response.raise_for_status()
 
@@ -70,21 +83,14 @@ class DownloadService:
 				return self._process_zip(content, memory)
 			else:
 				return self._process_regular(content, memory)
-		except requests.exceptions.RequestException as e:
-			with self.stats_lock:
-				self.errors.append({
-					'filename': memory.filename_with_ext,
-					'url': memory.media_download_url,
-					'code': 'NET'
-				})
+		except requests.exceptions.Timeout:
+			self._record_error(memory, 'TIMEOUT')
+			return False
+		except requests.exceptions.RequestException:
+			self._record_error(memory, 'NET')
 			return False
 		except Exception as e:
-			with self.stats_lock:
-				self.errors.append({
-					'filename': memory.filename_with_ext,
-					'url': memory.media_download_url,
-					'code': 'ERR'
-				})
+			self._record_error(memory, 'ERR')
 			return False
 
 	def _process_zip(self, content: bytes, memory: Memory) -> bool:
