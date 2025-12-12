@@ -199,11 +199,42 @@ class MemoryDownloader:
         self._suppress_console_logging(False)
 
         # Log all errors to JSON
+        desc_map = {
+            '401': 'Unauthorized',
+            '403': 'Forbidden',
+            '404': 'Not found',
+            '408': 'Request timed out',
+            '410': 'Expired or invalid download link',
+            '429': 'Rate limited',
+            '502': 'Bad gateway',
+            'NET': 'Network error',
+            'ZIP': 'ZIP processing error',
+            'FILE': 'File processing error',
+            'LOC': 'Missing required location metadata',
+            'ERR': 'Unexpected error',
+        }
+
         for error in self.errors:
             code = error.get('code', 'ERR')
             filename = error['filename']
             url = error.get('url', '')
-            self.logger.error(f"Download failed: {filename} (code: {code})", extra={"extra_data": {"code": code, "filename": filename, "url": url}})
+            code_desc = desc_map.get(str(code))
+            if not code_desc and str(code).isdigit():
+                code_desc = f"HTTP {code} response"
+            if not code_desc:
+                code_desc = 'Unexpected error'
+            extra_data = {
+                "code": code,
+                "filename": filename,
+                "url": url,
+                "code_desc": code_desc,
+            }
+            desc_suffix = f" - {code_desc}" if code_desc else ""
+            url_suffix = f" url={url}" if url else ""
+            self.logger.error(
+                f"Download failed: {filename} (code: {code}{desc_suffix}){url_suffix}",
+                extra={"extra_data": extra_data},
+            )
 
         if self.failed > 0:
             self.logger.info(f"Check logs for details on {self.failed} failed downloads")

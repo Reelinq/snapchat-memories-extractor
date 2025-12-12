@@ -46,16 +46,6 @@ class DownloadService:
 				'code': code
 			})
 
-	@staticmethod
-	def _status_code_to_error(code: int) -> str:
-		if code == 429:
-			return 'RATE_LIMIT'
-		if code == 502:
-			return 'BAD_GATEWAY'
-		if code in (403, 404):
-			return 'EXPIRED_LINK'
-		return str(code)
-
 	def download_and_process(self, memory: Memory) -> bool:
 		try:
 			# Stream downloads for efficient memory usage
@@ -65,7 +55,7 @@ class DownloadService:
 				stream=True
 			)
 			if response.status_code >= 400:
-				self._record_error(memory, self._status_code_to_error(response.status_code))
+				self._record_error(memory, str(response.status_code))
 				return False
 			response.raise_for_status()
 
@@ -84,7 +74,7 @@ class DownloadService:
 			else:
 				return self._process_regular(content, memory)
 		except requests.exceptions.Timeout:
-			self._record_error(memory, 'TIMEOUT')
+			self._record_error(memory, '408')
 			return False
 		except requests.exceptions.RequestException:
 			self._record_error(memory, 'NET')
