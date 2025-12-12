@@ -200,16 +200,16 @@ class MemoryDownloader:
 
         # Log all errors to JSON
         desc_map = {
-            '401': 'Unauthorized',
-            '403': 'Forbidden',
-            '404': 'Not found',
+            '401': 'Unauthorized - Invalid credentials',
+            '403': 'Forbidden - Link expired. Re-export memories_history.json',
+            '404': 'Not found - Resource no longer exists',
             '408': 'Request timed out',
-            '410': 'Expired or invalid download link',
-            '429': 'Rate limited',
-            '502': 'Bad gateway',
-            'NET': 'Network error',
-            'ZIP': 'ZIP processing error',
-            'FILE': 'File processing error',
+            '410': 'Gone - Link permanently expired',
+            '429': 'Rate limited - Too many requests',
+            '502': 'Bad gateway - Server temporarily unavailable',
+            'NET': 'Network error - Connection failed',
+            'ZIP': 'ZIP processing error - Failed to extract media',
+            'FILE': 'File processing error - Failed to write file',
             'LOC': 'Missing required location metadata',
             'ERR': 'Unexpected error',
         }
@@ -225,9 +225,9 @@ class MemoryDownloader:
                 code_desc = 'Unexpected error'
             extra_data = {
                 "code": code,
+                "code_desc": code_desc,
                 "filename": filename,
                 "url": url,
-                "code_desc": code_desc,
             }
             desc_suffix = f" - {code_desc}" if code_desc else ""
             url_suffix = f" url={url}" if url else ""
