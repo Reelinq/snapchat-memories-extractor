@@ -46,6 +46,47 @@ class MemoryDownloader:
             if isinstance(handler, logging.StreamHandler) and handler.stream.name == '<stdout>':
                 handler.setLevel(logging.CRITICAL if suppress else logging.INFO)
 
+    def _log_error(self, error: Dict[str, str]) -> None:
+        """Log error immediately and add to errors list for final count."""
+        desc_map = {
+            '401': 'Unauthorized - Invalid credentials',
+            '403': 'Forbidden - Link expired. Re-export memories_history.json',
+            '404': 'Not found - Resource no longer exists',
+            '408': 'Request timed out',
+            '410': 'Gone - Link permanently expired',
+            '429': 'Rate limited - Too many requests',
+            '502': 'Bad gateway - Server temporarily unavailable',
+            'NET': 'Network error - Connection failed',
+            'ZIP': 'ZIP processing error - Failed to extract media',
+            'FILE': 'File processing error - Failed to write file',
+            'LOC': 'Missing required location metadata',
+            'ERR': 'Unexpected error',
+        }
+        
+        code = error.get('code', 'ERR')
+        filename = error['filename']
+        url = error.get('url', '')
+        code_desc = desc_map.get(str(code))
+        if not code_desc and str(code).isdigit():
+            code_desc = f"HTTP {code} response"
+        if not code_desc:
+            code_desc = 'Unexpected error'
+        extra_data = {
+            "code": code,
+            "code_desc": code_desc,
+            "filename": filename,
+            "url": url,
+        }
+        desc_suffix = f" - {code_desc}" if code_desc else ""
+        url_suffix = f" url={url}" if url else ""
+        self.logger.error(
+            f"Download failed: {filename} (code: {code}{desc_suffix}){url_suffix}",
+            extra={"extra_data": extra_data},
+        )
+        # Flush all handlers to ensure log is written immediately
+        for handler in self.logger.handlers:
+            handler.flush()
+        self.errors.append(error)
 
     def close(self) -> None:
         # Release resources: shared HTTP sessions and ThreadPoolExecutor
@@ -157,11 +198,12 @@ class MemoryDownloader:
                     with self.stats_lock:
                         self.failed += 1
                         current_failed = self.failed
-                        self.errors.append({
-                            'filename': memory.filename_with_ext,
-                            'url': memory.media_download_url,
-                            'code': 'ERR'
-                        })
+                    
+                    self._log_error({
+                        'filename': memory.filename_with_ext,
+                        'url': memory.media_download_url,
+                        'code': 'ERR'
+                    })
 
                     # Update progress for failed download
                     with self.display_lock:
@@ -195,46 +237,8 @@ class MemoryDownloader:
         total_time = time.time() - self.start_time
         print_status(total_files, total_files, self.successful, self.failed, total_time, "✅ COMPLETE!")
 
-        # Re-enable console logging before error reporting
+        # Re-enable console logging before final summary
         self._suppress_console_logging(False)
-
-        # Log all errors to JSON
-        desc_map = {
-            '401': 'Unauthorized - Invalid credentials',
-            '403': 'Forbidden - Link expired. Re-export memories_history.json',
-            '404': 'Not found - Resource no longer exists',
-            '408': 'Request timed out',
-            '410': 'Gone - Link permanently expired',
-            '429': 'Rate limited - Too many requests',
-            '502': 'Bad gateway - Server temporarily unavailable',
-            'NET': 'Network error - Connection failed',
-            'ZIP': 'ZIP processing error - Failed to extract media',
-            'FILE': 'File processing error - Failed to write file',
-            'LOC': 'Missing required location metadata',
-            'ERR': 'Unexpected error',
-        }
-
-        for error in self.errors:
-            code = error.get('code', 'ERR')
-            filename = error['filename']
-            url = error.get('url', '')
-            code_desc = desc_map.get(str(code))
-            if not code_desc and str(code).isdigit():
-                code_desc = f"HTTP {code} response"
-            if not code_desc:
-                code_desc = 'Unexpected error'
-            extra_data = {
-                "code": code,
-                "code_desc": code_desc,
-                "filename": filename,
-                "url": url,
-            }
-            desc_suffix = f" - {code_desc}" if code_desc else ""
-            url_suffix = f" url={url}" if url else ""
-            self.logger.error(
-                f"Download failed: {filename} (code: {code}{desc_suffix}){url_suffix}",
-                extra={"extra_data": extra_data},
-            )
 
         if self.failed > 0:
             self.logger.info(f"Check logs for details on {self.failed} failed downloads")
@@ -297,34 +301,33 @@ class MemoryDownloader:
     def _download_task(self, index: int, memory: Memory) -> bool:
         try:
             if self.config.strict_location and memory.location_coords is None:
-                with self.stats_lock:
-                    self.errors.append({
-                        'filename': memory.filename_with_ext,
-                        'url': memory.media_download_url,
-                        'code': 'LOC'
-                    })
-                self.logger.warning(
-                    "Skipping download due to missing location: %s",
-                    memory.filename_with_ext
-                )
+                self._log_error({
+                    'filename': memory.filename_with_ext,
+                    'url': memory.media_download_url,
+                    'code': 'LOC'
+                })
                 return False
 
             success = self.download_service.download_and_process(memory)
 
             # Merge errors from download service
+            errors_to_log = []
             with self.stats_lock:
                 if self.download_service.errors:
-                    self.errors.extend(self.download_service.errors)
+                    errors_to_log = list(self.download_service.errors)
                     self.download_service.errors.clear()
                 self.total_bytes += self.download_service.total_bytes
                 self.download_service.total_bytes = 0
+            
+            # Log errors outside the lock
+            for error in errors_to_log:
+                self._log_error(error)
 
             return success
         except Exception as e:
-            with self.stats_lock:
-                    self.errors.append({
-                        'filename': memory.filename_with_ext,
-                        'url': memory.media_download_url,
-                        'code': 'ERR'
-                    })
+            self._log_error({
+                'filename': memory.filename_with_ext,
+                'url': memory.media_download_url,
+                'code': 'ERR'
+            })
             return False
