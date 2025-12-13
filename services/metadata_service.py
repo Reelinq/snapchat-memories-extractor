@@ -47,7 +47,7 @@ class MetadataService:
 
 	def _write_video_metadata(self, memory: Memory, file_path: Path, ffmpeg_timeout: int) -> None:
 		ffmpeg_exe = self._get_ffmpeg_exe()
-		metadata_args = ['-metadata', f'creation_time={memory.video_creation_time}']
+		metadata_arguments = ['-metadata', f'creation_time={memory.video_creation_time}']
 
 		# Add GPS metadata if available
 		coordinates = memory.location_coords
@@ -70,7 +70,7 @@ class MetadataService:
 				ffmpeg_exe,
 				'-i', str(file_path),
 				'-c', 'copy',
-				*metadata_args,
+				*metadata_arguments,
 				'-y',
 				str(temporary_video_path)
 			]

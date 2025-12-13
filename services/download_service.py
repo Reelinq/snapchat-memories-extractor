@@ -82,7 +82,7 @@ class DownloadService:
 		except Exception as exception:
 			self._record_error(memory, 'ERR')
 			return False
-	def _process_zip(self, content: bytes, memory: Memory) -> bool:
+	def _process_zip(self, downloaded_file_content: bytes, memory: Memory) -> bool:
 		filepath = None
 		try:
 			media_bytes, extension, overlay_png = self.content_processor.extract_media_from_zip(
@@ -132,7 +132,7 @@ class DownloadService:
 				})
 			return False
 
-	def _process_regular(self, content: bytes, memory: Memory) -> bool:
+	def _process_regular(self, downloaded_file_content: bytes, memory: Memory) -> bool:
 		filepath = self.config.downloads_folder / memory.filename_with_ext
 		filepath = self.filename_resolver.resolve_unique_path(filepath)
 		try:

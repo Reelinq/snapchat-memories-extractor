@@ -41,32 +41,32 @@ class Config:
             action='store_true',
             help='Skip applying PNG overlay (default: overlay applied). Short: -O'
         )
-        parser.add_argument(
+        command_line_argument_parser.add_argument(
             '--no-metadata', '-M',
             action='store_true',
             help='Skip writing metadata (default: metadata written). Short: -M'
         )
-        parser.add_argument(
+        command_line_argument_parser.add_argument(
             '--attempts', '-a',
             type=int,
             default=3,
             metavar='N',
             help='Max retry attempts (default: 3). Short: -a'
         )
-        parser.add_argument(
+        command_line_argument_parser.add_argument(
             '--strict', '-s',
             dest='strict_location',
             action='store_true',
             help='Fail downloads when location metadata is missing. Short: -s'
         )
-        parser.add_argument(
+        command_line_argument_parser.add_argument(
             '--jpeg-quality', '-q',
             type=int,
             default=95,
             metavar='Q',
             help='JPEG quality 1-100 (default: 95). Short: -q'
         )
-        parser.add_argument(
+        command_line_argument_parser.add_argument(
             '--no-jxl', '-J',
             action='store_true',
             help='Skip JPGXL conversion and keep original JPEG (default: convert to lossless JPGXL). Short: -J'
