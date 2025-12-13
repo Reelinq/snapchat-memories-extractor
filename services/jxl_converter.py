@@ -11,9 +11,9 @@ class JXLConverter:
     _cjxl_path = None  # Cache the path to cjxl binary
 
     @classmethod
-    def _get_cjxl_path(cls) -> Optional[Path]:
-        if cls._cjxl_path is not None:
-            return cls._cjxl_path
+    def _get_cjxl_path(class_reference) -> Optional[Path]:
+        if class_reference._cjxl_path is not None:
+            return class_reference._cjxl_path
 
         # Determine platform-specific binary
         if sys.platform == 'win32':
@@ -26,14 +26,14 @@ class JXLConverter:
         binary_path = Path(__file__).parent.parent / rel_path
 
         if binary_path.exists():
-            cls._cjxl_path = binary_path
+            class_reference._cjxl_path = binary_path
             return binary_path
 
         try:
             result = subprocess.run([binary_name, '--version'],
                                   capture_output=True, timeout=5)
             if result.returncode == 0:
-                cls._cjxl_path = Path(binary_name)
+                class_reference._cjxl_path = Path(binary_name)
                 return Path(binary_name)
         except (FileNotFoundError, subprocess.TimeoutExpired):
             pass
@@ -56,7 +56,7 @@ class JXLConverter:
             return input_path
 
         try:
-            cmd = [
+            command = [
                 str(cjxl_path),
                 '--lossless_jpeg=1',
                 '--effort=9',
@@ -64,7 +64,7 @@ class JXLConverter:
                 str(output_path)
             ]
 
-            result = subprocess.run(cmd, capture_output=True, timeout=120)
+            result = subprocess.run(command, capture_output=True, timeout=120)
 
             if result.returncode != 0:
                 stderr = result.stderr.decode('utf-8', errors='ignore') if result.stderr else ''
@@ -76,8 +76,8 @@ class JXLConverter:
 
             return output_path
 
-        except Exception as e:
-            logger.warning("cjxl exception for %s: %s", input_path, e)
+        except Exception as exception:
+            logger.warning("cjxl exception for %s: %s", input_path, exception)
             return input_path
 
     @staticmethod
@@ -89,7 +89,7 @@ class JXLConverter:
             return False
 
         try:
-            with Image.open(file_path) as img:
-                return img.format == 'JPEG'
+            with Image.open(file_path) as image:
+                return image.format == 'JPEG'
         except Exception:
             return False

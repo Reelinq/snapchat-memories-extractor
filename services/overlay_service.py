@@ -27,15 +27,15 @@ def _image_overlay_worker(image_bytes: bytes, overlay_bytes: bytes, quality: int
 		overlay_image = overlay_image.resize(base_image.size, Image.Resampling.LANCZOS)
 
 	# Composite the images
-	combined = Image.alpha_composite(base_image, overlay_image)
+	combined_image = Image.alpha_composite(base_image, overlay_image)
 
 	# Convert back to RGB for JPEG
-	combined_rgb = combined.convert('RGB')
+	combined_rgb_image = combined_image.convert('RGB')
 
 	# Save to bytes
-	output = BytesIO()
-	combined_rgb.save(output, format='JPEG', quality=quality)
-	return output.getvalue()
+	output_buffer = BytesIO()
+	combined_rgb_image.save(output_buffer, format='JPEG', quality=quality)
+	return output_buffer.getvalue()
 
 
 class OverlayService:
@@ -46,23 +46,23 @@ class OverlayService:
 	_pool_max_workers = 4  # Default CPU worker count
 
 	@classmethod
-	def _get_ffmpeg_exe(cls) -> str:
-		if cls._ffmpeg_exe_cache is None:
-			cls._ffmpeg_exe_cache = get_ffmpeg_exe()
-		return cls._ffmpeg_exe_cache
+	def _get_ffmpeg_exe(class_reference) -> str:
+		if class_reference._ffmpeg_exe_cache is None:
+			class_reference._ffmpeg_exe_cache = get_ffmpeg_exe()
+		return class_reference._ffmpeg_exe_cache
 
 	@classmethod
-	def get_process_pool(cls, max_workers: Optional[int] = None) -> ProcessPoolExecutor:
-		if cls._process_pool is None:
-			workers = max_workers or cls._pool_max_workers
-			cls._process_pool = ProcessPoolExecutor(max_workers=workers)
-		return cls._process_pool
+	def get_process_pool(class_reference, max_workers: Optional[int] = None) -> ProcessPoolExecutor:
+		if class_reference._process_pool is None:
+			workers = max_workers or class_reference._pool_max_workers
+			class_reference._process_pool = ProcessPoolExecutor(max_workers=workers)
+		return class_reference._process_pool
 
 	@classmethod
-	def shutdown_process_pool(cls) -> None:
-		if cls._process_pool is not None:
-			cls._process_pool.shutdown(wait=True)
-			cls._process_pool = None
+	def shutdown_process_pool(class_reference) -> None:
+		if class_reference._process_pool is not None:
+			class_reference._process_pool.shutdown(wait=True)
+			class_reference._process_pool = None
 
 	def apply_overlay_to_image(self, image_bytes: bytes, overlay_bytes: bytes, jpeg_quality: int = 95, use_process_pool: bool = True) -> bytes:
 		if use_process_pool:
@@ -76,40 +76,40 @@ class OverlayService:
 
 	def apply_overlay_to_video(self, video_bytes: bytes, overlay_bytes: bytes, output_path: Path, ffmpeg_timeout: int = 60) -> None:
 		# Create temporary files for video and overlay
-		with tempfile.NamedTemporaryFile(delete=False, suffix='.mp4') as video_temp:
-			video_temp.write(video_bytes)
-			video_temp_path = video_temp.name
+		with tempfile.NamedTemporaryFile(delete=False, suffix='.mp4') as video_temporary_file:
+			video_temporary_file.write(video_bytes)
+			video_temporary_file_path = video_temporary_file.name
 
-		overlay_temp_path = None  # Initialize to None for cleanup tracking
+		overlay_temporary_file_path = None  # Initialize to None for cleanup tracking
 		try:
 			# Get video dimensions using ffmpeg (use cached path)
 			ffmpeg_exe = self._get_ffmpeg_exe()
-			probe_cmd = [
+			probe_command = [
 				ffmpeg_exe,
-				'-i', video_temp_path,
+				'-i', video_temporary_file_path,
 				'-hide_banner'
 			]
 
 			probe_result = subprocess.run(
-				probe_cmd,
+				probe_command,
 				capture_output=True,
 				text=True,
 				creationflags=subprocess.CREATE_NO_WINDOW if hasattr(subprocess, 'CREATE_NO_WINDOW') else 0
 			)
 
 			# Parse dimensions from stderr
-			match = re.search(r'(\d{2,5})x(\d{2,5})', probe_result.stderr)
-			if match:
-				video_width = int(match.group(1))
-				video_height = int(match.group(2))
+			video_dimensions_match = re.search(r'(\d{2,5})x(\d{2,5})', probe_result.stderr)
+			if video_dimensions_match:
+				video_width = int(video_dimensions_match.group(1))
+				video_height = int(video_dimensions_match.group(2))
 			else:
 				raise Exception("Could not determine video dimensions")
 
 			# Resize overlay PNG to match video dimensions
 			try:
 				overlay_image = Image.open(BytesIO(overlay_bytes))
-			except Exception as e:
-				raise Exception(f"Failed to open overlay image: {str(e)}")
+			except Exception as exception:
+				raise Exception(f"Failed to open overlay image: {str(exception)}")
 
 			if overlay_image.size != (video_width, video_height):
 				overlay_image = overlay_image.resize((video_width, video_height), Image.Resampling.LANCZOS)
@@ -119,15 +119,15 @@ class OverlayService:
 			overlay_image.save(overlay_buffer, format='PNG')
 			overlay_buffer.seek(0)
 
-			with tempfile.NamedTemporaryFile(delete=False, suffix='.png') as overlay_temp:
-				overlay_temp.write(overlay_buffer.read())
-				overlay_temp_path = overlay_temp.name
+			with tempfile.NamedTemporaryFile(delete=False, suffix='.png') as overlay_temporary_file:
+				overlay_temporary_file.write(overlay_buffer.read())
+				overlay_temporary_file_path = overlay_temporary_file.name
 
 			# Now apply overlay with filter
-			cmd = [
+			command = [
 				ffmpeg_exe,
-				'-i', video_temp_path,
-				'-i', overlay_temp_path,
+				'-i', video_temporary_file_path,
+				'-i', overlay_temporary_file_path,
 				'-filter_complex', 'overlay=0:0',
 				'-c:v', 'libx264',
 				'-preset', 'fast',
@@ -139,17 +139,17 @@ class OverlayService:
 				str(output_path)
 			]
 
-			result = subprocess.run(
-				cmd,
+			subprocess_execution_result = subprocess.run(
+				command,
 				check=True,
 				timeout=ffmpeg_timeout,
 				capture_output=True,
 				creationflags=subprocess.CREATE_NO_WINDOW if hasattr(subprocess, 'CREATE_NO_WINDOW') else 0
 			)
-		except subprocess.CalledProcessError as e:
-			raise Exception(f"FFmpeg overlay failed: {e.stderr.decode('utf-8', errors='ignore')}")
+		except subprocess.CalledProcessError as exception:
+			raise Exception(f"FFmpeg overlay failed: {exception.stderr.decode('utf-8', errors='ignore')}")
 		finally:
 			# Clean up temp files
-			Path(video_temp_path).unlink(missing_ok=True)
-			if overlay_temp_path is not None:
-				Path(overlay_temp_path).unlink(missing_ok=True)
+			Path(video_temporary_file_path).unlink(missing_ok=True)
+			if overlay_temporary_file_path is not None:
+				Path(overlay_temporary_file_path).unlink(missing_ok=True)

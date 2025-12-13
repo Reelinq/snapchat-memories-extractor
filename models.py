@@ -14,9 +14,9 @@ class Memory(BaseModel):
 
     @model_validator(mode='after')
     def parse_datetime(self):
-        dt = datetime.strptime(self.date, "%Y-%m-%d %H:%M:%S UTC")
-        self.exif_datetime = dt.strftime("%Y:%m:%d %H:%M:%S")
-        self.video_creation_time = dt.strftime("%Y-%m-%dT%H:%M:%S")
+        datetime_object = datetime.strptime(self.date, "%Y-%m-%d %H:%M:%S UTC")
+        self.exif_datetime = datetime_object.strftime("%Y:%m:%d %H:%M:%S")
+        self.video_creation_time = datetime_object.strftime("%Y-%m-%dT%H:%M:%S")
         return self
 
 

@@ -23,7 +23,7 @@ class MemoryRepository:
             data = self.load()
             raw_items = data.get('Saved Media', [])
 
-            remaining = [item for i, item in enumerate(raw_items) if i not in success_indices]
+            remaining = [item for index, item in enumerate(raw_items) if index not in success_indices]
             data['Saved Media'] = remaining
 
             with open(self.json_path, 'w', encoding='utf-8') as file:

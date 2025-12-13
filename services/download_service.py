@@ -49,49 +49,48 @@ class DownloadService:
 	def download_and_process(self, memory: Memory) -> bool:
 		try:
 			# Stream downloads for efficient memory usage
-			response = self.session.get(
+			http_response = self.session.get(
 				memory.media_download_url,
 				timeout=self.config.request_timeout,
 				stream=True
 			)
-			if response.status_code >= 400:
-				self._record_error(memory, str(response.status_code))
+			if http_response.status_code >= 400:
+				self._record_error(memory, str(http_response.status_code))
 				return False
-			response.raise_for_status()
+			http_response.raise_for_status()
 
 			# Stream content in chunks to avoid RAM spikes
-			content = b''
-			for chunk in response.iter_content(chunk_size=self.config.stream_chunk_size):
+			downloaded_file_content = b''
+			for chunk in http_response.iter_content(chunk_size=self.config.stream_chunk_size):
 				if chunk:
-					content += chunk
+					downloaded_file_content += chunk
 
-			is_zip = self.content_processor.is_zip(
-				content,
-				response.headers.get('Content-Type', '')
+			is_zip_file = self.content_processor.is_zip(
+				downloaded_file_content,
+				http_response.headers.get('Content-Type', '')
 			)
-			if is_zip:
-				return self._process_zip(content, memory)
+			if is_zip_file:
+				return self._process_zip(downloaded_file_content, memory)
 			else:
-				return self._process_regular(content, memory)
+				return self._process_regular(downloaded_file_content, memory)
 		except requests.exceptions.Timeout:
 			self._record_error(memory, '408')
 			return False
 		except requests.exceptions.RequestException:
 			self._record_error(memory, 'NET')
 			return False
-		except Exception as e:
+		except Exception as exception:
 			self._record_error(memory, 'ERR')
 			return False
-
 	def _process_zip(self, content: bytes, memory: Memory) -> bool:
 		filepath = None
 		try:
 			media_bytes, extension, overlay_png = self.content_processor.extract_media_from_zip(
-				content,
+				downloaded_file_content,
 				extract_overlay=self.config.apply_overlay
 			)
 
-			processor = get_media_processor(
+			media_file_processor = get_media_processor(
 				memory.media_type,
 				self.overlay_service,
 				self.metadata_service,
@@ -103,7 +102,7 @@ class DownloadService:
 				filepath = self.filename_resolver.resolve_unique_path(filepath)
 
 			if self.config.apply_overlay and overlay_png:
-				media_bytes = processor.apply_overlay(
+				media_bytes = media_file_processor.apply_overlay(
 					media_bytes,
 					overlay_png,
 					filepath,
@@ -115,14 +114,14 @@ class DownloadService:
 				filepath.write_bytes(media_bytes)
 
 			if self.config.write_metadata:
-				filepath = processor.write_metadata(memory, filepath, self.config.ffmpeg_timeout, self.config.jpeg_quality)
+				filepath = media_file_processor.write_metadata(memory, filepath, self.config.ffmpeg_timeout, self.config.jpeg_quality)
 			elif self.config.convert_to_jxl and memory.media_type == "Image" and JXLConverter.is_convertible_image(filepath):
 				filepath = JXLConverter.convert_to_jxl(filepath)
 
 			with self.stats_lock:
 				self.total_bytes += filepath.stat().st_size
 			return True
-		except Exception as e:
+		except Exception as exception:
 			if filepath:
 				filepath.unlink(missing_ok=True)
 			with self.stats_lock:
@@ -137,21 +136,21 @@ class DownloadService:
 		filepath = self.config.downloads_folder / memory.filename_with_ext
 		filepath = self.filename_resolver.resolve_unique_path(filepath)
 		try:
-			filepath.write_bytes(content)
+			filepath.write_bytes(downloaded_file_content)
 			if self.config.write_metadata:
-				processor = get_media_processor(
+				media_file_processor = get_media_processor(
 					memory.media_type,
 					self.overlay_service,
 					self.metadata_service,
 					self.config.convert_to_jxl
 				)
-				filepath = processor.write_metadata(memory, filepath, self.config.ffmpeg_timeout, self.config.jpeg_quality)
+				filepath = media_file_processor.write_metadata(memory, filepath, self.config.ffmpeg_timeout, self.config.jpeg_quality)
 			elif self.config.convert_to_jxl and memory.media_type == "Image" and JXLConverter.is_convertible_image(filepath):
 				filepath = JXLConverter.convert_to_jxl(filepath)
 			with self.stats_lock:
 				self.total_bytes += filepath.stat().st_size
 			return True
-		except Exception as e:
+		except Exception as exception:
 			filepath.unlink(missing_ok=True)
 			with self.stats_lock:
 				self.errors.append({

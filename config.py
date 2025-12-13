@@ -27,16 +27,16 @@ class Config:
         self.logs_folder.mkdir(exist_ok=True)
 
     @classmethod
-    def from_args(cls) -> 'Config':
-        parser = argparse.ArgumentParser(description='Snapchat Memories Downloader')
-        parser.add_argument(
+    def from_args(class_reference) -> 'Config':
+        command_line_argument_parser = argparse.ArgumentParser(description='Snapchat Memories Downloader')
+        command_line_argument_parser.add_argument(
            '--concurrent', '-c',
             type=int,
             default=5,
             metavar='N',
             help='Concurrent downloads (default: 5). Short: -c'
         )
-        parser.add_argument(
+        command_line_argument_parser.add_argument(
             '--no-overlay', '-O',
             action='store_true',
             help='Skip applying PNG overlay (default: overlay applied). Short: -O'
@@ -71,14 +71,14 @@ class Config:
             action='store_true',
             help='Skip JPGXL conversion and keep original JPEG (default: convert to lossless JPGXL). Short: -J'
         )
-        args = parser.parse_args()
+        parsed_arguments = command_line_argument_parser.parse_args()
 
-        return cls(
-            max_concurrent_downloads=args.concurrent,
-            apply_overlay=not args.no_overlay,
-            write_metadata=not args.no_metadata,
-            max_attempts=args.attempts,
-            strict_location=args.strict_location,
-            jpeg_quality=args.jpeg_quality,
-            convert_to_jxl=not args.no_jxl
+        return class_reference(
+            max_concurrent_downloads=parsed_arguments.concurrent,
+            apply_overlay=not parsed_arguments.no_overlay,
+            write_metadata=not parsed_arguments.no_metadata,
+            max_attempts=parsed_arguments.attempts,
+            strict_location=parsed_arguments.strict_location,
+            jpeg_quality=parsed_arguments.jpeg_quality,
+            convert_to_jxl=not parsed_arguments.no_jxl
         )
