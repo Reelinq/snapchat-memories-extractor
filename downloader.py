@@ -222,8 +222,8 @@ class MemoryDownloader:
         except KeyboardInterrupt:
             self.logger.warning("Download interrupted by user")
             self._interrupted = True
-            # Don't wait for executor; cancel pending tasks and exit
-            self.executor.shutdown(wait=False, cancel_futures=True)
+            # Cancel pending tasks but wait briefly for active ones to finish logging
+            self.executor.shutdown(wait=True, cancel_futures=True)
             # Force prune pending items on interrupt
             self._batch_prune_if_needed(force=True)
             # Convert any JPEGs that didn't complete conversion before exit

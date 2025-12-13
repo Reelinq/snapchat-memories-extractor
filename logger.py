@@ -58,7 +58,7 @@ class ConsoleFormatter(logging.Formatter):
 
 
 class FlushingFileHandler(logging.FileHandler):
-    """FileHandler that flushes after each log record for real-time logging."""
+    # FileHandler that flushes after each log record for real-time logging.
     def emit(self, record):
         super().emit(record)
         self.flush()
@@ -92,7 +92,6 @@ def setup_logging(
         log_dir.mkdir(exist_ok=True)
 
         json_log_path = log_dir / f"snapchat_extractor_{datetime.now().strftime('%Y%m%d_%H%M%S')}.jsonl"
-        # Use FlushingFileHandler for real-time logging
         json_handler = FlushingFileHandler(json_log_path, encoding="utf-8")
         json_handler.setLevel(logging.DEBUG)  # Capture all levels for JSON logs
         json_formatter = JSONFormatter()
