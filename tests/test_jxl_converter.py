@@ -6,7 +6,7 @@ from PIL import Image, ImageChops
 import piexif
 import tempfile
 import shutil
-from services.jxl_converter import JXLConverter
+from src.services.jxl_converter import JXLConverter
 
 
 HAS_CJXL = JXLConverter._get_cjxl_path() is not None

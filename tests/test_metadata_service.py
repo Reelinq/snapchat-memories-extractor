@@ -1,5 +1,5 @@
 import unittest
-from services.metadata_service import *
+from src.services.metadata_service import *
 
 
 from unittest.mock import patch, MagicMock
