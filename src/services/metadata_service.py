@@ -1,4 +1,4 @@
-from models import Memory
+from src.models import Memory
 from pathlib import Path
 import subprocess
 import piexif

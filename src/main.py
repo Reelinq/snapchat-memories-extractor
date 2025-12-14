@@ -1,18 +1,18 @@
-from config import Config
-from downloader import MemoryDownloader
-from logger import init_logging
+from src.config import Config
+from src.downloader import MemoryDownloader
+from src.logger import init_logging
 import sys
 
 if __name__ == "__main__":
     config = Config.from_args()
     logger = init_logging(config)
-    
+
     logger.info("Application started")
-    
+
     downloader = MemoryDownloader(config)
     exit_code = 0
     exit_reason = "normal"
-    
+
     try:
         downloader.run()
         logger.info("Download process completed successfully")
@@ -32,10 +32,10 @@ if __name__ == "__main__":
             logger.warning("Cleanup interrupted by user")
             exit_code = 0
             exit_reason = "keyboard_interrupt_during_cleanup"
-        
+
         # Wait briefly for any remaining background threads to finish logging
         import time
         time.sleep(0.1)
-        
+
         logger.info(f"Application ended - reason: {exit_reason}, exit_code: {exit_code}")
         sys.exit(exit_code)

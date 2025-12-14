@@ -1,5 +1,5 @@
 import unittest
-from filename_resolver import *
+from src.processors.filename_resolver import *
 
 
 import tempfile

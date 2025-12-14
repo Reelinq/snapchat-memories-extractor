@@ -1,5 +1,5 @@
 import unittest
-from zip_processor import *
+from src.processors.zip_processor import *
 import zipfile
 from io import BytesIO
 

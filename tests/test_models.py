@@ -1,5 +1,5 @@
 import unittest
-from models import *
+from src.models import *
 
 class TestModels(unittest.TestCase):
     def test_memory_creation_and_properties(self):

@@ -1,11 +1,11 @@
-from zip_processor import ZipProcessor
-from filename_resolver import FileNameResolver
-from models import Memory
-from config import Config
-from services.metadata_service import MetadataService
-from services.overlay_service import OverlayService
-from services.media_processor import get_media_processor
-from services.jxl_converter import JXLConverter
+from src.processors.zip_processor import ZipProcessor
+from src.processors.filename_resolver import FileNameResolver
+from src.models import Memory
+from src.config import Config
+from src.services.metadata_service import MetadataService
+from src.services.overlay_service import OverlayService
+from src.services.media_processor import get_media_processor
+from src.services.jxl_converter import JXLConverter
 from typing import List, Dict
 import requests
 import threading

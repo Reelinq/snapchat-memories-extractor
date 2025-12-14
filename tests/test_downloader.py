@@ -3,9 +3,9 @@ import tempfile
 from pathlib import Path
 from unittest.mock import MagicMock
 
-from config import Config
-from downloader import MemoryDownloader
-from models import Memory
+from src.config import Config
+from src.downloader import MemoryDownloader
+from src.models import Memory
 
 
 class TestMemoryDownloaderStrict(unittest.TestCase):

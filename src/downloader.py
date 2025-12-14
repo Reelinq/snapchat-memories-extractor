@@ -3,13 +3,13 @@ from typing import List, Dict, Set
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import threading
 import logging
-from config import Config
-from models import Memory
-from memory_repository import MemoryRepository
+from src.config import Config
+from src.models import Memory
+from src.repositories.memory_repository import MemoryRepository
 from services.download_service import DownloadService
 from services.jxl_converter import JXLConverter
 from ui.display import print_status, clear_lines
-from logger import get_logger
+from src.logger import get_logger
 
 class MemoryDownloader:
     def __init__(self, config: Config):
@@ -62,7 +62,7 @@ class MemoryDownloader:
             'LOC': 'Missing required location metadata',
             'ERR': 'Unexpected error',
         }
-        
+
         error_code = error.get('code', 'ERR')
         filename = error['filename']
         url = error.get('url', '')
@@ -198,7 +198,7 @@ class MemoryDownloader:
                     with self.stats_lock:
                         self.failed_downloads_count += 1
                         current_failed = self.failed_downloads_count
-                    
+
                     self._log_error({
                         'filename': memory.filename_with_ext,
                         'url': memory.media_download_url,
@@ -318,7 +318,7 @@ class MemoryDownloader:
                     self.download_service.errors.clear()
                 self.total_bytes += self.download_service.total_bytes
                 self.download_service.total_bytes = 0
-            
+
             # Log errors outside the lock
             for error in errors_to_log:
                 self._log_error(error)

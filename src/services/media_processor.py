@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from pathlib import Path
-from models import Memory
+from src.models import Memory
 from services.overlay_service import OverlayService
 from services.metadata_service import MetadataService
 from services.jxl_converter import JXLConverter
