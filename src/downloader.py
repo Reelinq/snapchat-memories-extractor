@@ -6,9 +6,9 @@ import logging
 from src.config import Config
 from src.models import Memory
 from src.repositories.memory_repository import MemoryRepository
-from services.download_service import DownloadService
-from services.jxl_converter import JXLConverter
-from ui.display import print_status, clear_lines
+from src.services.download_service import DownloadService
+from src.services.jxl_converter import JXLConverter
+from src.ui.display import print_status, clear_lines
 from src.logger import get_logger
 
 class MemoryDownloader:
