@@ -17,7 +17,7 @@ class ZipProcessor:
 
     @staticmethod
     def extract_media_from_zip(content: bytes, extract_overlay: bool = True) -> tuple[bytes, str, Optional[bytes]]:
-        with zipfile.ZipFile(BytesIO(content)) as zf:
+        with zipfile.ZipFile(BytesIO(content)) as zip_file:
             jpeg_filenames = [filename for filename in zip_file.namelist() if filename.lower().endswith(('.jpg', '.jpeg'))]
             mp4_filenames = [filename for filename in zip_file.namelist() if filename.lower().endswith('.mp4')]
 
