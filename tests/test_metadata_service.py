@@ -1,35 +1,49 @@
-import unittest
-from src.services.metadata_service import *
-
-
-from unittest.mock import patch, MagicMock
 from pathlib import Path
+from unittest.mock import MagicMock
+import pytest
+from src.services.metadata_service import MetadataService
 
-class TestMetadataService(unittest.TestCase):
-    @patch("services.metadata_service.Image.open")
-    @patch("services.metadata_service.piexif.dump", return_value=b"exifbytes")
-    def test_write_image_metadata(self, mock_dump, mock_open):
-        memory = MagicMock()
-        memory.exif_datetime = "2023:12:05 12:34:56"
-        memory.location_coords = (37.0, -122.0)
-        service = MetadataService()
-        mock_img = MagicMock()
-        mock_open.return_value.__enter__.return_value = mock_img
-        service._write_image_metadata(memory, Path("dummy.jpg"))
-        self.assertTrue(mock_img.save.called)
-        self.assertTrue(mock_dump.called)
+@pytest.fixture
+def metadata_service():
+    return MetadataService()
 
-    @patch.object(Path, "replace", return_value=None)
-    @patch("services.metadata_service.subprocess.run")
-    @patch("services.metadata_service.imageio_ffmpeg.get_ffmpeg_exe", return_value="ffmpeg")
-    def test_write_video_metadata(self, mock_ffmpeg, mock_run, mock_replace):
-        memory = MagicMock()
-        memory.video_creation_time = "2023-12-05T12:34:56"
-        memory.location_coords = (37.0, -122.0)
-        service = MetadataService()
-        mock_run.return_value.returncode = 0
-        service._write_video_metadata(memory, Path("dummy.mp4"), 10)
-        self.assertTrue(mock_run.called)
+@pytest.fixture
+def mock_memory_image():
+    memory = MagicMock()
+    memory.exif_datetime = "2023:12:05 12:34:56"
+    memory.location_coords = (37.0, -122.0)
+    return memory
 
-if __name__ == "__main__":
-    unittest.main()
+@pytest.fixture
+def mock_memory_video():
+    memory = MagicMock()
+    memory.video_creation_time = "2023-12-05T12:34:56"
+    memory.location_coords = (37.0, -122.0)
+    return memory
+
+def test_write_image_metadata(metadata_service, mock_memory_image, mocker):
+    mock_img = MagicMock()
+    mock_open = mocker.patch("src.services.metadata_service.Image.open")
+    mock_open.return_value.__enter__.return_value = mock_img
+
+    mock_dump = mocker.patch(
+        "src.services.metadata_service.piexif.dump", return_value=b"exifbytes")
+
+    metadata_service._write_image_metadata(mock_memory_image, Path("dummy.jpg"))
+
+    assert mock_img.save.called
+    assert mock_dump.called
+
+
+def test_write_video_metadata(metadata_service, mock_memory_video, mocker):
+    mock_replace = mocker.patch.object(Path, "replace", return_value=None)
+    mock_run = mocker.patch("src.services.metadata_service.subprocess.run")
+    mock_run.return_value.returncode = 0
+
+    mock_ffmpeg = mocker.patch(
+        "src.services.metadata_service.imageio_ffmpeg.get_ffmpeg_exe", return_value="ffmpeg")
+
+    metadata_service._write_video_metadata(
+        mock_memory_video, Path("dummy.mp4"), 10)
+
+    assert mock_run.called
