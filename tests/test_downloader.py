@@ -1,39 +1,39 @@
-import unittest
 import tempfile
 from pathlib import Path
 from unittest.mock import MagicMock
-
+import pytest
 from src.config import Config
 from src.downloader import MemoryDownloader
 from src.models import Memory
 
+@pytest.fixture
+def temp_config():
+    with tempfile.TemporaryDirectory() as tmpdir:
+        yield Config(
+            json_path=Path(tmpdir) / "memories_history.json",
+            downloads_folder=Path(tmpdir) / "downloads",
+            logs_folder=Path(tmpdir) / "logs",
+            strict_location=True
+        )
 
-class TestMemoryDownloaderStrict(unittest.TestCase):
-    def test_strict_location_blocks_download(self):
-        with tempfile.TemporaryDirectory() as tmpdir:
-            config = Config(
-                json_path=Path(tmpdir) / "memories_history.json",
-                downloads_folder=Path(tmpdir) / "downloads",
-                logs_folder=Path(tmpdir) / "logs",
-                strict_location=True
-            )
-            downloader = MemoryDownloader(config)
-            downloader.download_service = MagicMock()
+@pytest.fixture
+def downloader(temp_config):
+    downloader = MemoryDownloader(temp_config)
+    downloader.download_service = MagicMock()
+    return downloader
 
-            memory = Memory.model_validate({
-                "Date": "2023-12-05 12:34:56 UTC",
-                "Media Download Url": "http://example.com/media.jpg",
-                "Media Type": "Image",
-                "Location": None
-            })
+@pytest.fixture
+def memory_without_location():
+    return Memory.model_validate({
+        "Date": "2023-12-05 12:34:56 UTC",
+        "Media Download Url": "http://example.com/media.jpg",
+        "Media Type": "Image",
+        "Location": None
+    })
 
-            success = downloader._download_task(0, memory)
-
-            self.assertFalse(success)
-            downloader.download_service.download_and_process.assert_not_called()
-            self.assertTrue(downloader.errors)
-            self.assertEqual(downloader.errors[-1]['code'], 'LOC')
-
-
-if __name__ == "__main__":
-    unittest.main()
+def test_strict_location_blocks_download(downloader, memory_without_location):
+    success = downloader._download_task(0, memory_without_location)
+    assert success is False
+    downloader.download_service.download_and_process.assert_not_called()
+    assert len(downloader.errors) > 0
+    assert downloader.errors[-1]['code'] == 'LOC'
