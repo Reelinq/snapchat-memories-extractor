@@ -25,7 +25,22 @@ class DownloadService:
         self.total_bytes = 0
         self.session = self._build_session()
 
-    @handle_errors(return_on_error=False)  # ← NO ERROR CODE!
+    def _build_session(self) -> requests.Session:
+        session = requests.Session()
+        adapter = HTTPAdapter(
+            pool_connections=self.config.max_concurrent_downloads,
+            pool_maxsize=self.config.max_concurrent_downloads * 2,
+        )
+        session.mount("http://", adapter)
+        session.mount("https://", adapter)
+        return session
+
+    def close(self) -> None:
+        self.session.close()
+        from src.services.overlay_service import OverlayService
+        OverlayService.shutdown_process_pool()
+
+    @handle_errors(return_on_error=False)
     def download_and_process(self, memory: Memory) -> bool:
         http_response = self.session.get(
             memory.media_download_url,
