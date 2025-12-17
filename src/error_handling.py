@@ -50,10 +50,8 @@ def determine_error_code(exception: Exception) -> str:
     if isinstance(exception, LocationMissingError):
         return 'LOC'
 
-    if isinstance(exception, requests.HTTPError):
-        if exception.response is not None:
-            return str(exception.response.status_code)
-        return 'NET'
+    if isinstance(exception, requests.HTTPError) and exception.response:
+        return str(exception.response.status_code)
 
     if isinstance(exception, requests.RequestException):
         return 'NET'
