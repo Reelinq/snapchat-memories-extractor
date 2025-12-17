@@ -4,18 +4,19 @@ from typing import Optional
 import subprocess
 import sys
 import logging
+from src.error_handling import handle_errors
 
 logger = logging.getLogger(__name__)
 
+
 class JXLConverter:
-    _cjxl_path = None  # Cache the path to cjxl binary
+    _cjxl_path = None
 
     @classmethod
     def _get_cjxl_path(class_reference) -> Optional[Path]:
         if class_reference._cjxl_path is not None:
             return class_reference._cjxl_path
 
-        # Determine platform-specific binary
         if sys.platform == 'win32':
             binary_name = 'cjxl.exe'
             rel_path = Path('libjxl-binaries/windows') / binary_name
@@ -29,18 +30,21 @@ class JXLConverter:
             class_reference._cjxl_path = binary_path
             return binary_path
 
-        try:
-            result = subprocess.run([binary_name, '--version'],
-                                  capture_output=True, timeout=5)
-            if result.returncode == 0:
-                class_reference._cjxl_path = Path(binary_name)
-                return Path(binary_name)
-        except (FileNotFoundError, subprocess.TimeoutExpired):
-            pass
+        if class_reference._check_system_binary(binary_name):
+            class_reference._cjxl_path = Path(binary_name)
+            return Path(binary_name)
 
         return None
 
+    @classmethod
+    @handle_errors(return_on_error=False)
+    def _check_system_binary(class_reference, binary_name: str) -> bool:
+        result = subprocess.run([binary_name, '--version'],
+                                capture_output=True, timeout=5)
+        return result.returncode == 0
+
     @staticmethod
+    @handle_errors(return_on_error=None)
     def convert_to_jxl(
         input_path: Path,
         output_path: Optional[Path] = None,
@@ -49,38 +53,36 @@ class JXLConverter:
         if output_path is None:
             output_path = input_path.with_suffix('.jxl')
 
-        # Get cjxl binary path
         cjxl_path = JXLConverter._get_cjxl_path()
         if cjxl_path is None:
-            logger.debug("cjxl binary not found; skipping conversion for %s", input_path)
+            logger.debug(
+                "cjxl binary not found; skipping conversion for %s", input_path)
             return input_path
 
-        try:
-            command = [
-                str(cjxl_path),
-                '--lossless_jpeg=1',
-                '--effort=9',
-                str(input_path),
-                str(output_path)
-            ]
+        command = [
+            str(cjxl_path),
+            '--lossless_jpeg=1',
+            '--effort=9',
+            str(input_path),
+            str(output_path)
+        ]
 
-            result = subprocess.run(command, capture_output=True, timeout=120)
+        result = subprocess.run(command, capture_output=True, timeout=120)
 
-            if result.returncode != 0:
-                stderr = result.stderr.decode('utf-8', errors='ignore') if result.stderr else ''
-                logger.warning("cjxl failed (%s) for %s: %s", result.returncode, input_path, stderr.strip())
-                return input_path
-
-            if remove_original and input_path != output_path:
-                input_path.unlink(missing_ok=True)
-
-            return output_path
-
-        except Exception as exception:
-            logger.warning("cjxl exception for %s: %s", input_path, exception)
+        if result.returncode != 0:
+            stderr = result.stderr.decode(
+                'utf-8', errors='ignore') if result.stderr else ''
+            logger.warning("cjxl failed (%s) for %s: %s",
+                           result.returncode, input_path, stderr.strip())
             return input_path
+
+        if remove_original and input_path != output_path:
+            input_path.unlink(missing_ok=True)
+
+        return output_path
 
     @staticmethod
+    @handle_errors(return_on_error=False)
     def is_convertible_image(file_path: Path) -> bool:
         if not file_path.exists():
             return False
@@ -88,8 +90,5 @@ class JXLConverter:
         if file_path.suffix.lower() not in ('.jpg', '.jpeg'):
             return False
 
-        try:
-            with Image.open(file_path) as image:
-                return image.format == 'JPEG'
-        except Exception:
-            return False
+        with Image.open(file_path) as image:
+            return image.format == 'JPEG'
