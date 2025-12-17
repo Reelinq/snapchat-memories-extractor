@@ -1,5 +1,5 @@
 from functools import wraps
-from typing import Callable, Any, Dict, List
+from typing import Callable, Any, Dict, List, Optional
 import requests
 import zipfile
 from src.logger import get_logger
@@ -37,7 +37,6 @@ def get_error_description(error_code: str) -> str:
         return f"HTTP {error_code_str} response"
 
     return 'Unexpected error'
-
 
 def determine_error_code(exception: Exception) -> str:
     if isinstance(exception, KeyboardInterrupt):
@@ -96,26 +95,18 @@ def record_error(error: Dict[str, str], error_list: List[Dict[str, str]]) -> Non
     error_list.append(error)
 
 
-def handle_errors(return_on_error: Any = False, reraise_keyboard_interrupt: bool = False):
+def handle_errors(return_on_error: Any = False):
     def decorator(func: Callable) -> Callable:
         @wraps(func)
         def wrapper(*args, **kwargs):
             try:
                 return func(*args, **kwargs)
 
-            except KeyboardInterrupt as e:
-                logger.warning(f"Interrupted in {func.__name__}")
-
-                if reraise_keyboard_interrupt:
-                    raise
-
-                return return_on_error
-
             except Exception as e:
                 error_code = determine_error_code(e)
 
                 if isinstance(e, KeyboardInterrupt):
-                    logger.warning(f"Interrupted: {e}")
+                    logger.warning(f"Interrupted in {func.__name__}")
                 else:
                     logger.error(
                         f"Error in {func.__name__}: {e}", exc_info=True)
@@ -137,45 +128,33 @@ def handle_errors(return_on_error: Any = False, reraise_keyboard_interrupt: bool
     return decorator
 
 
-def handle_app_errors(exit_code_on_error: int = 1):
+def handle_batch_errors(cleanup_method: Optional[str] = None):
     def decorator(func: Callable) -> Callable:
         @wraps(func)
         def wrapper(*args, **kwargs):
-            exit_code = 0
-            exit_reason = "normal"
-
             try:
-                result = func(*args, **kwargs)
-                logger.info("Application completed successfully")
-                return result
+                return func(*args, **kwargs)
 
             except KeyboardInterrupt:
-                logger.warning("Process interrupted by user (Ctrl+C)")
-                exit_code = 0
-                exit_reason = "keyboard_interrupt"
+                logger.warning("Download interrupted by user")
+
+                if args and hasattr(args[0], '_interrupted'):
+                    args[0]._interrupted = True
+
+                if args and hasattr(args[0], 'executor'):
+                    args[0].executor.shutdown(wait=True, cancel_futures=True)
+
+                if cleanup_method and args and hasattr(args[0], cleanup_method):
+                    getattr(args[0], cleanup_method)(force=True)
+
+                if args and hasattr(args[0], '_convert_remaining_jpegs_on_interrupt'):
+                    args[0]._convert_remaining_jpegs_on_interrupt()
+
+                raise
 
             except Exception as e:
-                logger.error(f"Unexpected error: {e}", exc_info=True)
-                exit_code = exit_code_on_error
-                exit_reason = "error"
-
-            finally:
-                if args and hasattr(args[0], 'close'):
-                    try:
-                        args[0].close()
-                    except KeyboardInterrupt:
-                        logger.warning("Cleanup interrupted by user")
-                        exit_code = 0
-                        exit_reason = "keyboard_interrupt_during_cleanup"
-
-                import time
-                time.sleep(0.1)
-
-                logger.info(
-                    f"Application ended - reason: {exit_reason}, exit_code: {exit_code}")
-
-                import sys
-                sys.exit(exit_code)
+                logger.error(f"Error in {func.__name__}: {e}", exc_info=True)
+                raise
 
         return wrapper
     return decorator

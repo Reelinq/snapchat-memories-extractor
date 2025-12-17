@@ -10,7 +10,7 @@ from src.services.download_service import DownloadService
 from src.services.jxl_converter import JXLConverter
 from src.ui.display import print_status, clear_lines
 from src.logger import get_logger
-from src.error_handling import handle_errors, LocationMissingError
+from src.error_handling import handle_errors, handle_batch_errors, LocationMissingError
 
 class MemoryDownloader:
     def __init__(self, config: Config):
@@ -88,6 +88,7 @@ class MemoryDownloader:
             if self.failed_downloads_count == 0 or current_attempt_number == self.config.max_attempts - 1:
                 break
 
+    @handle_batch_errors(cleanup_method='_batch_prune_if_needed')
     def _run_download_batch(self) -> None:
         raw_memory_items = self.repository.get_raw_items()
         successfully_processed_indices: Set[int] = set()
@@ -112,74 +113,64 @@ class MemoryDownloader:
             for index, memory in download_tasks
         }
 
-        try:
-            # Process completed tasks
-            for future in as_completed(future_to_download_task_mapping):
-                index, memory = future_to_download_task_mapping[future]
-                completed_downloads_count += 1
+        for future in as_completed(future_to_download_task_mapping):
+            index, memory = future_to_download_task_mapping[future]
+            completed_downloads_count += 1
 
-                try:
-                    download_succeeded = future.result()
+            try:
+                download_succeeded = future.result()
 
-                    with self.stats_lock:
-                        if download_succeeded:
-                            self.successful_downloads_count += 1
-                            successfully_processed_indices.add(index)
-                            self.pending_prune_indices.add(index)
-                        else:
-                            self.failed_downloads_count += 1
-
-                        # Capture current stats for display
-                        current_successful = self.successful_downloads_count
-                        current_failed = self.failed_downloads_count
-
-                    # Batch prune if threshold reached
-                    self._batch_prune_if_needed()
-
-                    # Update progress display outside the lock
-                    with self.display_lock:
-                        if self.ui_shown:
-                            clear_lines(10)
-                        self.ui_shown = True
-                        print_status(
-                            completed_downloads_count,
-                            total_files_count,
-                            current_successful,
-                            current_failed,
-                            time.time() - self.start_time,
-                            f"Downloading: {memory.filename_with_ext}"
-                        )
-
-                    # Periodically log but don't clear successfully_processed_indices
-                    if len(successfully_processed_indices) % 10 == 0 and successfully_processed_indices:
-                        self.logger.debug(
-                            f"Successfully processed {len(successfully_processed_indices)} items so far")
-
-                except Exception as exception:
-                    with self.stats_lock:
+                with self.stats_lock:
+                    if download_succeeded:
+                        self.successful_downloads_count += 1
+                        successfully_processed_indices.add(index)
+                        self.pending_prune_indices.add(index)
+                    else:
                         self.failed_downloads_count += 1
-                        current_failed = self.failed_downloads_count
 
-                    with self.display_lock:
-                        if self.ui_shown:
-                            clear_lines(10)
-                        self.ui_shown = True
-                        print_status(
-                            completed_downloads_count,
-                            total_files_count,
-                            self.successful_downloads_count,
-                            current_failed,
-                            time.time() - self.start_time,
-                            f"Downloading: {memory.filename_with_ext}"
-                        )
+                    # Capture current stats for display
+                    current_successful = self.successful_downloads_count
+                    current_failed = self.failed_downloads_count
 
-        except KeyboardInterrupt:
-            self.logger.warning("Download interrupted by user")
-            self._interrupted = True
-            self.executor.shutdown(wait=True, cancel_futures=True)
-            self._batch_prune_if_needed(force=True)
-            self._convert_remaining_jpegs_on_interrupt()
-            raise
+                # Batch prune if threshold reached
+                self._batch_prune_if_needed()
+
+                # Update progress display outside the lock
+                with self.display_lock:
+                    if self.ui_shown:
+                        clear_lines(10)
+                    self.ui_shown = True
+                    print_status(
+                        completed_downloads_count,
+                        total_files_count,
+                        current_successful,
+                        current_failed,
+                        time.time() - self.start_time,
+                        f"Downloading: {memory.filename_with_ext}"
+                    )
+
+                # Periodically log but don't clear successfully_processed_indices
+                if len(successfully_processed_indices) % 10 == 0 and successfully_processed_indices:
+                    self.logger.debug(
+                        f"Successfully processed {len(successfully_processed_indices)} items so far")
+
+            except Exception as exception:
+                with self.stats_lock:
+                    self.failed_downloads_count += 1
+                    current_failed = self.failed_downloads_count
+
+                with self.display_lock:
+                    if self.ui_shown:
+                        clear_lines(10)
+                    self.ui_shown = True
+                    print_status(
+                        completed_downloads_count,
+                        total_files_count,
+                        self.successful_downloads_count,
+                        current_failed,
+                        time.time() - self.start_time,
+                        f"Downloading: {memory.filename_with_ext}"
+                    )
 
         # Final prune
         self._batch_prune_if_needed(force=True)
