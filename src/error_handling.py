@@ -2,12 +2,15 @@ from functools import wraps
 from typing import Callable, Any, Dict, List, Optional
 import requests
 import zipfile
+from concurrent.futures import Future
 from src.logger import get_logger
 
 logger = get_logger()
 
+
 class LocationMissingError(Exception):
     pass
+
 
 ERROR_DESCRIPTIONS = {
     '401': 'Unauthorized - Invalid credentials',
@@ -27,6 +30,7 @@ ERROR_DESCRIPTIONS = {
     'ERR': 'Unexpected error',
 }
 
+
 def get_error_description(error_code: str) -> str:
     error_code_str = str(error_code)
 
@@ -37,6 +41,7 @@ def get_error_description(error_code: str) -> str:
         return f"HTTP {error_code_str} response"
 
     return 'Unexpected error'
+
 
 def determine_error_code(exception: Exception) -> str:
     if isinstance(exception, KeyboardInterrupt):
@@ -50,7 +55,7 @@ def determine_error_code(exception: Exception) -> str:
             return str(exception.response.status_code)
         return 'NET'
 
-    if isinstance(exception, (requests.ConnectionError, requests.Timeout, requests.RequestException)):
+    if isinstance(exception, requests.RequestException):
         return 'NET'
 
     if isinstance(exception, (zipfile.BadZipFile, zipfile.LargeZipFile)):
@@ -93,6 +98,14 @@ def record_error(error: Dict[str, str], error_list: List[Dict[str, str]]) -> Non
         handler.flush()
 
     error_list.append(error)
+
+
+def safe_future_result(future: Future, default_on_error: Any = False):
+    try:
+        return future.result()
+    except Exception as exception:
+        logger.error(f"Thread executor error: {exception}", exc_info=True)
+        return default_on_error
 
 
 def handle_errors(return_on_error: Any = False):
