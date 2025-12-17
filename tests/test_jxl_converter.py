@@ -7,9 +7,12 @@ import pytest
 from PIL import Image, ImageChops
 import piexif
 from src.services.jxl_converter import JXLConverter
+from src.error_handling import handle_errors
 
 HAS_CJXL = JXLConverter._get_cjxl_path() is not None
 
+
+@handle_errors(return_on_error=None)
 def _get_djxl_path() -> Path | None:
     if sys.platform == 'win32':
         binary_name = 'djxl.exe'
@@ -22,13 +25,12 @@ def _get_djxl_path() -> Path | None:
     candidate = base_dir / rel_path
     if candidate.exists():
         return candidate
-    try:
-        result = subprocess.run(
-            [binary_name, '--version'], capture_output=True, timeout=5)
-        if result.returncode == 0:
-            return Path(binary_name)
-    except (FileNotFoundError, subprocess.TimeoutExpired):
-        return None
+
+    result = subprocess.run([binary_name, '--version'],
+                            capture_output=True, timeout=5)
+    if result.returncode == 0:
+        return Path(binary_name)
+
     return None
 
 _DJXL_PATH = _get_djxl_path()
