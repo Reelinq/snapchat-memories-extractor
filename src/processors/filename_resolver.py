@@ -8,11 +8,12 @@ class FileNameResolver:
         self._seed_existing_files(base_folder)
 
     def _seed_existing_files(self, folder: Path) -> None:
-        try:
-            self.used_names = {
-                path.name for path in folder.iterdir() if path.is_file()}
-        except Exception:
+        if not folder.exists() or not folder.is_dir():
             self.used_names = set()
+            return
+
+        self.used_names = {
+            path.name for path in folder.iterdir() if path.is_file()}
 
     def resolve_unique_path(self, path: Path) -> Path:
         base_name = path.stem
