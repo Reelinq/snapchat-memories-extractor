@@ -10,6 +10,7 @@ from src.services.download_service import DownloadService
 from src.services.jxl_converter import JXLConverter
 from src.ui.display import print_status, clear_lines
 from src.logger import get_logger
+from src.error_handling import handle_errors, LocationMissingError
 
 class MemoryDownloader:
     def __init__(self, config: Config):
@@ -24,7 +25,8 @@ class MemoryDownloader:
         self.logger = get_logger("snapchat_extractor")
 
         # Reusable ThreadPoolExecutor (avoids creation overhead across retry attempts)
-        self.executor = ThreadPoolExecutor(max_workers=config.max_concurrent_downloads)
+        self.executor = ThreadPoolExecutor(
+            max_workers=config.max_concurrent_downloads)
 
         # Statistics
         self.successful_downloads_count = 0
@@ -46,48 +48,6 @@ class MemoryDownloader:
             if isinstance(handler, logging.StreamHandler) and handler.stream.name == '<stdout>':
                 handler.setLevel(logging.CRITICAL if suppress else logging.INFO)
 
-    def _log_error(self, error: Dict[str, str]) -> None:
-        """Log error immediately and add to errors list for final count."""
-        error_description_map = {
-            '401': 'Unauthorized - Invalid credentials',
-            '403': 'Forbidden - Link expired. Re-export memories_history.json',
-            '404': 'Not found - Resource no longer exists',
-            '408': 'Request timed out',
-            '410': 'Gone - Link permanently expired',
-            '429': 'Rate limited - Too many requests',
-            '502': 'Bad gateway - Server temporarily unavailable',
-            'NET': 'Network error - Connection failed',
-            'ZIP': 'ZIP processing error - Failed to extract media',
-            'FILE': 'File processing error - Failed to write file',
-            'LOC': 'Missing required location metadata',
-            'ERR': 'Unexpected error',
-        }
-
-        error_code = error.get('code', 'ERR')
-        filename = error['filename']
-        url = error.get('url', '')
-        error_code_description = error_description_map.get(str(error_code))
-        if not error_code_description and str(error_code).isdigit():
-            error_code_description = f"HTTP {error_code} response"
-        if not error_code_description:
-            error_code_description = 'Unexpected error'
-        extra_data = {
-            "error_code": error_code,
-            "error_code_description": error_code_description,
-            "filename": filename,
-            "url": url,
-        }
-        error_description_suffix = f" - {error_code_description}" if error_code_description else ""
-        url_suffix = f" url={url}" if url else ""
-        self.logger.error(
-            f"Download failed: {filename} (code: {error_code}{error_description_suffix}){url_suffix}",
-            extra={"extra_data": extra_data},
-        )
-        # Flush all handlers to ensure log is written immediately
-        for handler in self.logger.handlers:
-            handler.flush()
-        self.errors.append(error)
-
     def close(self) -> None:
         # Release resources: shared HTTP sessions and ThreadPoolExecutor
         self.download_service.close()
@@ -106,14 +66,15 @@ class MemoryDownloader:
         if should_prune:
             self.repository.prune(self.pending_prune_indices)
             self.last_prune_count = len(self.pending_prune_indices)
-            self.logger.debug(f"Batched prune: removed {self.last_prune_count} items from JSON")
+            self.logger.debug(
+                f"Batched prune: removed {self.last_prune_count} items from JSON")
             self.pending_prune_indices.clear()
-
 
     def run(self) -> None:
         for current_attempt_number in range(self.config.max_attempts):
             if current_attempt_number > 0:
-                self.logger.info(f"Starting attempt {current_attempt_number + 1}/{self.config.max_attempts}...")
+                self.logger.info(
+                    f"Starting attempt {current_attempt_number + 1}/{self.config.max_attempts}...")
                 time.sleep(2)
 
                 self.successful_downloads_count = 0
@@ -126,7 +87,6 @@ class MemoryDownloader:
 
             if self.failed_downloads_count == 0 or current_attempt_number == self.config.max_attempts - 1:
                 break
-
 
     def _run_download_batch(self) -> None:
         raw_memory_items = self.repository.get_raw_items()
@@ -143,7 +103,8 @@ class MemoryDownloader:
         self._suppress_console_logging(True)
 
         # Create memory objects with their indices
-        download_tasks = [(index, Memory.model_validate(item)) for index, item in enumerate(raw_memory_items)]
+        download_tasks = [(index, Memory.model_validate(item))
+                          for index, item in enumerate(raw_memory_items)]
 
         # Reuse the shared executor (avoids creation overhead on retries)
         future_to_download_task_mapping = {
@@ -190,22 +151,15 @@ class MemoryDownloader:
                         )
 
                     # Periodically log but don't clear successfully_processed_indices
-                    # We need to track all indices for final prune
                     if len(successfully_processed_indices) % 10 == 0 and successfully_processed_indices:
-                        self.logger.debug(f"Successfully processed {len(successfully_processed_indices)} items so far")
+                        self.logger.debug(
+                            f"Successfully processed {len(successfully_processed_indices)} items so far")
 
                 except Exception as exception:
                     with self.stats_lock:
                         self.failed_downloads_count += 1
                         current_failed = self.failed_downloads_count
 
-                    self._log_error({
-                        'filename': memory.filename_with_ext,
-                        'url': memory.media_download_url,
-                        'code': 'ERR'
-                    })
-
-                    # Update progress for failed download
                     with self.display_lock:
                         if self.ui_shown:
                             clear_lines(10)
@@ -222,11 +176,8 @@ class MemoryDownloader:
         except KeyboardInterrupt:
             self.logger.warning("Download interrupted by user")
             self._interrupted = True
-            # Cancel pending tasks but wait briefly for active ones to finish logging
             self.executor.shutdown(wait=True, cancel_futures=True)
-            # Force prune pending items on interrupt
             self._batch_prune_if_needed(force=True)
-            # Convert any JPEGs that didn't complete conversion before exit
             self._convert_remaining_jpegs_on_interrupt()
             raise
 
@@ -235,25 +186,27 @@ class MemoryDownloader:
 
         clear_lines(10)
         total_time = time.time() - self.start_time
-        print_status(total_files_count, total_files_count, self.successful_downloads_count, self.failed_downloads_count, total_time, "✅ COMPLETE!")
+        print_status(total_files_count, total_files_count, self.successful_downloads_count,
+                     self.failed_downloads_count, total_time, "✅ COMPLETE!")
 
         # Re-enable console logging before final summary
         self._suppress_console_logging(False)
 
         if self.failed_downloads_count > 0:
-            self.logger.info(f"Check logs for details on {self.failed_downloads_count} failed downloads")
+            self.logger.info(
+                f"Check logs for details on {self.failed_downloads_count} failed downloads")
 
     def _backfill_existing_jpegs_to_jxl(self) -> None:
         if not self.config.convert_to_jxl:
             return
 
-        jpeg_file_paths = list(self.config.downloads_folder.glob('*.jpg')) + list(self.config.downloads_folder.glob('*.jpeg'))
+        jpeg_file_paths = list(self.config.downloads_folder.glob(
+            '*.jpg')) + list(self.config.downloads_folder.glob('*.jpeg'))
         if not jpeg_file_paths:
             return
 
         converted_files_count = 0
         for jpeg_file_path in jpeg_file_paths:
-            # Skip if a JXL already exists
             jxl_file_path = jpeg_file_path.with_suffix('.jxl')
             if jxl_file_path.exists():
                 continue
@@ -266,22 +219,25 @@ class MemoryDownloader:
                 converted_files_count += 1
 
         if converted_files_count > 0:
-            print(f"🔄 Converted {converted_files_count} leftover JPEG(s) to JPGXL format")
-            self.logger.info(f"Backfilled {converted_files_count} JPEG(s) to JPGXL format")
+            print(
+                f"🔄 Converted {converted_files_count} leftover JPEG(s) to JPGXL format")
+            self.logger.info(
+                f"Backfilled {converted_files_count} JPEG(s) to JPGXL format")
 
     def _convert_remaining_jpegs_on_interrupt(self) -> None:
         if not self.config.convert_to_jxl:
             return
 
-        jpeg_file_paths = list(self.config.downloads_folder.glob('*.jpg')) + list(self.config.downloads_folder.glob('*.jpeg'))
+        jpeg_file_paths = list(self.config.downloads_folder.glob(
+            '*.jpg')) + list(self.config.downloads_folder.glob('*.jpeg'))
         if not jpeg_file_paths:
             return
 
-        print(f"\n🔄 Converting {len(jpeg_file_paths)} JPEG(s) to JPGXL before exit...")
+        print(
+            f"\n🔄 Converting {len(jpeg_file_paths)} JPEG(s) to JPGXL before exit...")
         converted_files_count = 0
 
         for jpeg_file_path in jpeg_file_paths:
-            # Skip if a JXL already exists
             jxl_file_path = jpeg_file_path.with_suffix('.jxl')
             if jxl_file_path.exists():
                 continue
@@ -295,39 +251,23 @@ class MemoryDownloader:
 
         if converted_files_count > 0:
             print(f"✅ Converted {converted_files_count} JPEG(s) to JPGXL")
-            self.logger.info(f"Post-interrupt conversion: {converted_files_count} JPEG(s) to JPGXL")
+            self.logger.info(
+                f"Post-interrupt conversion: {converted_files_count} JPEG(s) to JPGXL")
 
-
+    @handle_errors(return_on_error=False)
     def _download_task(self, index: int, memory: Memory) -> bool:
-        try:
-            if self.config.strict_location and memory.location_coords is None:
-                self._log_error({
-                    'filename': memory.filename_with_ext,
-                    'url': memory.media_download_url,
-                    'code': 'LOC'
-                })
-                return False
+        if self.config.strict_location and memory.location_coords is None:
+            raise LocationMissingError(
+                f"Missing location for {memory.filename_with_ext}")
 
-            download_succeeded = self.download_service.download_and_process(memory)
+        download_succeeded = self.download_service.download_and_process(memory)
 
-            # Merge errors from download service
-            errors_to_log = []
-            with self.stats_lock:
-                if self.download_service.errors:
-                    errors_to_log = list(self.download_service.errors)
-                    self.download_service.errors.clear()
-                self.total_bytes += self.download_service.total_bytes
-                self.download_service.total_bytes = 0
+        with self.stats_lock:
+            if self.download_service.errors:
+                self.errors.extend(self.download_service.errors)
+                self.download_service.errors.clear()
 
-            # Log errors outside the lock
-            for error in errors_to_log:
-                self._log_error(error)
+            self.total_bytes += self.download_service.total_bytes
+            self.download_service.total_bytes = 0
 
-            return download_succeeded
-        except Exception as exception:
-            self._log_error({
-                'filename': memory.filename_with_ext,
-                'url': memory.media_download_url,
-                'code': 'ERR'
-            })
-            return False
+        return download_succeeded
