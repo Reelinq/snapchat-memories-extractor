@@ -8,27 +8,25 @@ from src.models import Memory
 from src.repositories.memory_repository import MemoryRepository
 from src.services.download_service import DownloadService
 from src.services.jxl_converter import JXLConverter
-from src.ui.display import print_status, clear_lines
+from src.ui.display import print_status, clear_lines, update_progress
 from src.logger import get_logger
-from src.error_handling import handle_errors, handle_batch_errors, LocationMissingError
+from src.error_handling import handle_errors, handle_batch_errors, LocationMissingError, safe_future_result
+
 
 class MemoryDownloader:
     def __init__(self, config: Config):
         self.config = config
         self.repository = MemoryRepository(config.json_path)
 
-        # Thread synchronization
         self.stats_lock = threading.Lock()
         self.display_lock = threading.Lock()
 
         self.download_service = DownloadService(config, self.stats_lock)
         self.logger = get_logger("snapchat_extractor")
 
-        # Reusable ThreadPoolExecutor (avoids creation overhead across retry attempts)
         self.executor = ThreadPoolExecutor(
             max_workers=config.max_concurrent_downloads)
 
-        # Statistics
         self.successful_downloads_count = 0
         self.failed_downloads_count = 0
         self.total_bytes = 0
@@ -36,11 +34,9 @@ class MemoryDownloader:
         self.errors: List[Dict[str, str]] = []
         self.ui_shown = False
 
-        # Batch pruning state
         self.pending_prune_indices: Set[int] = set()
         self.last_prune_count = 0
 
-        # Interrupt state
         self._interrupted = False
 
     def _suppress_console_logging(self, suppress: bool = True):
@@ -49,9 +45,7 @@ class MemoryDownloader:
                 handler.setLevel(logging.CRITICAL if suppress else logging.INFO)
 
     def close(self) -> None:
-        # Release resources: shared HTTP sessions and ThreadPoolExecutor
         self.download_service.close()
-        # Don't wait for threads if interrupted; exit immediately
         should_wait_for_shutdown = not self._interrupted
         self.executor.shutdown(wait=should_wait_for_shutdown)
 
@@ -96,18 +90,14 @@ class MemoryDownloader:
         self.start_time = time.time()
         completed_downloads_count = 0
 
-        # Reset batch state
         self.pending_prune_indices.clear()
         self.last_prune_count = 0
 
-        # Suppress console logging during UI updates
         self._suppress_console_logging(True)
 
-        # Create memory objects with their indices
         download_tasks = [(index, Memory.model_validate(item))
                           for index, item in enumerate(raw_memory_items)]
 
-        # Reuse the shared executor (avoids creation overhead on retries)
         future_to_download_task_mapping = {
             self.executor.submit(self._download_task, index, memory): (index, memory)
             for index, memory in download_tasks
@@ -117,62 +107,37 @@ class MemoryDownloader:
             index, memory = future_to_download_task_mapping[future]
             completed_downloads_count += 1
 
-            try:
-                download_succeeded = future.result()
+            download_succeeded = safe_future_result(
+                future, default_on_error=False)
 
-                with self.stats_lock:
-                    if download_succeeded:
-                        self.successful_downloads_count += 1
-                        successfully_processed_indices.add(index)
-                        self.pending_prune_indices.add(index)
-                    else:
-                        self.failed_downloads_count += 1
-
-                    # Capture current stats for display
-                    current_successful = self.successful_downloads_count
-                    current_failed = self.failed_downloads_count
-
-                # Batch prune if threshold reached
-                self._batch_prune_if_needed()
-
-                # Update progress display outside the lock
-                with self.display_lock:
-                    if self.ui_shown:
-                        clear_lines(10)
-                    self.ui_shown = True
-                    print_status(
-                        completed_downloads_count,
-                        total_files_count,
-                        current_successful,
-                        current_failed,
-                        time.time() - self.start_time,
-                        f"Downloading: {memory.filename_with_ext}"
-                    )
-
-                # Periodically log but don't clear successfully_processed_indices
-                if len(successfully_processed_indices) % 10 == 0 and successfully_processed_indices:
-                    self.logger.debug(
-                        f"Successfully processed {len(successfully_processed_indices)} items so far")
-
-            except Exception as exception:
-                with self.stats_lock:
+            with self.stats_lock:
+                if download_succeeded:
+                    self.successful_downloads_count += 1
+                    successfully_processed_indices.add(index)
+                    self.pending_prune_indices.add(index)
+                else:
                     self.failed_downloads_count += 1
-                    current_failed = self.failed_downloads_count
 
-                with self.display_lock:
-                    if self.ui_shown:
-                        clear_lines(10)
-                    self.ui_shown = True
-                    print_status(
-                        completed_downloads_count,
-                        total_files_count,
-                        self.successful_downloads_count,
-                        current_failed,
-                        time.time() - self.start_time,
-                        f"Downloading: {memory.filename_with_ext}"
-                    )
+                current_successful = self.successful_downloads_count
+                current_failed = self.failed_downloads_count
 
-        # Final prune
+            self._batch_prune_if_needed()
+
+            with self.display_lock:
+                self.ui_shown = update_progress(
+                    completed_downloads_count,
+                    total_files_count,
+                    current_successful,
+                    current_failed,
+                    self.start_time,
+                    memory.filename_with_ext,
+                    self.ui_shown
+                )
+
+            if len(successfully_processed_indices) % 10 == 0 and successfully_processed_indices:
+                self.logger.debug(
+                    f"Successfully processed {len(successfully_processed_indices)} items so far")
+
         self._batch_prune_if_needed(force=True)
 
         clear_lines(10)
@@ -180,7 +145,6 @@ class MemoryDownloader:
         print_status(total_files_count, total_files_count, self.successful_downloads_count,
                      self.failed_downloads_count, total_time, "✅ COMPLETE!")
 
-        # Re-enable console logging before final summary
         self._suppress_console_logging(False)
 
         if self.failed_downloads_count > 0:
@@ -247,9 +211,8 @@ class MemoryDownloader:
 
     @handle_errors(return_on_error=False)
     def _download_task(self, index: int, memory: Memory) -> bool:
-        if self.config.strict_location and memory.location_coords is None:
-            raise LocationMissingError(
-                f"Missing location for {memory.filename_with_ext}")
+        if self.config.strict_location:
+            _ = memory.location_coords
 
         download_succeeded = self.download_service.download_and_process(memory)
 

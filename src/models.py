@@ -1,6 +1,8 @@
 from typing import Optional
 from datetime import datetime
 from pydantic import BaseModel, Field, model_validator
+from src.error_handling import LocationMissingError
+
 
 class Memory(BaseModel):
     date: str = Field(alias="Date")
@@ -11,7 +13,6 @@ class Memory(BaseModel):
     exif_datetime: str = ""
     video_creation_time: str = ""
 
-
     @model_validator(mode='after')
     def parse_datetime(self):
         datetime_object = datetime.strptime(self.date, "%Y-%m-%d %H:%M:%S UTC")
@@ -19,35 +20,28 @@ class Memory(BaseModel):
         self.video_creation_time = datetime_object.strftime("%Y-%m-%dT%H:%M:%S")
         return self
 
-
     @property
     def filename(self) -> str:
         date_part = self.date.split(" UTC")[0]
         return date_part.replace(" ", "_").replace(":", "-")
 
-
     @property
     def extension(self) -> str:
         return ".jpg" if self.media_type == "Image" else ".mp4"
-
 
     @property
     def filename_with_ext(self) -> str:
         return f"{self.filename}{self.extension}"
 
-
     @property
-    def location_coords(self) -> tuple[float, float] | None:
+    def location_coords(self) -> tuple[float, float]:
         if not self.location:
-            return None
+            raise LocationMissingError("No location data available")
 
-        try:
-            location_coords = self.location.replace('Latitude, Longitude: ', '')
-            latitude, longitude = map(float, location_coords.split(', '))
-        except (ValueError, AttributeError):
-            return None
+        location_coords = self.location.replace('Latitude, Longitude: ', '')
+        latitude, longitude = map(float, location_coords.split(', '))
 
         if latitude == 0.0 and longitude == 0.0:
-            return None
+            raise LocationMissingError("Location is 0,0 (invalid)")
 
         return (latitude, longitude)
