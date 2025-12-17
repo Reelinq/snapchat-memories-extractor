@@ -169,3 +169,47 @@ def handle_batch_errors(cleanup_method: Optional[str] = None):
 
         return wrapper
     return decorator
+
+
+def handle_app_errors(exit_code_on_error: int = 1):
+    def decorator(func: Callable) -> Callable:
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            exit_code = 0
+            exit_reason = "normal"
+
+            try:
+                result = func(*args, **kwargs)
+                logger.info("Application completed successfully")
+                return result
+
+            except KeyboardInterrupt:
+                logger.warning("Process interrupted by user (Ctrl+C)")
+                exit_code = 0
+                exit_reason = "keyboard_interrupt"
+
+            except Exception as e:
+                logger.error(f"Unexpected error: {e}", exc_info=True)
+                exit_code = exit_code_on_error
+                exit_reason = "error"
+
+            finally:
+                if args and hasattr(args[0], 'close'):
+                    try:
+                        args[0].close()
+                    except KeyboardInterrupt:
+                        logger.warning("Cleanup interrupted by user")
+                        exit_code = 0
+                        exit_reason = "keyboard_interrupt_during_cleanup"
+
+                import time
+                time.sleep(0.1)
+
+                logger.info(
+                    f"Application ended - reason: {exit_reason}, exit_code: {exit_code}")
+
+                import sys
+                sys.exit(exit_code)
+
+        return wrapper
+    return decorator
