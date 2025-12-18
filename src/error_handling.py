@@ -122,8 +122,12 @@ def handle_errors(return_on_error: Any = False):
                     logger.error(
                         f"Error in {func.__name__}: {e}", exc_info=True)
 
-                memory = kwargs.get('memory') or (
-                    args[1] if len(args) > 1 else None)
+                memory = kwargs.get('memory')
+                if not memory:
+                    candidate = args[2] if len(args) > 2 else (
+                        args[1] if len(args) > 1 else None)
+                    if candidate and hasattr(candidate, 'media_download_url'):
+                        memory = candidate
 
                 if memory and args and hasattr(args[0], 'errors'):
                     error = {
