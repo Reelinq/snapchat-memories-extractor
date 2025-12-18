@@ -24,7 +24,8 @@ class JXLConverter:
             binary_name = 'cjxl'
             rel_path = Path('libjxl-binaries/linux') / binary_name
 
-        binary_path = Path(__file__).parent.parent / rel_path
+        base_dir = Path(__file__).resolve().parent.parent.parent
+        binary_path = base_dir / rel_path
 
         if binary_path.exists():
             class_reference._cjxl_path = binary_path

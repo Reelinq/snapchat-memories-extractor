@@ -21,7 +21,7 @@ def _get_djxl_path() -> Path | None:
         binary_name = 'djxl'
         rel_path = Path('libjxl-binaries/linux') / binary_name
 
-    base_dir = Path(__file__).resolve().parent.parent
+    base_dir = Path(__file__).resolve().parent.parent.parent
     candidate = base_dir / rel_path
     if candidate.exists():
         return candidate
