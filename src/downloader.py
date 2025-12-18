@@ -212,7 +212,8 @@ class MemoryDownloader:
     @handle_errors(return_on_error=False)
     def _download_task(self, index: int, memory: Memory) -> bool:
         if self.config.strict_location:
-            _ = memory.location_coords
+            if memory.location_coords is None:
+                raise LocationMissingError("No location data available")
 
         download_succeeded = self.download_service.download_and_process(memory)
 

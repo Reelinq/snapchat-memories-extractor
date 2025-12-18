@@ -34,14 +34,14 @@ class Memory(BaseModel):
         return f"{self.filename}{self.extension}"
 
     @property
-    def location_coords(self) -> tuple[float, float]:
+    def location_coords(self) -> Optional[tuple[float, float]]:
         if not self.location:
-            raise LocationMissingError("No location data available")
+            return None
 
         location_coords = self.location.replace('Latitude, Longitude: ', '')
         latitude, longitude = map(float, location_coords.split(', '))
 
         if latitude == 0.0 and longitude == 0.0:
-            raise LocationMissingError("Location is 0,0 (invalid)")
+            return None
 
         return (latitude, longitude)
