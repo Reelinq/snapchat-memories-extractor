@@ -65,23 +65,21 @@ def setup_logging(
     name: str = "snapchat_extractor",
     log_level: int = logging.INFO,
     log_dir: Optional[Path] = None,
-    enable_json: bool = True,
-    enable_console: bool = True,
 ) -> logging.Logger:
     logger = logging.getLogger(name)
-    logger.setLevel(log_level)  # Simplified: Set directly to user's choice
+    logger.setLevel(log_level)
 
     logger.handlers.clear()
 
-    if enable_console:
-        console_handler = logging.StreamHandler(sys.stdout)
-        console_handler.setLevel(logging.DEBUG)  # Pass everything through
-        console_formatter = ConsoleFormatter()
-        console_handler.setFormatter(console_formatter)
-        sys.stdout.reconfigure(line_buffering=True) if hasattr(sys.stdout, 'reconfigure') else None
-        logger.addHandler(console_handler)
+    console_handler = logging.StreamHandler(sys.stdout)
+    console_handler.setLevel(logging.DEBUG)
+    console_formatter = ConsoleFormatter()
+    console_handler.setFormatter(console_formatter)
+    sys.stdout.reconfigure(line_buffering=True) if hasattr(
+        sys.stdout, 'reconfigure') else None
+    logger.addHandler(console_handler)
 
-    if enable_json and log_dir:
+    if log_dir:
         log_dir = Path(log_dir)
         log_dir.mkdir(exist_ok=True)
 
@@ -105,9 +103,7 @@ def init_logging(config) -> logging.Logger:
     logger = setup_logging(
         name="snapchat_extractor",
         log_level=config.log_level,
-        log_dir=config.logs_folder,
-        enable_json=True,
-        enable_console=True,
+        log_dir=config.logs_folder
     )
     logger.info("Snapchat Memories Extractor started")
     logger.debug(
