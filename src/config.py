@@ -18,13 +18,38 @@ class Config:
     apply_overlay: bool = True  # Default is to apply PNG overlay
     write_metadata: bool = True  # Default is to write metadata to photos and videos
     max_attempts: int = 3  # Number of times to run the entire download process
-    log_level: int = logging.INFO  # Logging level
+    log_level: int = logging.CRITICAL + 10  # Logging level (default: OFF)
     strict_location: bool = False  # Fail downloads when location metadata is missing
     convert_to_jxl: bool = True  # Default is to convert JPEG images to lossless JPGXL format
 
     def __post_init__(self):
         self.downloads_folder.mkdir(exist_ok=True)
         self.logs_folder.mkdir(exist_ok=True)
+
+    @staticmethod
+    def parse_log_level(level_input: str) -> int:
+        level_map = {
+            # Numbers
+            '0': logging.CRITICAL + 10,
+            '1': logging.CRITICAL,
+            '2': logging.ERROR,
+            '3': logging.WARNING,
+            '4': logging.INFO,
+            '5': logging.DEBUG,
+            # Names
+            'OFF': logging.CRITICAL + 10,
+            'CRITICAL': logging.CRITICAL,
+            'ERROR': logging.ERROR,
+            'WARNING': logging.WARNING,
+            'INFO': logging.INFO,
+            'DEBUG': logging.DEBUG,
+        }
+
+        level_upper = level_input.upper()
+        if level_upper in level_map:
+            return level_map[level_upper]
+        else:
+            raise argparse.ArgumentTypeError(f"Invalid log level: {level_input}. Use 0-5 or OFF/CRITICAL/ERROR/WARNING/INFO/DEBUG")
 
     @classmethod
     def from_args(class_reference) -> 'Config':
@@ -71,6 +96,13 @@ class Config:
             action='store_true',
             help='Skip JPGXL conversion and keep original JPEG (default: convert to lossless JPGXL). Short: -J'
         )
+        command_line_argument_parser.add_argument(
+            '--log-level', '-l',
+            type=class_reference.parse_log_level,
+            default=logging.CRITICAL + 10,
+            metavar='LEVEL',
+            help='Logging level: 0=OFF, 1=CRITICAL, 2=ERROR, 3=WARNING, 4=INFO, 5=DEBUG. Can also use names: OFF, CRITICAL, ERROR, WARNING, INFO, DEBUG (default: 0/OFF). Short: -l'
+        )
         parsed_arguments = command_line_argument_parser.parse_args()
 
         return class_reference(
@@ -80,5 +112,6 @@ class Config:
             max_attempts=parsed_arguments.attempts,
             strict_location=parsed_arguments.strict_location,
             jpeg_quality=parsed_arguments.jpeg_quality,
-            convert_to_jxl=not parsed_arguments.no_jxl
+            convert_to_jxl=not parsed_arguments.no_jxl,
+            log_level=parsed_arguments.log_level
         )

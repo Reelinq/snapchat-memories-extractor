@@ -18,11 +18,9 @@ class JSONFormatter(logging.Formatter):
             "line": record.lineno,
         }
 
-        # Add exception info if present
         if record.exc_info:
             log_obj["exception"] = self.formatException(record.exc_info)
 
-        # Add extra fields if provided
         if hasattr(record, "extra_data") and record.extra_data:
             log_obj.update(record.extra_data)
 
@@ -58,7 +56,6 @@ class ConsoleFormatter(logging.Formatter):
 
 
 class FlushingFileHandler(logging.FileHandler):
-    # FileHandler that flushes after each log record for real-time logging.
     def emit(self, record):
         super().emit(record)
         self.flush()
@@ -72,28 +69,25 @@ def setup_logging(
     enable_console: bool = True,
 ) -> logging.Logger:
     logger = logging.getLogger(name)
-    logger.setLevel(logging.DEBUG)  # Logger captures everything
+    logger.setLevel(log_level)  # Simplified: Set directly to user's choice
 
     logger.handlers.clear()
 
-    # Console handler (human-readable) - only show INFO and above
     if enable_console:
         console_handler = logging.StreamHandler(sys.stdout)
-        console_handler.setLevel(log_level)  # Filter to INFO+ for clean console
+        console_handler.setLevel(logging.DEBUG)  # Pass everything through
         console_formatter = ConsoleFormatter()
         console_handler.setFormatter(console_formatter)
-        # Flush console output immediately
         sys.stdout.reconfigure(line_buffering=True) if hasattr(sys.stdout, 'reconfigure') else None
         logger.addHandler(console_handler)
 
-    # JSON file handler (structured logs) - capture DEBUG and above
     if enable_json and log_dir:
         log_dir = Path(log_dir)
         log_dir.mkdir(exist_ok=True)
 
         json_log_path = log_dir / f"snapchat_extractor_{datetime.now().strftime('%Y%m%d_%H%M%S')}.jsonl"
         json_handler = FlushingFileHandler(json_log_path, encoding="utf-8")
-        json_handler.setLevel(logging.DEBUG)  # Capture all levels for JSON logs
+        json_handler.setLevel(logging.DEBUG)  # Pass everything through
         json_formatter = JSONFormatter()
         json_handler.setFormatter(json_formatter)
         logger.addHandler(json_handler)
