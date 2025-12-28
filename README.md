@@ -73,7 +73,7 @@ python main.py
 
 ## ⚙️ Configuration Options
 
-You can customize the downloader's behavior using command-line arguments:
+### ⚙️ Normal Options
 
 <details>
 <summary><b>🔄 Concurrent Downloads: -c / --concurrent N</b></summary>
@@ -154,149 +154,6 @@ python main.py -a 5
 4. Progress resets between attempts for clarity
 
 > **Example**: If 5 out of 100 files fail on attempt 1, attempt 2 only retries those 5 failed files.
-
-</details>
-
-<details>
-<summary><b>📦 Stream Chunk Size: -S / --stream-chunk-size KB</b></summary>
-
-**What it does:**
-- Sets the size (in kilobytes) of each chunk when downloading files in pieces (streaming).
-- **Default**: `1024` KB (1 MB)
-- Lower values use less memory but may be slower; higher values may speed up downloads but use more memory.
-
-**Examples**:
-
-Default (1 MB chunks):
-```bash
-python main.py
-```
-
-Use 512 KB chunks:
-```bash
-python main.py -S 512
-python main.py --stream-chunk-size 512
-```
-
-Use 2 MB chunks:
-```bash
-python main.py -S 2048
-```
-
-**💡 Recommendations:**
-- Use the default unless you have specific performance or memory needs.
-- Decrease for low-memory systems; increase for fast connections and large files.
-
-</details>
-
-<details>
-<summary><b>⏱️ FFmpeg Timeout: -f / --ffmpeg-timeout SECONDS</b></summary>
-
-**What it does:**
-- Sets how many seconds the program will wait for FFmpeg (used for processing videos) to finish before giving up on the operation.
-- **Default**: `60` seconds
-- Increase if you have very large or slow-to-process video files; decrease for faster failure on stuck or problematic files.
-
-**Examples**:
-
-Default (60 seconds):
-```bash
-python main.py
-```
-
-Wait up to 120 seconds for each FFmpeg operation:
-```bash
-python main.py -f 120
-python main.py --ffmpeg-timeout 120
-```
-
-Fail quickly (30 seconds):
-```bash
-python main.py -f 30
-```
-
-**💡 Recommendations:**
-- Use the default unless you experience frequent FFmpeg timeouts or have very large/complex videos.
-- Increase for slow computers or long videos.
-
-</details>
-
-<details>
-<summary><b>⏳ Request Timeout: -t / --request-timeout SECONDS</b></summary>
-
-**What it does:**
-- Sets how many seconds the program will wait for a response from Snapchat's servers before giving up on a request.
-- **Default**: `30` seconds
-- Increase if you have a slow or unstable connection; decrease for faster failure on bad links.
-
-**Examples**:
-
-Default (30 seconds):
-```bash
-python main.py
-```
-
-Wait up to 60 seconds for each request:
-```bash
-python main.py -t 60
-python main.py --request-timeout 60
-```
-
-Fail quickly (10 seconds):
-```bash
-python main.py -t 10
-```
-
-**💡 Recommendations:**
-- Use the default unless you experience frequent timeouts or want faster failure.
-- Increase for slow networks or large files.
-
-</details>
-
-<details>
-<summary><b>🗒️ Log Level: -l / --log-level LEVEL</b></summary>
-
-**What it does:**
-- Controls how much information the program prints to the console (logging output)
-- Accepts either a number (0-5) or a name (OFF, CRITICAL, ERROR, WARNING, INFO, DEBUG)
-- **Default**: `0` (OFF, no logging)
-- Higher values (e.g., DEBUG) show more detailed information, lower values show less
-
-**Examples**:
-
-Default (no logging):
-```bash
-python main.py
-```
-
-Show only errors and critical issues:
-```bash
-python main.py -l 2
-python main.py --log-level ERROR
-```
-
-Show warnings and above:
-```bash
-python main.py -l 3
-python main.py --log-level WARNING
-```
-
-Show all debug output:
-```bash
-python main.py -l 5
-python main.py --log-level DEBUG
-```
-
-**💡 Recommendations:**
-- Use `-l 4` or `--log-level INFO` for general progress updates
-- Use `-l 5` or `--log-level DEBUG` for troubleshooting or development
-- Leave at default (OFF) for fastest, cleanest output
-
-**Accepted values:**
-- Numbers: `0` (OFF), `1` (CRITICAL), `2` (ERROR), `3` (WARNING), `4` (INFO), `5` (DEBUG)
-- Names: `OFF`, `CRITICAL`, `ERROR`, `WARNING`, `INFO`, `DEBUG`
-
-> **Note**: Setting a more verbose log level (like DEBUG) may slow down processing and produce a lot of output, but is useful for diagnosing problems.
 
 </details>
 
@@ -452,6 +309,153 @@ Example image (4000x3000 photo):
 - Skips: Videos and non-JPEG images
 
 > **Note**: JPGXL conversion happens after metadata is written, ensuring all date and location information is embedded before conversion.
+
+</details>
+
+---
+
+### 🛠️ Advanced Options
+
+<details>
+<summary><b>📦 Stream Chunk Size: -S / --stream-chunk-size KB</b></summary>
+
+**What it does:**
+- Sets the size (in kilobytes) of each chunk when downloading files in pieces (streaming).
+- **Default**: `1024` KB (1 MB)
+- Lower values use less memory but may be slower; higher values may speed up downloads but use more memory.
+
+**Examples**:
+
+Default (1 MB chunks):
+```bash
+python main.py
+```
+
+Use 512 KB chunks:
+```bash
+python main.py -S 512
+python main.py --stream-chunk-size 512
+```
+
+Use 2 MB chunks:
+```bash
+python main.py -S 2048
+```
+
+**💡 Recommendations:**
+- Use the default unless you have specific performance or memory needs.
+- Decrease for low-memory systems; increase for fast connections and large files.
+
+</details>
+
+<details>
+<summary><b>⏱️ FFmpeg Timeout: -f / --ffmpeg-timeout SECONDS</b></summary>
+
+**What it does:**
+- Sets how many seconds the program will wait for FFmpeg (used for processing videos) to finish before giving up on the operation.
+- **Default**: `60` seconds
+- Increase if you have very large or slow-to-process video files; decrease for faster failure on stuck or problematic files.
+
+**Examples**:
+
+Default (60 seconds):
+```bash
+python main.py
+```
+
+Wait up to 120 seconds for each FFmpeg operation:
+```bash
+python main.py -f 120
+python main.py --ffmpeg-timeout 120
+```
+
+Fail quickly (30 seconds):
+```bash
+python main.py -f 30
+```
+
+**💡 Recommendations:**
+- Use the default unless you experience frequent FFmpeg timeouts or have very large/complex videos.
+- Increase for slow computers or long videos.
+
+</details>
+
+<details>
+<summary><b>⏳ Request Timeout: -t / --request-timeout SECONDS</b></summary>
+
+**What it does:**
+- Sets how many seconds the program will wait for a response from Snapchat's servers before giving up on a request.
+- **Default**: `30` seconds
+- Increase if you have a slow or unstable connection; decrease for faster failure on bad links.
+
+**Examples**:
+
+Default (30 seconds):
+```bash
+python main.py
+```
+
+Wait up to 60 seconds for each request:
+```bash
+python main.py -t 60
+python main.py --request-timeout 60
+```
+
+Fail quickly (10 seconds):
+```bash
+python main.py -t 10
+```
+
+**💡 Recommendations:**
+- Use the default unless you experience frequent timeouts or want faster failure.
+- Increase for slow networks or large files.
+
+</details>
+
+<details>
+<summary><b>🗒️ Log Level: -l / --log-level LEVEL</b></summary>
+
+**What it does:**
+- Controls how much information the program prints to the console (logging output)
+- Accepts either a number (0-5) or a name (OFF, CRITICAL, ERROR, WARNING, INFO, DEBUG)
+- **Default**: `0` (OFF, no logging)
+- Higher values (e.g., DEBUG) show more detailed information, lower values show less
+
+**Examples**:
+
+Default (no logging):
+```bash
+python main.py
+```
+
+Show only errors and critical issues:
+```bash
+python main.py -l 2
+python main.py --log-level ERROR
+```
+
+Show warnings and above:
+```bash
+python main.py -l 3
+python main.py --log-level WARNING
+```
+
+Show all debug output:
+```bash
+python main.py -l 5
+python main.py --log-level DEBUG
+```
+
+**💡 Recommendations:**
+- Use `-l 4` or `--log-level INFO` for general progress updates
+- Use `-l 5` or `--log-level DEBUG` for troubleshooting or development
+- Leave at default (OFF) for fastest, cleanest output
+
+**Accepted values:**
+- Numbers: `0` (OFF), `1` (CRITICAL), `2` (ERROR), `3` (WARNING), `4` (INFO), `5` (DEBUG)
+- Names: `OFF`, `CRITICAL`, `ERROR`, `WARNING`, `INFO`, `DEBUG`
+
+> **Note**: Setting a more verbose log level (like DEBUG) may slow down processing and produce a lot of output, but is useful for diagnosing problems.
 
 </details>
 
