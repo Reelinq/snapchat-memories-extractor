@@ -49,14 +49,16 @@ class Config:
         )
         command_line_argument_parser.add_argument(
             '--no-overlay', '-O',
-            action='store_true',
+            type=bool,
             default=False,
+            action='store_true',
             help='Skip applying PNG overlay (default: overlay applied). Short: -O'
         )
         command_line_argument_parser.add_argument(
             '--no-metadata', '-M',
-            action='store_true',
+            type=bool,
             default=False,
+            action='store_true',
             help='Skip writing metadata (default: metadata written). Short: -M'
         )
         command_line_argument_parser.add_argument(
@@ -68,6 +70,7 @@ class Config:
         )
         command_line_argument_parser.add_argument(
             '--strict', '-s',
+            type=bool,
             dest='strict_location',
             action='store_true',
             default=False,
@@ -82,6 +85,7 @@ class Config:
         )
         command_line_argument_parser.add_argument(
             '--no-jxl', '-J',
+            type=bool,
             action='store_true',
             default=False,
             help='Skip JPGXL conversion and keep original JPEG (default: convert to lossless JPGXL). Short: -J'
