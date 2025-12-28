@@ -41,6 +41,13 @@ class Config:
     def from_args(class_reference) -> 'Config':
         command_line_argument_parser = argparse.ArgumentParser(description='Snapchat Memories Downloader')
         command_line_argument_parser.add_argument(
+            '--ffmpeg-timeout', '-f',
+            type=int,
+            default=60,
+            metavar='SECONDS',
+            help='Seconds to wait for ffmpeg operations (default: 60). Short: -f'
+        )
+        command_line_argument_parser.add_argument(
             '--request-timeout', '-t',
             type=int,
             default=30,
@@ -115,5 +122,6 @@ class Config:
             jpeg_quality=parsed_arguments.jpeg_quality,
             convert_to_jxl=not parsed_arguments.no_jxl,
             log_level=parsed_arguments.log_level,
-            request_timeout=parsed_arguments.request_timeout
+            request_timeout=parsed_arguments.request_timeout,
+            ffmpeg_timeout=parsed_arguments.ffmpeg_timeout
         )
