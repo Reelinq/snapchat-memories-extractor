@@ -28,22 +28,18 @@ class Config:
 
     @staticmethod
     def parse_log_level(level_input: str) -> int:
-        level_map = {
-            # Numbers
-            '0': logging.CRITICAL + 10,
-            '1': logging.CRITICAL,
-            '2': logging.ERROR,
-            '3': logging.WARNING,
-            '4': logging.INFO,
-            '5': logging.DEBUG,
-            # Names
-            'OFF': logging.CRITICAL + 10,
-            'CRITICAL': logging.CRITICAL,
-            'ERROR': logging.ERROR,
-            'WARNING': logging.WARNING,
-            'INFO': logging.INFO,
-            'DEBUG': logging.DEBUG,
-        }
+        base_levels = [
+            ('0', 'OFF', logging.CRITICAL + 10),
+            ('1', 'CRITICAL', logging.CRITICAL),
+            ('2', 'ERROR', logging.ERROR),
+            ('3', 'WARNING', logging.WARNING),
+            ('4', 'INFO', logging.INFO),
+            ('5', 'DEBUG', logging.DEBUG),
+        ]
+        level_map = {}
+        for num, name, value in base_levels:
+            level_map[num] = value
+            level_map[name] = value
 
         level_upper = level_input.upper()
         if level_upper in level_map:
