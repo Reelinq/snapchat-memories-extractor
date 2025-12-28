@@ -158,6 +158,38 @@ python main.py -a 5
 </details>
 
 <details>
+<summary><b>📦 Stream Chunk Size: -S / --stream-chunk-size KB</b></summary>
+
+**What it does:**
+- Sets the size (in kilobytes) of each chunk when downloading files in pieces (streaming).
+- **Default**: `1024` KB (1 MB)
+- Lower values use less memory but may be slower; higher values may speed up downloads but use more memory.
+
+**Examples**:
+
+Default (1 MB chunks):
+```bash
+python main.py
+```
+
+Use 512 KB chunks:
+```bash
+python main.py -S 512
+python main.py --stream-chunk-size 512
+```
+
+Use 2 MB chunks:
+```bash
+python main.py -S 2048
+```
+
+**💡 Recommendations:**
+- Use the default unless you have specific performance or memory needs.
+- Decrease for low-memory systems; increase for fast connections and large files.
+
+</details>
+
+<details>
 <summary><b>⏱️ FFmpeg Timeout: -f / --ffmpeg-timeout SECONDS</b></summary>
 
 **What it does:**
