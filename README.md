@@ -158,6 +158,38 @@ python main.py -a 5
 </details>
 
 <details>
+<summary><b>⏳ Request Timeout: -t / --request-timeout SECONDS</b></summary>
+
+**What it does:**
+- Sets how many seconds the program will wait for a response from Snapchat's servers before giving up on a request.
+- **Default**: `30` seconds
+- Increase if you have a slow or unstable connection; decrease for faster failure on bad links.
+
+**Examples**:
+
+Default (30 seconds):
+```bash
+python main.py
+```
+
+Wait up to 60 seconds for each request:
+```bash
+python main.py -t 60
+python main.py --request-timeout 60
+```
+
+Fail quickly (10 seconds):
+```bash
+python main.py -t 10
+```
+
+**💡 Recommendations:**
+- Use the default unless you experience frequent timeouts or want faster failure.
+- Increase for slow networks or large files.
+
+</details>
+
+<details>
 <summary><b>🗒️ Log Level: -l / --log-level LEVEL</b></summary>
 
 **What it does:**
