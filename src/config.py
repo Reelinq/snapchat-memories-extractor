@@ -41,6 +41,13 @@ class Config:
     def from_args(class_reference) -> 'Config':
         command_line_argument_parser = argparse.ArgumentParser(description='Snapchat Memories Downloader')
         command_line_argument_parser.add_argument(
+            '--stream-chunk-size', '-S',
+            type=int,
+            default=1024,
+            metavar='KB',
+            help='Size of each chunk in kilobytes (default: 1024, i.e. 1 MB). Short: -S'
+        )
+        command_line_argument_parser.add_argument(
             '--ffmpeg-timeout', '-f',
             type=int,
             default=60,
@@ -123,5 +130,6 @@ class Config:
             convert_to_jxl=not parsed_arguments.no_jxl,
             log_level=parsed_arguments.log_level,
             request_timeout=parsed_arguments.request_timeout,
-            ffmpeg_timeout=parsed_arguments.ffmpeg_timeout
+            ffmpeg_timeout=parsed_arguments.ffmpeg_timeout,
+            stream_chunk_size=parsed_arguments.stream_chunk_size * 1024
         )
