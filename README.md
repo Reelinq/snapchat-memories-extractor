@@ -158,6 +158,38 @@ python main.py -a 5
 </details>
 
 <details>
+<summary><b>⏱️ FFmpeg Timeout: -f / --ffmpeg-timeout SECONDS</b></summary>
+
+**What it does:**
+- Sets how many seconds the program will wait for FFmpeg (used for processing videos) to finish before giving up on the operation.
+- **Default**: `60` seconds
+- Increase if you have very large or slow-to-process video files; decrease for faster failure on stuck or problematic files.
+
+**Examples**:
+
+Default (60 seconds):
+```bash
+python main.py
+```
+
+Wait up to 120 seconds for each FFmpeg operation:
+```bash
+python main.py -f 120
+python main.py --ffmpeg-timeout 120
+```
+
+Fail quickly (30 seconds):
+```bash
+python main.py -f 30
+```
+
+**💡 Recommendations:**
+- Use the default unless you experience frequent FFmpeg timeouts or have very large/complex videos.
+- Increase for slow computers or long videos.
+
+</details>
+
+<details>
 <summary><b>⏳ Request Timeout: -t / --request-timeout SECONDS</b></summary>
 
 **What it does:**
