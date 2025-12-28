@@ -35,7 +35,6 @@ class MemoryDownloader:
         self.ui_shown = False
 
         self.pending_prune_indices: Set[int] = set()
-        self.last_prune_count = 0
 
         self._interrupted = False
 
@@ -49,19 +48,11 @@ class MemoryDownloader:
         should_wait_for_shutdown = not self._interrupted
         self.executor.shutdown(wait=should_wait_for_shutdown)
 
-    def _batch_prune_if_needed(self, force: bool = False) -> None:
-        should_prune = (
-            force and self.pending_prune_indices
-        ) or (
-            self.config.prune_batch_size > 0
-            and len(self.pending_prune_indices) >= self.config.prune_batch_size
-        )
-
-        if should_prune:
-            self.repository.prune(self.pending_prune_indices)
-            self.last_prune_count = len(self.pending_prune_indices)
-            self.logger.debug(
-                f"Batched prune: removed {self.last_prune_count} items from JSON")
+    def _batch_prune_if_needed(self) -> None:
+        if self.pending_prune_indices:
+            index = next(iter(self.pending_prune_indices))
+            self.repository.prune({index})
+            self.logger.debug(f"Pruned index from JSON: {index}")
             self.pending_prune_indices.clear()
 
     def run(self) -> None:
@@ -91,7 +82,6 @@ class MemoryDownloader:
         completed_downloads_count = 0
 
         self.pending_prune_indices.clear()
-        self.last_prune_count = 0
 
         self._suppress_console_logging(True)
 
@@ -138,7 +128,7 @@ class MemoryDownloader:
                 self.logger.debug(
                     f"Successfully processed {len(successfully_processed_indices)} items so far")
 
-        self._batch_prune_if_needed(force=True)
+        self._batch_prune_if_needed()
 
         clear_lines(10)
         total_time = time.time() - self.start_time
