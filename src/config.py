@@ -11,9 +11,10 @@ class Config:
     logs_folder: Path = Path('logs')
 
 
+    # Ensure directories exist
     def __post_init__(self):
-        self.downloads_folder.mkdir(exist_ok=True)
-        self.logs_folder.mkdir(exist_ok=True)
+        self.downloads_folder.mkdir(parents=True, exist_ok=True)
+        self.logs_folder.mkdir(parents=True, exist_ok=True)
 
     @staticmethod
     def parse_log_level(level_input: str) -> int:
