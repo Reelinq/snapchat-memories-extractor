@@ -71,23 +71,23 @@ class Config:
         command_line_argument_parser.add_argument(
             '--strict', '-s',
             type=bool,
+            default=False,
             dest='strict_location',
             action='store_true',
-            default=False,
             help='Fail downloads when location metadata is missing. Short: -s'
         )
         command_line_argument_parser.add_argument(
             '--jpeg-quality', '-q',
             type=int,
             default=95,
-            metavar='Q',
+            metavar='N',
             help='JPEG quality 1-100 (default: 95). Short: -q'
         )
         command_line_argument_parser.add_argument(
             '--no-jxl', '-J',
             type=bool,
-            action='store_true',
             default=False,
+            action='store_true',
             help='Skip JPGXL conversion and keep original JPEG (default: convert to lossless JPGXL). Short: -J'
         )
         command_line_argument_parser.add_argument(
