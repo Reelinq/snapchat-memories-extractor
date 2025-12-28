@@ -158,6 +158,53 @@ python main.py -a 5
 </details>
 
 <details>
+<summary><b>🗒️ Log Level: -l / --log-level LEVEL</b></summary>
+
+**What it does:**
+- Controls how much information the program prints to the console (logging output)
+- Accepts either a number (0-5) or a name (OFF, CRITICAL, ERROR, WARNING, INFO, DEBUG)
+- **Default**: `0` (OFF, no logging)
+- Higher values (e.g., DEBUG) show more detailed information, lower values show less
+
+**Examples**:
+
+Default (no logging):
+```bash
+python main.py
+```
+
+Show only errors and critical issues:
+```bash
+python main.py -l 2
+python main.py --log-level ERROR
+```
+
+Show warnings and above:
+```bash
+python main.py -l 3
+python main.py --log-level WARNING
+```
+
+Show all debug output:
+```bash
+python main.py -l 5
+python main.py --log-level DEBUG
+```
+
+**💡 Recommendations:**
+- Use `-l 4` or `--log-level INFO` for general progress updates
+- Use `-l 5` or `--log-level DEBUG` for troubleshooting or development
+- Leave at default (OFF) for fastest, cleanest output
+
+**Accepted values:**
+- Numbers: `0` (OFF), `1` (CRITICAL), `2` (ERROR), `3` (WARNING), `4` (INFO), `5` (DEBUG)
+- Names: `OFF`, `CRITICAL`, `ERROR`, `WARNING`, `INFO`, `DEBUG`
+
+> **Note**: Setting a more verbose log level (like DEBUG) may slow down processing and produce a lot of output, but is useful for diagnosing problems.
+
+</details>
+
+<details>
 <summary><b>🎨 Media Overlays: -O / --no-overlay</b></summary>
 
 **What it does:**
