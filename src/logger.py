@@ -27,34 +27,6 @@ class JSONFormatter(logging.Formatter):
         return json.dumps(log_obj, ensure_ascii=False)
 
 
-class ConsoleFormatter(logging.Formatter):
-    COLORS = {
-        "DEBUG": "\033[36m",      # Cyan
-        "INFO": "\033[32m",       # Green
-        "WARNING": "\033[33m",    # Yellow
-        "ERROR": "\033[31m",      # Red
-        "CRITICAL": "\033[35m",   # Magenta
-    }
-    RESET = "\033[0m"
-
-    def format(self, record: logging.LogRecord) -> str:
-        if sys.stdout.isatty():
-            color = self.COLORS.get(record.levelname, self.RESET)
-            level_str = f"{color}[{record.levelname}]{self.RESET}"
-        else:
-            level_str = f"[{record.levelname}]"
-
-        timestamp = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
-        message = record.getMessage()
-
-        log_line = f"{timestamp} {level_str} {message}"
-
-        if record.exc_info:
-            log_line += f"\n{self.formatException(record.exc_info)}"
-
-        return log_line
-
-
 class FlushingFileHandler(logging.FileHandler):
     def emit(self, record):
         super().emit(record)
@@ -70,14 +42,6 @@ def setup_logging(
     logger.setLevel(log_level)
 
     logger.handlers.clear()
-
-    console_handler = logging.StreamHandler(sys.stdout)
-    console_handler.setLevel(logging.DEBUG)
-    console_formatter = ConsoleFormatter()
-    console_handler.setFormatter(console_formatter)
-    sys.stdout.reconfigure(line_buffering=True) if hasattr(
-        sys.stdout, 'reconfigure') else None
-    logger.addHandler(console_handler)
 
     if log_dir:
         log_dir = Path(log_dir)
