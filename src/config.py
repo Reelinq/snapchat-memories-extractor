@@ -10,6 +10,8 @@ class Config:
     downloads_folder: Path = Path('downloads')
     logs_folder: Path = Path('logs')
 
+    # Configuration options with default values
+    cli_options: dict = None
 
     # Ensure directories exist
     def __post_init__(self):
@@ -39,97 +41,44 @@ class Config:
 
     @classmethod
     def from_args(class_reference) -> 'Config':
-        command_line_argument_parser = argparse.ArgumentParser(description='Snapchat Memories Downloader')
-        command_line_argument_parser.add_argument(
-            '--stream-chunk-size', '-S',
-            type=int,
-            default=1024,
-            metavar='KB',
-            help='Size of each chunk in kilobytes (default: 1024, i.e. 1 MB). Short: -S'
-        )
-        command_line_argument_parser.add_argument(
-            '--ffmpeg-timeout', '-f',
-            type=int,
-            default=60,
-            metavar='SECONDS',
-            help='Seconds to wait for ffmpeg operations (default: 60). Short: -f'
-        )
-        command_line_argument_parser.add_argument(
-            '--request-timeout', '-t',
-            type=int,
-            default=30,
-            metavar='SECONDS',
-            help='Seconds to wait for HTTP requests (default: 30). Short: -t'
-        ),
-        command_line_argument_parser.add_argument(
-           '--concurrent', '-c',
-            type=int,
-            default=5,
-            metavar='N',
-            help='Concurrent downloads (default: 5). Short: -c'
-        )
-        command_line_argument_parser.add_argument(
-            '--no-overlay', '-O',
-            type=bool,
-            default=False,
-            action='store_true',
-            help='Skip applying PNG overlay (default: overlay applied). Short: -O'
-        )
-        command_line_argument_parser.add_argument(
-            '--no-metadata', '-M',
-            type=bool,
-            default=False,
-            action='store_true',
-            help='Skip writing metadata (default: metadata written). Short: -M'
-        )
-        command_line_argument_parser.add_argument(
-            '--attempts', '-a',
-            type=int,
-            default=3,
-            metavar='N',
-            help='Max retry attempts (default: 3). Short: -a'
-        )
-        command_line_argument_parser.add_argument(
-            '--strict', '-s',
-            type=bool,
-            default=False,
-            dest='strict_location',
-            action='store_true',
-            help='Fail downloads when location metadata is missing. Short: -s'
-        )
-        command_line_argument_parser.add_argument(
-            '--jpeg-quality', '-q',
-            type=int,
-            default=95,
-            metavar='N',
-            help='JPEG quality 1-100 (default: 95). Short: -q'
-        )
-        command_line_argument_parser.add_argument(
-            '--no-jxl', '-J',
-            type=bool,
-            default=False,
-            action='store_true',
-            help='Skip JPGXL conversion and keep original JPEG (default: convert to lossless JPGXL). Short: -J'
-        )
-        command_line_argument_parser.add_argument(
-            '--log-level', '-l',
-            type=class_reference.parse_log_level,
-            default=logging.CRITICAL + 10,
-            metavar='LEVEL',
-            help='Logging level: 0=OFF, 1=CRITICAL, 2=ERROR, 3=WARNING, 4=INFO, 5=DEBUG. Can also use names: OFF, CRITICAL, ERROR, WARNING, INFO, DEBUG (default: 0/OFF). Short: -l'
-        )
-        parsed_arguments = command_line_argument_parser.parse_args()
+        parser = argparse.ArgumentParser(
+            description='Snapchat Memories Downloader')
+        parser.add_argument('--stream-chunk-size', '-S', type=int, default=1024, metavar='KB',
+                            help='Size of each chunk in kilobytes (default: 1024, i.e. 1 MB). Short: -S')
+        parser.add_argument('--ffmpeg-timeout', '-f', type=int, default=60, metavar='SECONDS',
+                            help='Seconds to wait for ffmpeg operations (default: 60). Short: -f')
+        parser.add_argument('--request-timeout', '-t', type=int, default=30, metavar='SECONDS',
+                            help='Seconds to wait for HTTP requests (default: 30). Short: -t')
+        parser.add_argument('--concurrent', '-c', type=int, default=5,
+                            metavar='N', help='Concurrent downloads (default: 5). Short: -c')
+        parser.add_argument('--no-overlay', '-O', default=False, action='store_true',
+                            help='Skip applying PNG overlay (default: overlay applied). Short: -O')
+        parser.add_argument('--no-metadata', '-M', default=False, action='store_true',
+                            help='Skip writing metadata (default: metadata written). Short: -M')
+        parser.add_argument('--attempts', '-a', type=int, default=3,
+                            metavar='N', help='Max retry attempts (default: 3). Short: -a')
+        parser.add_argument('--strict', '-s', default=False, dest='strict_location',
+                            action='store_true', help='Fail downloads when location metadata is missing. Short: -s')
+        parser.add_argument('--jpeg-quality', '-q', type=int, default=95,
+                            metavar='N', help='JPEG quality 1-100 (default: 95). Short: -q')
+        parser.add_argument('--no-jxl', '-J', default=False, action='store_true',
+                            help='Skip JPGXL conversion and keep original JPEG (default: convert to lossless JPGXL). Short: -J')
+        parser.add_argument('--log-level', '-l', type=class_reference.parse_log_level, default=logging.CRITICAL + 10, metavar='LEVEL',
+                            help='Logging level: 0=OFF, 1=CRITICAL, 2=ERROR, 3=WARNING, 4=INFO, 5=DEBUG. Can also use names: OFF, CRITICAL, ERROR, WARNING, INFO, DEBUG (default: 0/OFF). Short: -l')
+        args = parser.parse_args()
 
-        return class_reference(
-            max_concurrent_downloads=parsed_arguments.concurrent,
-            apply_overlay=not parsed_arguments.no_overlay,
-            write_metadata=not parsed_arguments.no_metadata,
-            max_attempts=parsed_arguments.attempts,
-            strict_location=parsed_arguments.strict_location,
-            jpeg_quality=parsed_arguments.jpeg_quality,
-            convert_to_jxl=not parsed_arguments.no_jxl,
-            log_level=parsed_arguments.log_level,
-            request_timeout=parsed_arguments.request_timeout,
-            ffmpeg_timeout=parsed_arguments.ffmpeg_timeout,
-            stream_chunk_size=parsed_arguments.stream_chunk_size * 1024
-        )
+        cli_options = {
+            'max_concurrent_downloads': args.concurrent,
+            'apply_overlay': not args.no_overlay,
+            'write_metadata': not args.no_metadata,
+            'max_attempts': args.attempts,
+            'strict_location': args.strict_location,
+            'jpeg_quality': args.jpeg_quality,
+            'convert_to_jxl': not args.no_jxl,
+            'log_level': args.log_level,
+            'request_timeout': args.request_timeout,
+            'ffmpeg_timeout': args.ffmpeg_timeout,
+            'stream_chunk_size': args.stream_chunk_size * 1024
+        }
+
+        return class_reference(cli_options=cli_options)
