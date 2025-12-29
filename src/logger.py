@@ -36,7 +36,7 @@ class LazyFileHandler(logging.FileHandler):
     def emit(self, record):
         if not self._file_created:
             self._file_created = True
-            Path(self._filename).parent.mkdir(parents=True, exist_ok=True)
+            Path(self.baseFilename).parent.mkdir(parents=True, exist_ok=True)
             if self.stream is None:
                 self.stream = self._open()
         super().emit(record)

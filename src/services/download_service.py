@@ -42,7 +42,7 @@ class DownloadService:
         OverlayService.shutdown_process_pool()
 
     @handle_errors(return_on_error=False)
-    def download_and_process(self, memory: Memory) -> bool:
+    def download_and_process(self, memory: Memory):
         http_response = self.session.get(
             memory.media_download_url,
             timeout=self.config.cli_options['request_timeout'],
@@ -65,7 +65,7 @@ class DownloadService:
             return self._process_regular(downloaded_file_content, memory)
 
     @handle_errors(return_on_error=False)
-    def _process_zip(self, downloaded_file_content: bytes, memory: Memory) -> bool:
+    def _process_zip(self, downloaded_file_content: bytes, memory: Memory):
         filepath = None
         media_bytes, extension, overlay_png = self.content_processor.extract_media_from_zip(
             downloaded_file_content,
@@ -104,10 +104,10 @@ class DownloadService:
 
         with self.stats_lock:
             self.total_bytes += filepath.stat().st_size
-        return True
+        return filepath, True
 
     @handle_errors(return_on_error=False)
-    def _process_regular(self, downloaded_file_content: bytes, memory: Memory) -> bool:
+    def _process_regular(self, downloaded_file_content: bytes, memory: Memory):
         filepath = self.config.downloads_folder / memory.filename_with_ext
         filepath = self.filename_resolver.resolve_unique_path(filepath)
 
@@ -125,4 +125,4 @@ class DownloadService:
             filepath = JXLConverter.convert_to_jxl(filepath)
         with self.stats_lock:
             self.total_bytes += filepath.stat().st_size
-        return True
+        return filepath, True

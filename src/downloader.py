@@ -51,8 +51,12 @@ class MemoryDownloader:
     def _batch_prune_if_needed(self) -> None:
         if self.pending_prune_indices:
             indices_to_prune = set(self.pending_prune_indices)
+            raw_items = self.repository.get_raw_items()
+            pruned_filenames = [Memory.model_validate(
+                raw_items[i]).filename_with_ext for i in indices_to_prune if i < len(raw_items)]
             self.repository.prune(indices_to_prune)
-            self.logger.debug(f"Pruned indices from JSON: {indices_to_prune}")
+            for fname in pruned_filenames:
+                self.logger.info(f"Successfully pruned {fname} from JSON.")
             self.pending_prune_indices.clear()
 
     def run(self) -> None:
@@ -97,8 +101,16 @@ class MemoryDownloader:
             index, memory = future_to_download_task_mapping[future]
             completed_downloads_count += 1
 
-            download_succeeded = safe_future_result(
-                future, default_on_error=False)
+            result = safe_future_result(
+                future, default_on_error=(None, False))
+            file_path, download_succeeded = result
+
+            if download_succeeded and file_path and file_path.exists():
+                file_size_mb = file_path.stat().st_size / (1024 * 1024)
+                self.repository.prune({index})
+                self.logger.info(
+                    f"Downloaded item {file_path.name}. File size: {file_size_mb:.2f} MB. Successfully pruned from json."
+                )
 
             with self.stats_lock:
                 if download_succeeded:
@@ -126,6 +138,7 @@ class MemoryDownloader:
                 self.logger.debug(
                     f"Successfully processed {len(successfully_processed_indices)} items so far")
 
+        # No need to log prune separately
         self._batch_prune_if_needed()
 
         clear_lines(10)
