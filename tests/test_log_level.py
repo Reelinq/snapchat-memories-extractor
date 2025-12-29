@@ -19,8 +19,27 @@ import os
 def test_log_file_levels(level_input, expected_level, expected_levels):
     temp_dir = Path(tempfile.mkdtemp())
     try:
-        config = Config(log_level=expected_level, logs_folder=temp_dir)
-        logger = init_logging(config)
+        cli_options = {
+            'log_level': expected_level,
+            'logs_folder': temp_dir,
+            'max_concurrent_downloads': 5,
+            'apply_overlay': True,
+            'write_metadata': True,
+            'max_attempts': 3,
+            'strict_location': False,
+            'jpeg_quality': 95,
+            'convert_to_jxl': True,
+            'request_timeout': 30,
+            'ffmpeg_timeout': 60,
+            'stream_chunk_size': 1024 * 1024
+        }
+        config = Config(cli_options=cli_options, logs_folder=temp_dir)
+        from src.logger import setup_logging
+        logger = setup_logging(
+            name="snapchat_extractor",
+            log_level=config.cli_options['log_level'],
+            log_dir=config.cli_options['logs_folder']
+        )
 
         logger.debug("debug message")
         logger.info("info message")
