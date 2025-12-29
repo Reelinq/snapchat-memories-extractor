@@ -50,8 +50,6 @@ class MemoryDownloader:
 
     def _batch_prune_if_needed(self) -> None:
         if self.pending_prune_indices:
-            index = next(iter(self.pending_prune_indices))
-            self.repository.prune({index})
             indices_to_prune = set(self.pending_prune_indices)
             self.repository.prune(indices_to_prune)
             self.logger.debug(f"Pruned indices from JSON: {indices_to_prune}")
