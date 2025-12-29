@@ -27,8 +27,18 @@ class JSONFormatter(logging.Formatter):
         return json.dumps(log_obj, ensure_ascii=False)
 
 
-class FlushingFileHandler(logging.FileHandler):
+class LazyFileHandler(logging.FileHandler):
+    def __init__(self, filename, mode='a', encoding=None, delay=True):
+        # delay=True means file is not opened until emit is called
+        super().__init__(filename, mode, encoding, delay)
+        self._file_created = False
+
     def emit(self, record):
+        if not self._file_created:
+            self._file_created = True
+            Path(self._filename).parent.mkdir(parents=True, exist_ok=True)
+            if self.stream is None:
+                self.stream = self._open()
         super().emit(record)
         self.flush()
 
@@ -44,17 +54,13 @@ def setup_logging(
     logger.handlers.clear()
 
     if log_dir:
-        log_dir = Path(log_dir)
-        log_dir.mkdir(exist_ok=True)
-
-        json_log_path = log_dir / f"snapchat_extractor_{datetime.now().strftime('%Y%m%d_%H%M%S')}.jsonl"
-        json_handler = FlushingFileHandler(json_log_path, encoding="utf-8")
+        json_log_path = Path(
+            log_dir) / f"snapchat_extractor_{datetime.now().strftime('%Y%m%d_%H%M%S')}.jsonl"
+        json_handler = LazyFileHandler(json_log_path, encoding="utf-8")
         json_handler.setLevel(logging.DEBUG)  # Pass everything through
         json_formatter = JSONFormatter()
         json_handler.setFormatter(json_formatter)
         logger.addHandler(json_handler)
-
-        logger.info(f"JSON logs being written to: {json_log_path}")
 
     return logger
 
