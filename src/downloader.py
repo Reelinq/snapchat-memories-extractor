@@ -52,7 +52,9 @@ class MemoryDownloader:
         if self.pending_prune_indices:
             index = next(iter(self.pending_prune_indices))
             self.repository.prune({index})
-            self.logger.debug(f"Pruned index from JSON: {index}")
+            indices_to_prune = set(self.pending_prune_indices)
+            self.repository.prune(indices_to_prune)
+            self.logger.debug(f"Pruned indices from JSON: {indices_to_prune}")
             self.pending_prune_indices.clear()
 
     def run(self) -> None:
@@ -110,8 +112,6 @@ class MemoryDownloader:
 
                 current_successful = self.successful_downloads_count
                 current_failed = self.failed_downloads_count
-
-            self._batch_prune_if_needed()
 
             with self.display_lock:
                 self.ui_shown = update_progress(
