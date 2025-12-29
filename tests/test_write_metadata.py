@@ -1,0 +1,36 @@
+import tempfile
+from pathlib import Path
+from unittest.mock import patch, MagicMock
+import pytest
+import logging
+from src.config import Config
+from src.services.download_service import DownloadService
+
+@pytest.mark.parametrize("write_metadata", [True, False])
+def test_write_metadata_flag_behavior(write_metadata):
+    cli_options = {
+        'max_concurrent_downloads': 2,
+        'apply_overlay': True,
+        'write_metadata': write_metadata,
+        'max_attempts': 1,
+        'strict_location': False,
+        'jpeg_quality': 95,
+        'convert_to_jxl': True,
+        'log_level': logging.CRITICAL,
+        'request_timeout': 30,
+        'ffmpeg_timeout': 60,
+        'stream_chunk_size': 1024 * 1024
+    }
+    config = Config(cli_options=cli_options)
+    ds = DownloadService(config, MagicMock())
+    ds.content_processor = MagicMock()
+    ds.content_processor.is_zip.return_value = False
+    memory = MagicMock()
+    memory.media_type = "Image"
+    memory.filename_with_ext = "file.jpg"
+    with patch("src.services.download_service.get_media_processor") as mock_proc:
+        ds._process_regular(b'data', memory)
+        if write_metadata:
+            assert mock_proc.return_value.write_metadata.called
+        else:
+            assert not mock_proc.return_value.write_metadata.called
