@@ -9,11 +9,24 @@ from src.models import Memory
 @pytest.fixture
 def temp_config():
     with tempfile.TemporaryDirectory() as tmpdir:
+        cli_options = {
+            'max_concurrent_downloads': 5,
+            'apply_overlay': True,
+            'write_metadata': True,
+            'max_attempts': 3,
+            'strict_location': True,
+            'jpeg_quality': 95,
+            'convert_to_jxl': True,
+            'log_level': 50,
+            'request_timeout': 30,
+            'ffmpeg_timeout': 60,
+            'stream_chunk_size': 1024 * 1024
+        }
         yield Config(
+            cli_options=cli_options,
             json_path=Path(tmpdir) / "memories_history.json",
             downloads_folder=Path(tmpdir) / "downloads",
-            logs_folder=Path(tmpdir) / "logs",
-            strict_location=True
+            logs_folder=Path(tmpdir) / "logs"
         )
 
 @pytest.fixture
@@ -37,3 +50,5 @@ def test_strict_location_blocks_download(downloader, memory_without_location):
     downloader.download_service.download_and_process.assert_not_called()
     assert len(downloader.errors) > 0
     assert downloader.errors[-1]['code'] == 'LOC'
+
+
