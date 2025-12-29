@@ -1,4 +1,4 @@
-from src.config import Config
+from src.config.main import Config
 from src.downloader import MemoryDownloader
 from src.logger import init_logging
 from src.error_handling import handle_app_errors

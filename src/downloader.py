@@ -3,7 +3,7 @@ from typing import List, Dict, Set
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import threading
 import logging
-from src.config import Config
+from src.config.main import Config
 from src.models import Memory
 from src.repositories.memory_repository import MemoryRepository
 from src.services.download_service import DownloadService

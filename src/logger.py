@@ -67,7 +67,7 @@ def init_logging(config) -> logging.Logger:
     logger = setup_logging(
         name="snapchat_extractor",
         log_level=config.cli_options['log_level'],
-        log_dir=config.cli_options['logs_folder']
+        log_dir=config.logs_folder
     )
     logger.info("Snapchat Memories Extractor started")
     logger.debug(
