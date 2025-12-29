@@ -25,7 +25,7 @@ class MemoryDownloader:
         self.logger = get_logger("snapchat_extractor")
 
         self.executor = ThreadPoolExecutor(
-            max_workers=config.max_concurrent_downloads)
+            max_workers=config.cli_options['max_concurrent_downloads'])
 
         self.successful_downloads_count = 0
         self.failed_downloads_count = 0
@@ -56,10 +56,10 @@ class MemoryDownloader:
             self.pending_prune_indices.clear()
 
     def run(self) -> None:
-        for current_attempt_number in range(self.config.max_attempts):
+        for current_attempt_number in range(self.config.cli_options['max_attempts']):
             if current_attempt_number > 0:
                 self.logger.info(
-                    f"Starting attempt {current_attempt_number + 1}/{self.config.max_attempts}...")
+                    f"Starting attempt {current_attempt_number + 1}/{self.config.cli_options['max_attempts']}...")
                 time.sleep(2)
 
                 self.successful_downloads_count = 0
@@ -70,7 +70,7 @@ class MemoryDownloader:
 
             self._run_download_batch()
 
-            if self.failed_downloads_count == 0 or current_attempt_number == self.config.max_attempts - 1:
+            if self.failed_downloads_count == 0 or current_attempt_number == self.config.cli_options['max_attempts'] - 1:
                 break
 
     @handle_batch_errors(cleanup_method='_batch_prune_if_needed')
@@ -142,7 +142,7 @@ class MemoryDownloader:
                 f"Check logs for details on {self.failed_downloads_count} failed downloads")
 
     def _backfill_existing_jpegs_to_jxl(self) -> None:
-        if not self.config.convert_to_jxl:
+        if not self.config.cli_options['convert_to_jxl']:
             return
 
         jpeg_file_paths = list(self.config.downloads_folder.glob(
@@ -170,7 +170,7 @@ class MemoryDownloader:
                 f"Backfilled {converted_files_count} JPEG(s) to JPGXL format")
 
     def _convert_remaining_jpegs_on_interrupt(self) -> None:
-        if not self.config.convert_to_jxl:
+        if not self.config.cli_options['convert_to_jxl']:
             return
 
         jpeg_file_paths = list(self.config.downloads_folder.glob(
@@ -201,7 +201,7 @@ class MemoryDownloader:
 
     @handle_errors(return_on_error=False)
     def _download_task(self, index: int, memory: Memory) -> bool:
-        if self.config.strict_location:
+        if self.config.cli_options['strict_location']:
             if memory.location_coords is None:
                 raise LocationMissingError("No location data available")
 

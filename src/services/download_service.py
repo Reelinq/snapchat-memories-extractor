@@ -27,9 +27,10 @@ class DownloadService:
 
     def _build_session(self) -> requests.Session:
         session = requests.Session()
+        max_concurrent = self.config.cli_options['max_concurrent_downloads']
         adapter = HTTPAdapter(
-            pool_connections=self.config.max_concurrent_downloads,
-            pool_maxsize=self.config.max_concurrent_downloads * 2,
+            pool_connections=max_concurrent,
+            pool_maxsize=max_concurrent * 2,
         )
         session.mount("http://", adapter)
         session.mount("https://", adapter)
@@ -44,13 +45,13 @@ class DownloadService:
     def download_and_process(self, memory: Memory) -> bool:
         http_response = self.session.get(
             memory.media_download_url,
-            timeout=self.config.request_timeout,
+            timeout=self.config.cli_options['request_timeout'],
             stream=True
         )
         http_response.raise_for_status()  # Decorator catches HTTPError
 
         downloaded_file_content = b''
-        for chunk in http_response.iter_content(chunk_size=self.config.stream_chunk_size):
+        for chunk in http_response.iter_content(chunk_size=self.config.cli_options['stream_chunk_size']):
             if chunk:
                 downloaded_file_content += chunk
 
@@ -68,14 +69,14 @@ class DownloadService:
         filepath = None
         media_bytes, extension, overlay_png = self.content_processor.extract_media_from_zip(
             downloaded_file_content,
-            extract_overlay=self.config.apply_overlay
+            extract_overlay=self.config.cli_options['apply_overlay']
         )
 
         media_file_processor = get_media_processor(
             memory.media_type,
             self.overlay_service,
             self.metadata_service,
-            self.config.convert_to_jxl
+            self.config.cli_options['convert_to_jxl']
         )
 
         if filepath is None:
@@ -83,22 +84,22 @@ class DownloadService:
                 f"{memory.filename}{extension}"
             filepath = self.filename_resolver.resolve_unique_path(filepath)
 
-        if self.config.apply_overlay and overlay_png:
+        if self.config.cli_options['apply_overlay'] and overlay_png:
             media_bytes = media_file_processor.apply_overlay(
                 media_bytes,
                 overlay_png,
                 filepath,
-                self.config.ffmpeg_timeout,
-                self.config.jpeg_quality
+                self.config.cli_options['ffmpeg_timeout'],
+                self.config.cli_options['jpeg_quality']
             )
 
         if filepath is None or not filepath.exists():
             filepath.write_bytes(media_bytes)
 
-        if self.config.write_metadata:
+        if self.config.cli_options['write_metadata']:
             filepath = media_file_processor.write_metadata(
-                memory, filepath, self.config.ffmpeg_timeout, self.config.jpeg_quality)
-        elif self.config.convert_to_jxl and memory.media_type == "Image" and JXLConverter.is_convertible_image(filepath):
+                memory, filepath, self.config.cli_options['ffmpeg_timeout'], self.config.cli_options['jpeg_quality'])
+        elif self.config.cli_options['convert_to_jxl'] and memory.media_type == "Image" and JXLConverter.is_convertible_image(filepath):
             filepath = JXLConverter.convert_to_jxl(filepath)
 
         with self.stats_lock:
@@ -111,16 +112,16 @@ class DownloadService:
         filepath = self.filename_resolver.resolve_unique_path(filepath)
 
         filepath.write_bytes(downloaded_file_content)
-        if self.config.write_metadata:
+        if self.config.cli_options['write_metadata']:
             media_file_processor = get_media_processor(
                 memory.media_type,
                 self.overlay_service,
                 self.metadata_service,
-                self.config.convert_to_jxl
+                self.config.cli_options['convert_to_jxl']
             )
             filepath = media_file_processor.write_metadata(
-                memory, filepath, self.config.ffmpeg_timeout, self.config.jpeg_quality)
-        elif self.config.convert_to_jxl and memory.media_type == "Image" and JXLConverter.is_convertible_image(filepath):
+                memory, filepath, self.config.cli_options['ffmpeg_timeout'], self.config.cli_options['jpeg_quality'])
+        elif self.config.cli_options['convert_to_jxl'] and memory.media_type == "Image" and JXLConverter.is_convertible_image(filepath):
             filepath = JXLConverter.convert_to_jxl(filepath)
         with self.stats_lock:
             self.total_bytes += filepath.stat().st_size

@@ -66,12 +66,12 @@ def get_logger(name: str = "snapchat_extractor") -> logging.Logger:
 def init_logging(config) -> logging.Logger:
     logger = setup_logging(
         name="snapchat_extractor",
-        log_level=config.log_level,
-        log_dir=config.logs_folder
+        log_level=config.cli_options['log_level'],
+        log_dir=config.cli_options['logs_folder']
     )
     logger.info("Snapchat Memories Extractor started")
     logger.debug(
-        f"Configuration: concurrent={config.max_concurrent_downloads}, "
-        f"overlay={config.apply_overlay}, metadata={config.write_metadata}"
+        f"Configuration: concurrent={config.cli_options.get('max_concurrent_downloads')}, "
+        f"overlay={config.cli_options.get('apply_overlay')}, metadata={config.cli_options.get('write_metadata')}"
     )
     return logger
