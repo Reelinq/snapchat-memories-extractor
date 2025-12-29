@@ -1,6 +1,7 @@
 import logging
 import json
 import sys
+import os
 from pathlib import Path
 from datetime import datetime
 from typing import Optional
@@ -38,9 +39,18 @@ class LazyFileHandler(logging.FileHandler):
             self._file_created = True
             Path(self.baseFilename).parent.mkdir(parents=True, exist_ok=True)
             if self.stream is None:
-                self.stream = self._open()
+                # Open with line buffering (buffering=1)
+                self.stream = open(self.baseFilename, self.mode,
+                                   encoding=self.encoding, buffering=1)
         super().emit(record)
         self.flush()
+        # Force OS-level flush
+        if self.stream and not self.stream.closed:
+            try:
+                self.stream.flush()
+                os.fsync(self.stream.fileno())
+            except Exception:
+                pass
 
 
 def setup_logging(
