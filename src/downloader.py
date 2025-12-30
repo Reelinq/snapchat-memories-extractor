@@ -5,7 +5,7 @@ import threading
 import logging
 from src.config.main import Config
 from src.models import Memory
-from src.repositories.memory_repository import MemoryRepository
+from src.repositories.memory_repository import MemoriesRepository
 from src.services.download_service import DownloadService
 from src.services.jxl_converter import JXLConverter
 from src.ui.display import print_status, clear_lines, update_progress
@@ -16,7 +16,7 @@ from src.error_handling import handle_errors, handle_batch_errors, LocationMissi
 class MemoryDownloader:
     def __init__(self, config: Config):
         self.config = config
-        self.repository = MemoryRepository(config.json_path)
+        self.repository = MemoriesRepository(config.json_path)
 
         self.stats_lock = threading.Lock()
         self.display_lock = threading.Lock()

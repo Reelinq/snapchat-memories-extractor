@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Dict, List, Set
 
 
-class MemoryRepository:
+class MemoriesRepository:
     def __init__(self, json_path: Path):
         self.json_path = json_path
         self._file_lock = threading.Lock()
