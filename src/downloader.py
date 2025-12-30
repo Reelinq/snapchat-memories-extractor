@@ -65,7 +65,7 @@ class MemoryDownloader:
 
             self._run_download_batch()
 
-            if self.failed_downloads_count == 0 or current_attempt_number == self.config.cli_options['max_attempts'] - 1:
+            if self.stats.failed_downloads_count == 0 or current_attempt_number == self.config.cli_options['max_attempts'] - 1:
                 break
 
     @handle_batch_errors(cleanup_method='_batch_prune_if_needed')
