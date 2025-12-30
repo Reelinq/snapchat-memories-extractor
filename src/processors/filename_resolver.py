@@ -1,31 +1,17 @@
 from pathlib import Path
-from typing import Set
-
 
 class FileNameResolver:
     def __init__(self, base_folder: Path):
-        self.used_names: Set[str] = set()
-        self._seed_existing_files(base_folder)
-
-    def _seed_existing_files(self, folder: Path) -> None:
-        if not folder.exists() or not folder.is_dir():
-            self.used_names = set()
-            return
-
-        self.used_names = {
-            path.name for path in folder.iterdir() if path.is_file()}
+        self.used_names = {path.name for path in base_folder.iterdir()}
 
     def resolve_unique_path(self, path: Path) -> Path:
-        base_name = path.stem
-        extension = path.suffix
-        parent = path.parent
-
         candidate_file_path = path
-        suffix = 1
+        file_index = 1
 
-        while candidate_file_path.name in self.used_names or candidate_file_path.exists():
-            candidate_file_path = parent / f"{base_name}_{suffix}{extension}"
-            suffix += 1
+        while candidate_file_path.name in self.used_names:
+            candidate_file_path = path.parent / \
+                f"{path.stem}_{file_index}{path.suffix}"
+            file_index += 1
 
         self.used_names.add(candidate_file_path.name)
         return candidate_file_path
