@@ -5,7 +5,7 @@ import threading
 import logging
 from src.config.main import Config
 from src.models import Memory
-from src.repositories.memory_repository import MemoriesRepository
+from src.repositories.memories_repository import MemoriesRepository
 from src.services.download_service import DownloadService
 from src.services.jxl_converter import JXLConverter
 from src.ui.display import print_status, clear_lines, update_progress
@@ -16,7 +16,7 @@ from src.error_handling import handle_errors, handle_batch_errors, LocationMissi
 class MemoryDownloader:
     def __init__(self, config: Config):
         self.config = config
-        self.repository = MemoriesRepository(config.json_path)
+        self.memories_repository = MemoriesRepository(config.json_path)
 
         self.stats_lock = threading.Lock()
         self.display_lock = threading.Lock()
@@ -79,7 +79,7 @@ class MemoryDownloader:
 
     @handle_batch_errors(cleanup_method='_batch_prune_if_needed')
     def _run_download_batch(self) -> None:
-        raw_memory_items = self.repository.get_raw_items()
+        raw_memory_items = self.memories_repository.get_raw_items()
         successfully_processed_indices: Set[int] = set()
         total_files_count = len(raw_memory_items)
         self.start_time = time.time()
@@ -107,7 +107,7 @@ class MemoryDownloader:
 
             if download_succeeded and file_path and file_path.exists():
                 file_size_mb = file_path.stat().st_size / (1024 * 1024)
-                self.repository.prune({index})
+                self.memories_repository.prune(index)
                 self.logger.info(
                     f"Downloaded item {file_path.name}. File size: {file_size_mb:.2f} MB. Successfully pruned from json."
                 )
