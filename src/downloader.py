@@ -1,7 +1,6 @@
 import time
-from typing import List, Dict, Set
+from typing import Set
 from concurrent.futures import ThreadPoolExecutor, as_completed
-import threading
 import logging
 from src.config.main import Config
 from src.models import Memory
@@ -11,6 +10,7 @@ from src.services.jxl_converter import JXLConverter
 from src.logger import get_logger
 from src.error_handling import handle_errors, handle_batch_errors, LocationMissingError, safe_future_result
 from src.ui.display import update_progress_threadsafe, clear_lines, print_status_threadsafe, print_info
+from src.stats.stats_manager import StatsManager
 
 
 class MemoryDownloader:
@@ -18,23 +18,17 @@ class MemoryDownloader:
         self.config = config
         self.memories_repository = MemoriesRepository(config.json_path)
 
-        self.stats_lock = threading.Lock()
+        self.stats = StatsManager()
 
-        self.download_service = DownloadService(config, self.stats_lock)
+        self.download_service = DownloadService(config, self.stats.lock)
         self.logger = get_logger("snapchat_extractor")
 
         self.executor = ThreadPoolExecutor(
             max_workers=config.cli_options['max_concurrent_downloads'])
 
-        self.successful_downloads_count = 0
-        self.failed_downloads_count = 0
-        self.total_bytes = 0
         self.start_time = 0.0
-        self.errors: List[Dict[str, str]] = []
         self.ui_shown = False
-
         self.pending_prune_indices: Set[int] = set()
-
         self._interrupted = False
 
     def _suppress_console_logging(self, suppress: bool = True):
@@ -66,10 +60,7 @@ class MemoryDownloader:
                     f"Starting attempt {current_attempt_number + 1}/{self.config.cli_options['max_attempts']}...")
                 time.sleep(2)
 
-                self.successful_downloads_count = 0
-                self.failed_downloads_count = 0
-                self.total_bytes = 0
-                self.errors.clear()
+                self.stats.reset()
                 self.ui_shown = False
 
             self._run_download_batch()
@@ -112,16 +103,16 @@ class MemoryDownloader:
                     f"Downloaded item {file_path.name}. File size: {file_size_mb:.2f} MB. Successfully pruned from json."
                 )
 
-            with self.stats_lock:
+            with self.stats.lock:
                 if download_succeeded:
-                    self.successful_downloads_count += 1
+                    self.stats.successful_downloads_count += 1
                     successfully_processed_indices.add(index)
                     self.pending_prune_indices.add(index)
                 else:
-                    self.failed_downloads_count += 1
+                    self.stats.failed_downloads_count += 1
 
-                current_successful = self.successful_downloads_count
-                current_failed = self.failed_downloads_count
+                current_successful = self.stats.successful_downloads_count
+                current_failed = self.stats.failed_downloads_count
 
                 update_progress_threadsafe(
                     completed_downloads_count,
@@ -142,14 +133,14 @@ class MemoryDownloader:
 
         clear_lines(10)
         total_time = time.time() - self.start_time
-        print_status_threadsafe(total_files_count, total_files_count, self.successful_downloads_count,
-                     self.failed_downloads_count, total_time, "✅ COMPLETE!")
+        print_status_threadsafe(total_files_count, total_files_count, self.stats.successful_downloads_count,
+                                self.stats.failed_downloads_count, total_time, "✅ COMPLETE!")
 
         self._suppress_console_logging(False)
 
-        if self.failed_downloads_count > 0:
+        if self.stats.failed_downloads_count > 0:
             self.logger.info(
-                f"Check logs for details on {self.failed_downloads_count} failed downloads")
+                f"Check logs for details on {self.stats.failed_downloads_count} failed downloads")
 
     def _backfill_existing_jpegs_to_jxl(self) -> None:
         if not self.config.cli_options['convert_to_jxl']:
@@ -217,12 +208,12 @@ class MemoryDownloader:
 
         download_succeeded = self.download_service.download_and_process(memory)
 
-        with self.stats_lock:
+        with self.stats.lock:
             if self.download_service.errors:
-                self.errors.extend(self.download_service.errors)
+                self.stats.errors.extend(self.download_service.errors)
                 self.download_service.errors.clear()
 
-            self.total_bytes += self.download_service.total_bytes
+            self.stats.total_bytes += self.download_service.total_bytes
             self.download_service.total_bytes = 0
 
         return download_succeeded
