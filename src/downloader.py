@@ -8,9 +8,9 @@ from src.models import Memory
 from src.repositories.memories_repository import MemoriesRepository
 from src.services.download_service import DownloadService
 from src.services.jxl_converter import JXLConverter
-from src.ui.display import print_status, clear_lines, update_progress
 from src.logger import get_logger
 from src.error_handling import handle_errors, handle_batch_errors, LocationMissingError, safe_future_result
+from src.ui.display import update_progress_threadsafe, clear_lines, print_status_threadsafe, print_info
 
 
 class MemoryDownloader:
@@ -19,7 +19,6 @@ class MemoryDownloader:
         self.memories_repository = MemoriesRepository(config.json_path)
 
         self.stats_lock = threading.Lock()
-        self.display_lock = threading.Lock()
 
         self.download_service = DownloadService(config, self.stats_lock)
         self.logger = get_logger("snapchat_extractor")
@@ -51,12 +50,13 @@ class MemoryDownloader:
     def _batch_prune_if_needed(self) -> None:
         if self.pending_prune_indices:
             indices_to_prune = set(self.pending_prune_indices)
-            raw_items = self.repository.get_raw_items()
-            pruned_filenames = [Memory.model_validate(
-                raw_items[i]).filename_with_ext for i in indices_to_prune if i < len(raw_items)]
-            self.repository.prune(indices_to_prune)
-            for fname in pruned_filenames:
-                self.logger.info(f"Successfully pruned {fname} from JSON.")
+            raw_items = self.memories_repository.get_raw_items()
+            for i in sorted(indices_to_prune, reverse=True):
+                if i < len(raw_items):
+                    fname = Memory.model_validate(
+                        raw_items[i]).filename_with_ext
+                    self.memories_repository.prune(i)
+                    self.logger.info(f"Successfully pruned {fname} from JSON.")
             self.pending_prune_indices.clear()
 
     def run(self) -> None:
@@ -123,8 +123,7 @@ class MemoryDownloader:
                 current_successful = self.successful_downloads_count
                 current_failed = self.failed_downloads_count
 
-            with self.display_lock:
-                self.ui_shown = update_progress(
+                update_progress_threadsafe(
                     completed_downloads_count,
                     total_files_count,
                     current_successful,
@@ -143,7 +142,7 @@ class MemoryDownloader:
 
         clear_lines(10)
         total_time = time.time() - self.start_time
-        print_status(total_files_count, total_files_count, self.successful_downloads_count,
+        print_status_threadsafe(total_files_count, total_files_count, self.successful_downloads_count,
                      self.failed_downloads_count, total_time, "✅ COMPLETE!")
 
         self._suppress_console_logging(False)
@@ -175,7 +174,7 @@ class MemoryDownloader:
                 converted_files_count += 1
 
         if converted_files_count > 0:
-            print(
+            print_info(
                 f"🔄 Converted {converted_files_count} leftover JPEG(s) to JPGXL format")
             self.logger.info(
                 f"Backfilled {converted_files_count} JPEG(s) to JPGXL format")
@@ -189,7 +188,7 @@ class MemoryDownloader:
         if not jpeg_file_paths:
             return
 
-        print(
+        print_info(
             f"\n🔄 Converting {len(jpeg_file_paths)} JPEG(s) to JPGXL before exit...")
         converted_files_count = 0
 
@@ -206,7 +205,7 @@ class MemoryDownloader:
                 converted_files_count += 1
 
         if converted_files_count > 0:
-            print(f"✅ Converted {converted_files_count} JPEG(s) to JPGXL")
+            print_info(f"✅ Converted {converted_files_count} JPEG(s) to JPGXL")
             self.logger.info(
                 f"Post-interrupt conversion: {converted_files_count} JPEG(s) to JPGXL")
 

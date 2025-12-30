@@ -1,13 +1,9 @@
 import sys
 import unicodedata
+import threading
 import time
 
-def format_size(byte_count):
-    for unit in ['B', 'KB', 'MB', 'GB']:
-        if byte_count < 1024.0:
-            return f"{byte_count:.1f}{unit}"
-        byte_count /= 1024.0
-    return f"{byte_count:.1f}TB"
+display_lock = threading.Lock()
 
 def format_time(seconds):
     if seconds < 60:
@@ -17,9 +13,6 @@ def format_time(seconds):
     else:
         return f"{seconds // 3600:.0f}h {(seconds % 3600) // 60:.0f}m"
 
-def clear_lines(line_count):
-    for _ in range(line_count):
-        sys.stdout.write('\033[F\033[K')
 
 def display_width(text: str) -> int:
     width = 0
@@ -41,6 +34,30 @@ def pad_line(content, total_width=70):
     visible_width = display_width(content)
     padding_needed = total_width - visible_width
     return content + (' ' * max(0, padding_needed))
+
+
+def update_progress_threadsafe(completed, total, success, failed, start_time, filename, ui_shown):
+    from src.ui.display import update_progress
+    with display_lock:
+        return update_progress(completed, total, success, failed, start_time, filename, ui_shown)
+
+
+def print_status_threadsafe(total_files, completed_files, success, failed, total_time, message):
+    from src.ui.display import print_status
+    with display_lock:
+        print_status(total_files, completed_files,
+                     success, failed, total_time, message)
+
+
+def print_info(message):
+    with display_lock:
+        print(message)
+
+
+def clear_lines(n):
+    with display_lock:
+        for _ in range(n):
+            sys.stdout.write('\033[F\033[K')
 
 def print_status(current, total, successful, failed, elapsed_time, current_file=""):
     remaining = total - current
