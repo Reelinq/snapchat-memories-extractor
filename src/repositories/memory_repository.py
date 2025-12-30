@@ -1,7 +1,7 @@
 import json
 import threading
 from pathlib import Path
-from typing import Dict, List, Set
+from typing import Dict, List
 
 
 class MemoriesRepository:
