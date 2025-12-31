@@ -3,11 +3,8 @@ from PIL import Image
 from typing import Optional
 import subprocess
 import sys
-import logging
+from src.logger import log
 from src.error_handling import handle_errors
-
-logger = logging.getLogger(__name__)
-
 
 class JXLConverter:
     _cjxl_path = None
@@ -56,8 +53,8 @@ class JXLConverter:
 
         cjxl_path = JXLConverter._get_cjxl_path()
         if cjxl_path is None:
-            logger.debug(
-                "cjxl binary not found; skipping conversion for %s", input_path)
+            log(
+                f"cjxl binary not found; skipping conversion for {input_path}", level="debug")
             return input_path
 
         command = [
@@ -73,8 +70,7 @@ class JXLConverter:
         if result.returncode != 0:
             stderr = result.stderr.decode(
                 'utf-8', errors='ignore') if result.stderr else ''
-            logger.warning("cjxl failed (%s) for %s: %s",
-                           result.returncode, input_path, stderr.strip())
+            log(f"cjxl failed ({result.returncode}) for {input_path}: {stderr.strip()}", level="warning")
             return input_path
 
         if remove_original and input_path != output_path:

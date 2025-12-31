@@ -1,11 +1,29 @@
 import logging
 import json
-import sys
+import inspect
 import os
 from pathlib import Path
 from datetime import datetime
 from typing import Optional
 
+
+def log(message, level):
+    # Get the caller's path for logger module name
+    frame = inspect.currentframe()
+    filename = frame.f_back.f_globals.get("__file__", None)
+    del frame
+
+    logger = logging.getLogger(filename)
+    if level == "debug":
+        logger.debug(message)
+    elif level == "info":
+        logger.info(message)
+    elif level == "warning":
+        logger.warning(message)
+    elif level == "error":
+        logger.error(message)
+    else:
+        logger.critical(message)
 
 class JSONFormatter(logging.Formatter):
     def format(self, record: logging.LogRecord) -> str:
