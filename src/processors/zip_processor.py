@@ -18,18 +18,19 @@ class ZipProcessor:
     @staticmethod
     def extract_media_from_zip(content: bytes, extract_overlay: bool = True) -> tuple[bytes, str, Optional[bytes]]:
         with zipfile.ZipFile(BytesIO(content)) as zip_file:
-            jpeg_filenames = [filename for filename in zip_file.namelist() if filename.lower().endswith(('.jpg', '.jpeg'))]
-            mp4_filenames = [filename for filename in zip_file.namelist() if filename.lower().endswith('.mp4')]
-
-            # Extract overlay PNG only if requested
+            media_bytes = None
+            extension = None
             overlay_png = None
-            if extract_overlay:
-                png_filenames = [filename for filename in zip_file.namelist() if filename.lower().endswith('.png')]
-                overlay_png = zip_file.read(png_filenames[0])
 
-            if jpeg_filenames:
-                return zip_file.read(jpeg_filenames[0]), '.jpg', overlay_png
-            elif mp4_filenames:
-                return zip_file.read(mp4_filenames[0]), '.mp4', overlay_png
-            else:
-                raise Exception("ZIP did not contain a JPG or MP4 file")
+            for filename in zip_file.namelist():
+                lower = filename.lower()
+                if lower.endswith(('.jpg', '.jpeg')):
+                    media_bytes = zip_file.read(filename)
+                    extension = '.jpg'
+                elif lower.endswith('.mp4'):
+                    media_bytes = zip_file.read(filename)
+                    extension = '.mp4'
+                elif extract_overlay and lower.endswith('.png'):
+                    overlay_png = zip_file.read(filename)
+
+            return media_bytes, extension, overlay_png
