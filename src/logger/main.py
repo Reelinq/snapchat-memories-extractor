@@ -1,6 +1,5 @@
 import logging
 import inspect
-import os
 from pathlib import Path
 from datetime import datetime
 from typing import Optional
@@ -25,61 +24,20 @@ def log(message: str, level: str):
     getattr(logger, level)(message)
 
 
-
-    def emit(self, record):
-        if not self._file_created:
-            self._file_created = True
-            Path(self.baseFilename).parent.mkdir(parents=True, exist_ok=True)
-            if self.stream is None:
-                # Open with line buffering (buffering=1)
-                self.stream = open(self.baseFilename, self.mode,
-                                   encoding=self.encoding, buffering=1)
-        super().emit(record)
-        self.flush()
-        # Force OS-level flush
-        if self.stream and not self.stream.closed:
-            try:
-                self.stream.flush()
-                os.fsync(self.stream.fileno())
-            except Exception:
-                pass
+def create_log_filename() -> str:
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    return f"snapchat_extractor_{timestamp}.jsonl"
 
 
-def setup_logging(
-    name: str = "snapchat_extractor",
-    log_level: int = logging.INFO,
-    log_dir: Optional[Path] = None,
-) -> logging.Logger:
-    logger = logging.getLogger(name)
-    logger.setLevel(log_level)
+def init_logging(config) -> logging.Logger:
+    logger = logging.getLogger("snapchat_extractor")
+    logger.setLevel(config.cli_options['log_level'])
 
-    logger.handlers.clear()
-
-    if log_dir:
-        json_log_path = Path(
-            log_dir) / f"snapchat_extractor_{datetime.now().strftime('%Y%m%d_%H%M%S')}.jsonl"
-        json_handler = LazyFileHandler(json_log_path, encoding="utf-8")
-        json_handler.setLevel(logging.DEBUG)  # Pass everything through
-        json_formatter = JSONFormatter()
-        json_handler.setFormatter(json_formatter)
-        logger.addHandler(json_handler)
-
-    return logger
+    json_log_path = Path(config.logs_folder) / create_log_filename()
 
     json_handler = logging.FileHandler(
         json_log_path, encoding="utf-8", delay=True)
     json_handler.setFormatter(JSONFormatter())
     logger.addHandler(json_handler)
 
-def init_logging(config) -> logging.Logger:
-    logger = setup_logging(
-        name="snapchat_extractor",
-        log_level=config.cli_options['log_level'],
-        log_dir=config.logs_folder
-    )
-    logger.info("Snapchat Memories Extractor started")
-    logger.debug(
-        f"Configuration: concurrent={config.cli_options.get('max_concurrent_downloads')}, "
-        f"overlay={config.cli_options.get('apply_overlay')}, metadata={config.cli_options.get('write_metadata')}"
-    )
     return logger
