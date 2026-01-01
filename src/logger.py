@@ -7,8 +7,11 @@ from datetime import datetime
 from typing import Optional
 
 
+def get_caller_path():
     frame = inspect.currentframe()
+    caller_path = frame.f_back.f_globals.get("__file__", None)
     del frame
+    return caller_path
 
 
 def log(message: str, level: str):
