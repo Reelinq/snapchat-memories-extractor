@@ -26,26 +26,6 @@ def log(message: str, level: str):
 
     getattr(logger, level)(message)
 
-class JSONFormatter(logging.Formatter):
-    def format(self, record: logging.LogRecord) -> str:
-        log_obj = {
-            "timestamp": datetime.utcnow().isoformat(),
-            "level": record.levelname,
-            "logger": record.name,
-            "message": record.getMessage(),
-            "module": record.module,
-            "function": record.funcName,
-            "line": record.lineno,
-        }
-
-        if record.exc_info:
-            log_obj["exception"] = self.formatException(record.exc_info)
-
-        if hasattr(record, "extra_data") and record.extra_data:
-            log_obj.update(record.extra_data)
-
-        return json.dumps(log_obj, ensure_ascii=False)
-
 
 class LazyFileHandler(logging.FileHandler):
     def __init__(self, filename, mode='a', encoding=None, delay=True):
