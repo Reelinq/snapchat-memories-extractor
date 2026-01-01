@@ -1,11 +1,12 @@
 from src.config.main import Config
 from src.downloader import MemoryDownloader
-from src.logger.main import init_logging
+from src.logger.log_initializer import LogInitializer
 from src.error_handling import handle_app_errors
 
 if __name__ == "__main__":
     config = Config.from_args()
-    logger = init_logging(config)
+
+    logger = LogInitializer(config)
     logger.info("Application started")
 
     downloader = MemoryDownloader(config)
