@@ -4,7 +4,7 @@ import tempfile
 import shutil
 from pathlib import Path
 from src.config import Config
-from src.logger import init_logging
+from src.logger import log_initializer
 import json
 import os
 
