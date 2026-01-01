@@ -7,7 +7,7 @@ if __name__ == "__main__":
     config = Config.from_args()
 
     logger = LogInitializer(config)
-    logger.info("Application started")
+    log("Application started", "info")
 
     downloader = MemoryDownloader(config)
 
