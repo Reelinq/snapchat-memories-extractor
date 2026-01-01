@@ -14,7 +14,7 @@ def get_caller_path():
 
 
 def log(message: str, level: str):
-    logger = logging.getLogger(__name__)
+    logger = logging.getLogger("snapchat_extractor")
     valid_levels = ["debug", "info", "warning", "error", "critical"]
 
     if level not in valid_levels:
