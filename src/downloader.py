@@ -1,7 +1,6 @@
 import time
 from typing import Set
 from concurrent.futures import ThreadPoolExecutor, as_completed
-import logging
 from src.config.main import Config
 from src.models import Memory
 from src.repositories.memories_repository import MemoriesRepository
@@ -10,6 +9,7 @@ from src.services.jxl_converter import JXLConverter
 from src.error_handling import handle_errors, handle_batch_errors, LocationMissingError, safe_future_result
 from src.ui.display import update_progress_threadsafe, clear_lines, print_status_threadsafe, print_info
 from src.stats.stats_manager import StatsManager
+from src.logger.main import log
 
 
 class MemoryDownloader:
@@ -29,11 +29,6 @@ class MemoryDownloader:
         self.pending_prune_indices: Set[int] = set()
         self._interrupted = False
 
-    def _suppress_console_logging(self, suppress: bool = True):
-        for handler in self.logger.handlers:
-            if isinstance(handler, logging.StreamHandler) and handler.stream.name == '<stdout>':
-                handler.setLevel(logging.CRITICAL if suppress else logging.INFO)
-
     def close(self) -> None:
         self.download_service.close()
         should_wait_for_shutdown = not self._interrupted
@@ -48,15 +43,14 @@ class MemoryDownloader:
                     fname = Memory.model_validate(
                         raw_items[i]).filename_with_ext
                     self.memories_repository.prune(i)
-                    self.logger.info(f"Successfully pruned {fname} from JSON.")
+                    log(f"Successfully pruned {fname} from JSON.", "info")
             self.pending_prune_indices.clear()
 
     def run(self) -> None:
         for current_attempt_number in range(self.config.cli_options['max_attempts']):
             if current_attempt_number > 0:
-                self.logger.info(
-                    f"Starting attempt {current_attempt_number + 1}/{self.config.cli_options['max_attempts']}...")
-                time.sleep(2)
+                log(
+                    f"Starting attempt {current_attempt_number + 1}/{self.config.cli_options['max_attempts']}...", "info")
 
                 self.stats.reset()
                 self.ui_shown = False
@@ -75,8 +69,6 @@ class MemoryDownloader:
         completed_downloads_count = 0
 
         self.pending_prune_indices.clear()
-
-        self._suppress_console_logging(True)
 
         download_tasks = [(index, Memory.model_validate(item))
                           for index, item in enumerate(raw_memory_items)]
@@ -97,8 +89,9 @@ class MemoryDownloader:
             if download_succeeded and file_path and file_path.exists():
                 file_size_mb = file_path.stat().st_size / (1024 * 1024)
                 self.memories_repository.prune(index)
-                self.logger.info(
-                    f"Downloaded item {file_path.name}. File size: {file_size_mb:.2f} MB. Successfully pruned from json."
+                log(
+                    f"Downloaded item {file_path.name}. File size: {file_size_mb:.2f} MB. Successfully pruned from json.",
+                    "info"
                 )
 
             with self.stats.lock:
@@ -123,10 +116,10 @@ class MemoryDownloader:
                 )
 
             if len(successfully_processed_indices) % 10 == 0 and successfully_processed_indices:
-                self.logger.debug(
-                    f"Successfully processed {len(successfully_processed_indices)} items so far")
+                log(
+                    f"Successfully processed {len(successfully_processed_indices)} items so far", "debug"
+                )
 
-        # No need to log prune separately
         self._batch_prune_if_needed()
 
         clear_lines(10)
@@ -134,11 +127,10 @@ class MemoryDownloader:
         print_status_threadsafe(total_files_count, total_files_count, self.stats.successful_downloads_count,
                                 self.stats.failed_downloads_count, total_time, "✅ COMPLETE!")
 
-        self._suppress_console_logging(False)
-
         if self.stats.failed_downloads_count > 0:
-            self.logger.info(
-                f"Check logs for details on {self.stats.failed_downloads_count} failed downloads")
+            log(
+                f"Check logs for details on {self.stats.failed_downloads_count} failed downloads", "info"
+            )
 
     def _backfill_existing_jpegs_to_jxl(self) -> None:
         if not self.config.cli_options['convert_to_jxl']:
@@ -165,8 +157,9 @@ class MemoryDownloader:
         if converted_files_count > 0:
             print_info(
                 f"🔄 Converted {converted_files_count} leftover JPEG(s) to JPGXL format")
-            self.logger.info(
-                f"Backfilled {converted_files_count} JPEG(s) to JPGXL format")
+            log(
+                f"Backfilled {converted_files_count} JPEG(s) to JPGXL format", "info"
+            )
 
     def _convert_remaining_jpegs_on_interrupt(self) -> None:
         if not self.config.cli_options['convert_to_jxl']:
@@ -195,8 +188,9 @@ class MemoryDownloader:
 
         if converted_files_count > 0:
             print_info(f"✅ Converted {converted_files_count} JPEG(s) to JPGXL")
-            self.logger.info(
-                f"Post-interrupt conversion: {converted_files_count} JPEG(s) to JPGXL")
+            log(
+                f"Post-interrupt conversion: {converted_files_count} JPEG(s) to JPGXL", "info"
+            )
 
     @handle_errors(return_on_error=False)
     def _download_task(self, index: int, memory: Memory) -> bool:
