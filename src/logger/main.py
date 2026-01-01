@@ -72,10 +72,6 @@ def setup_logging(
     return logger
 
 
-def get_logger(name: str = "snapchat_extractor") -> logging.Logger:
-    return logging.getLogger(name)
-
-
 def init_logging(config) -> logging.Logger:
     logger = setup_logging(
         name="snapchat_extractor",

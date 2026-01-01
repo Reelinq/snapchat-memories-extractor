@@ -3,10 +3,6 @@ from typing import Callable, Any, Dict, List, Optional
 import requests
 import zipfile
 from concurrent.futures import Future
-from src.logger.main import get_logger
-
-logger = get_logger()
-
 
 class LocationMissingError(Exception):
     pass

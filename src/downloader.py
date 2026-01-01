@@ -7,7 +7,6 @@ from src.models import Memory
 from src.repositories.memories_repository import MemoriesRepository
 from src.services.download_service import DownloadService
 from src.services.jxl_converter import JXLConverter
-from src.logger.main import get_logger
 from src.error_handling import handle_errors, handle_batch_errors, LocationMissingError, safe_future_result
 from src.ui.display import update_progress_threadsafe, clear_lines, print_status_threadsafe, print_info
 from src.stats.stats_manager import StatsManager
@@ -21,7 +20,6 @@ class MemoryDownloader:
         self.stats = StatsManager()
 
         self.download_service = DownloadService(config, self.stats.lock)
-        self.logger = get_logger("snapchat_extractor")
 
         self.executor = ThreadPoolExecutor(
             max_workers=config.cli_options['max_concurrent_downloads'])
