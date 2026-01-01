@@ -12,14 +12,16 @@ class JSONFormatter(logging.Formatter):
 
         return json.dumps(log_obj)
 
-    def _get_base_log(self, record: logging.LogRecord) -> dict:
+    @staticmethod
+    def _get_base_log(record: logging.LogRecord) -> dict:
         return {
             "timestamp": datetime.utcnow().isoformat(),
             "level": record.levelname,
             "message": record.getMessage(),
         }
 
-    def get_log_context(self, record: logging.LogRecord) -> dict:
+    @staticmethod
+    def get_log_context(record: logging.LogRecord) -> dict:
         return {
             "file_path": record.pathname,
             "function": record.funcName,
