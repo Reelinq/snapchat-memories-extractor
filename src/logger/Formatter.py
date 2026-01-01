@@ -5,20 +5,23 @@ import json
 
 class JSONFormatter(logging.Formatter):
     def format(self, record: logging.LogRecord) -> str:
-        log_obj = {
+        log_obj = self._get_base_log(record)
+
+        if record.levelno != logging.INFO:
+            log_obj.update(self.get_log_context(record))
+
+        return json.dumps(log_obj)
+
+    def _get_base_log(self, record: logging.LogRecord) -> dict:
+        return {
             "timestamp": datetime.utcnow().isoformat(),
             "level": record.levelname,
-            "logger": record.name,
             "message": record.getMessage(),
+        }
+
+    def get_log_context(self, record: logging.LogRecord) -> dict:
+        return {
             "file_path": record.pathname,
             "function": record.funcName,
             "line": record.lineno,
         }
-
-        if record.exc_info:
-            log_obj["exception"] = self.formatException(record.exc_info)
-
-        if hasattr(record, "extra_data") and record.extra_data:
-            log_obj.update(record.extra_data)
-
-        return json.dumps(log_obj, ensure_ascii=False)
