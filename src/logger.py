@@ -21,7 +21,8 @@ def log(message: str, level: str):
     valid_levels = ["debug", "info", "warning", "error", "critical"]
 
     if level not in valid_levels:
-        logger.error(f"Invalid log level: {level}. Message: {message}")
+        # log error
+        return
 
     getattr(logger, level)(message)
 
