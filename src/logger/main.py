@@ -25,11 +25,6 @@ def log(message: str, level: str):
     getattr(logger, level)(message)
 
 
-class LazyFileHandler(logging.FileHandler):
-    def __init__(self, filename, mode='a', encoding=None, delay=True):
-        # delay=True means file is not opened until emit is called
-        super().__init__(filename, mode, encoding, delay)
-        self._file_created = False
 
     def emit(self, record):
         if not self._file_created:
@@ -71,6 +66,10 @@ def setup_logging(
 
     return logger
 
+    json_handler = logging.FileHandler(
+        json_log_path, encoding="utf-8", delay=True)
+    json_handler.setFormatter(JSONFormatter())
+    logger.addHandler(json_handler)
 
 def init_logging(config) -> logging.Logger:
     logger = setup_logging(
