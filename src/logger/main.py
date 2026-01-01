@@ -6,13 +6,6 @@ from typing import Optional
 from src.logger.formatter import JSONFormatter
 
 
-def get_caller_path():
-    frame = inspect.currentframe()
-    caller_path = frame.f_back.f_globals.get("__file__", None)
-    del frame
-    return caller_path
-
-
 def log(message: str, level: str):
     logger = logging.getLogger("snapchat_extractor")
     valid_levels = ["debug", "info", "warning", "error", "critical"]
