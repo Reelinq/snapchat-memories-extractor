@@ -2,6 +2,8 @@ from functools import wraps
 from typing import Callable, Any, Dict, List, Optional
 import requests
 import zipfile
+from src.logger.main import log
+
 from concurrent.futures import Future
 
 class LocationMissingError(Exception):
@@ -83,13 +85,9 @@ def record_error(error: Dict[str, str], error_list: List[Dict[str, str]]) -> Non
     error_description_suffix = f" - {error_code_description}" if error_code_description else ""
     url_suffix = f" url={url}" if url else ""
 
-    logger.error(
-        f"Download failed: {filename} (code: {error_code}{error_description_suffix}){url_suffix}",
-        extra={"extra_data": extra_data},
+    log(
+        f"Download failed: {filename} (code: {error_code}{error_description_suffix}){url_suffix}", "error"
     )
-
-    for handler in logger.handlers:
-        handler.flush()
 
     error_list.append(error)
 
@@ -98,7 +96,7 @@ def safe_future_result(future: Future, default_on_error: Any = False):
     try:
         return future.result()
     except Exception as exception:
-        logger.error(f"Thread executor error: {exception}", exc_info=True)
+        log(f"Thread executor error: {exception}", "error")
         return default_on_error
 
 
@@ -113,10 +111,9 @@ def handle_errors(return_on_error: Any = False):
                 error_code = determine_error_code(e)
 
                 if isinstance(e, KeyboardInterrupt):
-                    logger.warning(f"Interrupted in {func.__name__}")
+                    log(f"Interrupted in {func.__name__}", "warning")
                 else:
-                    logger.error(
-                        f"Error in {func.__name__}: {e}", exc_info=True)
+                    log(f"Error in {func.__name__}: {e}", "error")
 
                 memory = kwargs.get('memory')
                 if not memory:
@@ -147,7 +144,7 @@ def handle_batch_errors(cleanup_method: Optional[str] = None):
                 return func(*args, **kwargs)
 
             except KeyboardInterrupt:
-                logger.warning("Download interrupted by user")
+                log("Download interrupted by user", "warning")
 
                 if args and hasattr(args[0], '_interrupted'):
                     args[0]._interrupted = True
@@ -164,7 +161,7 @@ def handle_batch_errors(cleanup_method: Optional[str] = None):
                 raise
 
             except Exception as e:
-                logger.error(f"Error in {func.__name__}: {e}", exc_info=True)
+                log(f"Error in {func.__name__}: {e}", "error")
                 raise
 
         return wrapper
@@ -180,16 +177,16 @@ def handle_app_errors(exit_code_on_error: int = 1):
 
             try:
                 result = func(*args, **kwargs)
-                logger.info("Application completed successfully")
+                log("Application completed successfully", "info")
                 return result
 
             except KeyboardInterrupt:
-                logger.warning("Process interrupted by user (Ctrl+C)")
+                log("Process interrupted by user (Ctrl+C)", "warning")
                 exit_code = 0
                 exit_reason = "keyboard_interrupt"
 
             except Exception as e:
-                logger.error(f"Unexpected error: {e}", exc_info=True)
+                log(f"Unexpected error: {e}", "error")
                 exit_code = exit_code_on_error
                 exit_reason = "error"
 
@@ -198,15 +195,14 @@ def handle_app_errors(exit_code_on_error: int = 1):
                     try:
                         args[0].close()
                     except KeyboardInterrupt:
-                        logger.warning("Cleanup interrupted by user")
-                        exit_code = 0
-                        exit_reason = "keyboard_interrupt_during_cleanup"
+                        log("Cleanup interrupted by user", "warning")
 
                 import time
                 time.sleep(0.1)
 
-                logger.info(
-                    f"Application ended - reason: {exit_reason}, exit_code: {exit_code}")
+                log(
+                    f"Application ended - reason: {exit_reason}, exit_code: {exit_code}", "info"
+                )
 
                 import sys
                 sys.exit(exit_code)
