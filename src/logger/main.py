@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 from datetime import datetime
 from typing import Optional
+from src.logger.formatter import JSONFormatter
 
 
 def get_caller_path():
