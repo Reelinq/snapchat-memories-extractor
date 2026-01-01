@@ -3,7 +3,7 @@ from PIL import Image
 from typing import Optional
 import subprocess
 import sys
-from src.logger.main import log
+from src.logger.log import log
 from src.error_handling import handle_errors
 
 class JXLConverter:

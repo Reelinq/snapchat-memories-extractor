@@ -1,6 +1,7 @@
 from src.config.main import Config
 from src.downloader import MemoryDownloader
 from src.logger.log_initializer import LogInitializer
+from src.logger.log import log
 from src.error_handling import handle_app_errors
 
 if __name__ == "__main__":

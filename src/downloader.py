@@ -9,7 +9,7 @@ from src.services.jxl_converter import JXLConverter
 from src.error_handling import handle_errors, handle_batch_errors, LocationMissingError, safe_future_result
 from src.ui.display import update_progress_threadsafe, clear_lines, print_status_threadsafe, print_info
 from src.stats.stats_manager import StatsManager
-from src.logger.main import log
+from src.logger.log import log
 
 
 class MemoryDownloader:

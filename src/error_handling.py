@@ -2,7 +2,7 @@ from functools import wraps
 from typing import Callable, Any, Dict, List, Optional
 import requests
 import zipfile
-from src.logger.main import log
+from src.logger.log import log
 
 from concurrent.futures import Future
 
