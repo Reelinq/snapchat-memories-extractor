@@ -5,14 +5,12 @@ from src.logger.formatter import JSONFormatter
 
 
 class LogInitializer:
-    LOGGER_NAME = "__name__"
-
     def __init__(self, config):
         self.config = config
         self.logger = self._configure_logger()
 
     def _configure_logger(self) -> logging.Logger:
-        logger = logging.getLogger(self.LOGGER_NAME)
+        logger = logging.getLogger("__name__")
         logger.setLevel(self.config.cli_options["log_level"])
 
         log_path = self._build_log_path()
@@ -28,7 +26,7 @@ class LogInitializer:
         log_path.parent.mkdir(parents=True, exist_ok=True)
 
     def _create_log_filename(self) -> str:
-        return f"{self.LOGGER_NAME}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.jsonl"
+        return f"{datetime.now().strftime('%Y%m%d_%H%M%S')}.jsonl"
 
     def _create_file_handler(self, path: Path) -> logging.Handler:
         handler = logging.FileHandler(path, encoding="utf-8", delay=True)
