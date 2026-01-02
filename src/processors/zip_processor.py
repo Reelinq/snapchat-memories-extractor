@@ -1,36 +1,47 @@
-import zipfile
+from zipfile import ZipFile
 from io import BytesIO
 from typing import Optional
+
 
 class ZipProcessor:
     @staticmethod
     def is_zip(content: bytes, content_type: str) -> bool:
         if 'zip' in content_type.lower():
             return True
+        return content.startswith(b'PK\x03\x04')
 
-        # Check magic bytes
-        if len(content) >= 4 and content[:4] == b'PK\x03\x04':
-            return True
+    def extract_media_from_zip(self,
+        content: bytes, extract_overlay: bool
+    ) -> tuple[Optional[bytes], Optional[str], Optional[bytes]]:
+        zip_file = ZipFile(BytesIO(content))
+        result = self._read_files(zip_file, extract_overlay)
+        zip_file.close()
+        return result
 
-        return False
+    def _read_files(self, zip_file: ZipFile, extract_overlay: bool):
+        overlay_file_name = self._find_file(zip_file, find_png=True)
+        media_file_name = self._find_file(zip_file, find_png=False)
 
+        media_overlay = None
+        if overlay_file_name and extract_overlay:
+            media_overlay = zip_file.read(overlay_file_name)
+
+        media_content = None
+        media_extension = None
+        if media_file_name:
+            media_content = zip_file.read(media_file_name)
+            media_extension = self._get_extension(media_file_name)
+
+        return media_content, media_extension, media_overlay
 
     @staticmethod
-    def extract_media_from_zip(content: bytes, extract_overlay: bool = True) -> tuple[bytes, str, Optional[bytes]]:
-        with zipfile.ZipFile(BytesIO(content)) as zip_file:
-            media_bytes = None
-            extension = None
-            overlay_png = None
+    def _find_file(zip_file: ZipFile, find_png: bool) -> Optional[str]:
+        for name in zip_file.namelist():
+            is_png = name.lower().endswith('.png')
+            if is_png == find_png:
+                return name
+        return None
 
-            for filename in zip_file.namelist():
-                lower = filename.lower()
-                if lower.endswith(('.jpg', '.jpeg')):
-                    media_bytes = zip_file.read(filename)
-                    extension = '.jpg'
-                elif lower.endswith('.mp4'):
-                    media_bytes = zip_file.read(filename)
-                    extension = '.mp4'
-                elif extract_overlay and lower.endswith('.png'):
-                    overlay_png = zip_file.read(filename)
-
-            return media_bytes, extension, overlay_png
+    @staticmethod
+    def _get_extension(filename: str) -> str:
+        return '.mp4' if filename.lower().endswith('.mp4') else '.jpg'
