@@ -5,7 +5,7 @@ from src.logger.formatter import JSONFormatter
 
 
 class LogInitializer:
-    LOGGER_NAME = "snapchat_extractor"
+    LOGGER_NAME = "__name__"
 
     def __init__(self, config):
         self.config = config
