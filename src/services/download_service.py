@@ -1,4 +1,4 @@
-from src.processors.zip_processor import ZipProcessor
+from src.overlay.zip_processor import ZipProcessor
 from src.processors.filename_resolver import FileNameResolver
 from src.models import Memory
 from src.config.main import Config

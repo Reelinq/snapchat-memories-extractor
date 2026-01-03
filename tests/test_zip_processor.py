@@ -1,7 +1,7 @@
 import zipfile
 from io import BytesIO
 import pytest
-from src.processors.zip_processor import ZipProcessor
+from src.overlay.zip_processor import ZipProcessor
 
 @pytest.fixture
 def zip_with_jpg_and_overlay():
