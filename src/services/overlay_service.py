@@ -8,28 +8,7 @@ from imageio_ffmpeg import get_ffmpeg_exe
 from concurrent.futures import ProcessPoolExecutor
 from typing import Optional
 from src.error_handling import handle_errors
-
-
-def _image_overlay_worker(image_bytes: bytes, overlay_bytes: bytes, quality: int = 95) -> bytes:
-    base_image = Image.open(BytesIO(image_bytes))
-    overlay_image = Image.open(BytesIO(overlay_bytes))
-
-    if base_image.mode != 'RGBA':
-        base_image = base_image.convert('RGBA')
-
-    if overlay_image.mode != 'RGBA':
-        overlay_image = overlay_image.convert('RGBA')
-
-    if overlay_image.size != base_image.size:
-        overlay_image = overlay_image.resize(
-            base_image.size, Image.Resampling.LANCZOS)
-
-    combined_image = Image.alpha_composite(base_image, overlay_image)
-    combined_rgb_image = combined_image.convert('RGB')
-
-    output_buffer = BytesIO()
-    combined_rgb_image.save(output_buffer, format='JPEG', quality=quality)
-    return output_buffer.getvalue()
+from src.overlay.image_composer import compose_image
 
 
 class OverlayService:
@@ -61,11 +40,11 @@ class OverlayService:
     def apply_overlay_to_image(self, image_bytes: bytes, overlay_bytes: bytes, jpeg_quality: int = 95, use_process_pool: bool = True) -> bytes:
         if use_process_pool:
             pool = self.get_process_pool()
-            future = pool.submit(_image_overlay_worker,
+            future = pool.submit(compose_image,
                                  image_bytes, overlay_bytes, jpeg_quality)
             return future.result()
         else:
-            return _image_overlay_worker(image_bytes, overlay_bytes, jpeg_quality)
+            return compose_image(image_bytes, overlay_bytes, jpeg_quality)
 
     @handle_errors(return_on_error=None)
     def apply_overlay_to_video(self, video_bytes: bytes, overlay_bytes: bytes, output_path: Path, ffmpeg_timeout: int = 60) -> None:
