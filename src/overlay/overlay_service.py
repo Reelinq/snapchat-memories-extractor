@@ -5,46 +5,18 @@ import re
 import subprocess
 import tempfile
 from imageio_ffmpeg import get_ffmpeg_exe
-from concurrent.futures import ProcessPoolExecutor
 from typing import Optional
 from src.error_handling import handle_errors
-from src.overlay.image_composer import compose_image
 
 
 class OverlayService:
     _ffmpeg_exe_cache = None
-    _process_pool: Optional[ProcessPoolExecutor] = None
-    _pool_max_workers = 4
 
     @classmethod
     def _get_ffmpeg_exe(class_reference) -> str:
         if class_reference._ffmpeg_exe_cache is None:
             class_reference._ffmpeg_exe_cache = get_ffmpeg_exe()
         return class_reference._ffmpeg_exe_cache
-
-    @classmethod
-    def get_process_pool(class_reference, max_workers: Optional[int] = None) -> ProcessPoolExecutor:
-        if class_reference._process_pool is None:
-            workers = max_workers or class_reference._pool_max_workers
-            class_reference._process_pool = ProcessPoolExecutor(
-                max_workers=workers)
-        return class_reference._process_pool
-
-    @classmethod
-    def shutdown_process_pool(class_reference) -> None:
-        if class_reference._process_pool is not None:
-            class_reference._process_pool.shutdown(wait=True)
-            class_reference._process_pool = None
-
-    @handle_errors(return_on_error=b'')
-    def apply_overlay_to_image(self, image_bytes: bytes, overlay_bytes: bytes, jpeg_quality: int = 95, use_process_pool: bool = True) -> bytes:
-        if use_process_pool:
-            pool = self.get_process_pool()
-            future = pool.submit(compose_image,
-                                 image_bytes, overlay_bytes, jpeg_quality)
-            return future.result()
-        else:
-            return compose_image(image_bytes, overlay_bytes, jpeg_quality)
 
     @handle_errors(return_on_error=None)
     def apply_overlay_to_video(self, video_bytes: bytes, overlay_bytes: bytes, output_path: Path, ffmpeg_timeout: int = 60) -> None:
