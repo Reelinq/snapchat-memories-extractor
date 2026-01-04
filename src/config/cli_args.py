@@ -22,6 +22,8 @@ def get_cli_args():
                         metavar='N', help='JPEG quality 1-100 (default: 95). Short: -q')
     parser.add_argument('--no-jxl', '-J', default=False, action='store_true',
                         help='Skip JPGXL conversion and keep original JPEG (default: convert to lossless JPGXL). Short: -J')
+    parser.add_argument('--image-overlay-workers', '-iow', type=int, default=10,
+                        metavar='N', help='Parallel workers for image overlay processing (default: 10). Short: -iow')
     parser.add_argument('--log-level', '-l', type=str, default='OFF', metavar='LEVEL',
                         help='Logging level: 0=OFF, 1=CRITICAL, 2=ERROR, 3=WARNING, 4=INFO, 5=DEBUG. Can also use names: OFF, CRITICAL, ERROR, WARNING, INFO, DEBUG (default: 0/OFF). Short: -l')
     return parser.parse_args()
