@@ -459,6 +459,45 @@ python main.py --log-level DEBUG
 
 </details>
 
+<details>
+<summary><b>🖼️ Image Overlay Workers: -iow / --image-overlay-workers N</b></summary>
+
+**What it does:**
+- Sets how many parallel workers process image overlays simultaneously.
+- **Default**: `5` workers
+- More workers can speed up processing on multi-core CPUs, but use more memory.
+
+**Examples**:
+
+Default (5 workers):
+```bash
+python main.py
+```
+
+Use 8 workers for faster processing:
+```bash
+python main.py -iow 8
+python main.py --image-overlay-workers 8
+```
+
+Use 2 workers (lower memory usage):
+```bash
+python main.py -iow 2
+```
+
+Disable parallel processing (single worker):
+```bash
+python main.py -iow 1
+```
+
+**💡 Recommendations:**
+- Use the default for most systems
+- Increase on machines with many CPU cores and plenty of RAM
+- Decrease if you experience memory issues or system slowdowns
+- Set to `1` for debugging or on low-resource systems
+
+</details>
+
 ---
 
 ## 🔧 Troubleshooting
