@@ -1,15 +1,15 @@
 from abc import ABC, abstractmethod
 from pathlib import Path
 from src.models import Memory
-from src.overlay.video_composer import OverlayService
-from src.overlay.image_composer import apply_overlay
+from src.overlay.video_composer import VideoComposer
+from src.overlay.image_composer import ImageComposer
 from src.services.metadata_service import MetadataService
 from src.services.jxl_converter import JXLConverter
 from typing import Optional
 
 
 class MediaProcessor(ABC):
-    def __init__(self, overlay_service: OverlayService, metadata_service: MetadataService, convert_to_jxl: bool = True):
+    def __init__(self, overlay_service: VideoComposer, metadata_service: MetadataService, convert_to_jxl: bool = True):
         self.overlay_service = overlay_service
         self.metadata_service = metadata_service
         self.convert_to_jxl = convert_to_jxl
@@ -39,7 +39,7 @@ class ImageProcessor(MediaProcessor):
         ffmpeg_timeout: int = 60,
         jpeg_quality: int = 95
     ) -> bytes:
-        return apply_overlay(media_bytes, overlay_bytes, jpeg_quality)
+        return ImageComposer().apply_overlay(media_bytes, overlay_bytes, jpeg_quality)
 
     def write_metadata(self, memory: Memory, file_path: Path, ffmpeg_timeout: int = 60, jpeg_quality: int = 95) -> Path:
         self.metadata_service._write_image_metadata(memory, file_path, jpeg_quality)
@@ -63,7 +63,7 @@ class VideoProcessor(MediaProcessor):
         if output_path is None:
             raise ValueError("output_path is required for video overlay processing")
 
-        self.overlay_service.apply_overlay_to_video(
+        self.overlay_service.apply_overlay(
             media_bytes,
             overlay_bytes,
             output_path,
@@ -79,7 +79,7 @@ class VideoProcessor(MediaProcessor):
 
 def get_media_processor(
     media_type: str,
-    overlay_service: OverlayService,
+    overlay_service: VideoComposer,
     metadata_service: MetadataService,
     convert_to_jxl: bool = True
 ) -> MediaProcessor:

@@ -3,7 +3,7 @@ from src.processors.filename_resolver import FileNameResolver
 from src.models import Memory
 from src.config.main import Config
 from src.services.metadata_service import MetadataService
-from src.overlay.video_composer import OverlayService
+from src.overlay.video_composer import VideoComposer
 from src.services.media_processor import get_media_processor
 from src.services.jxl_converter import JXLConverter
 from typing import List, Dict
@@ -19,7 +19,7 @@ class DownloadService:
         self.filename_resolver = FileNameResolver(config.downloads_folder)
         self.content_processor = ZipProcessor()
         self.metadata_service = MetadataService()
-        self.overlay_service = OverlayService()
+        self.overlay_service = VideoComposer()
         self.stats_lock = stats_lock
         self.errors: List[Dict[str, str]] = []
         self.total_bytes = 0
@@ -38,8 +38,8 @@ class DownloadService:
 
     def close(self) -> None:
         self.session.close()
-        from src.overlay.video_composer import OverlayService
-        OverlayService.shutdown_process_pool()
+        from src.overlay.video_composer import VideoComposer
+        VideoComposer.shutdown_process_pool()
 
     @handle_errors(return_on_error=False)
     def download_and_process(self, memory: Memory):
