@@ -34,12 +34,16 @@ class ZipProcessor:
 
         return media_content, media_extension, media_overlay
 
-    @staticmethod
-    def _find_file(zip_file: ZipFile, find_png: bool) -> Optional[str]:
+    def _find_file(self, zip_file: ZipFile, find_png: bool) -> Optional[str]:
         for name in zip_file.namelist():
-            is_png = name.lower().endswith('.png')
-            if is_png == find_png:
-                return name
+            return self._is_png_file(name, find_png)
+        return None
+
+    @staticmethod
+    def _is_png_file(filename: str, find_png: bool) -> bool:
+        is_png_extension = filename.lower().endswith('.png')
+        if is_png_extension == find_png:
+            return filename
         return None
 
     @staticmethod
