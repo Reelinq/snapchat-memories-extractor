@@ -19,6 +19,7 @@ def apply_overlay(image_bytes: bytes, overlay_bytes: bytes, quality: int = 95) -
 
     return _save_image_to_memory(combined_rgb_image, format='JPEG', quality=quality)
 
+
 def _ensure_rgba(image: Image.Image) -> Image.Image:
     if image.mode != 'RGBA':
         return image.convert('RGBA')
