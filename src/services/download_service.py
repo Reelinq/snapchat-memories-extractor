@@ -3,7 +3,7 @@ from src.processors.filename_resolver import FileNameResolver
 from src.models import Memory
 from src.config.main import Config
 from src.services.metadata_service import MetadataService
-from src.overlay.overlay_service import OverlayService
+from src.overlay.video_composer import OverlayService
 from src.services.media_processor import get_media_processor
 from src.services.jxl_converter import JXLConverter
 from typing import List, Dict
@@ -38,7 +38,7 @@ class DownloadService:
 
     def close(self) -> None:
         self.session.close()
-        from src.overlay.overlay_service import OverlayService
+        from src.overlay.video_composer import OverlayService
         OverlayService.shutdown_process_pool()
 
     @handle_errors(return_on_error=False)
