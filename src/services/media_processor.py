@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from src.models import Memory
 from src.overlay.overlay_service import OverlayService
+from src.overlay.image_composer import apply_overlay
 from src.services.metadata_service import MetadataService
 from src.services.jxl_converter import JXLConverter
 from typing import Optional
@@ -38,7 +39,7 @@ class ImageProcessor(MediaProcessor):
         ffmpeg_timeout: int = 60,
         jpeg_quality: int = 95
     ) -> bytes:
-        return self.overlay_service.apply_overlay_to_image(media_bytes, overlay_bytes, jpeg_quality)
+        return apply_overlay(media_bytes, overlay_bytes, jpeg_quality)
 
     def write_metadata(self, memory: Memory, file_path: Path, ffmpeg_timeout: int = 60, jpeg_quality: int = 95) -> Path:
         self.metadata_service._write_image_metadata(memory, file_path, jpeg_quality)
