@@ -4,6 +4,7 @@ import subprocess
 import piexif
 from PIL import Image
 import imageio_ffmpeg
+from src.config.main import Config
 
 
 class MetadataService:
@@ -47,7 +48,6 @@ class MetadataService:
 
             exif_data_bytes = piexif.dump(exif_data_dictionary)
             image.save(str(file_path), exif=exif_data_bytes,
-                       quality=jpeg_quality)
 
     def _write_video_metadata(self, memory: Memory, file_path: Path, ffmpeg_timeout: int) -> None:
         ffmpeg_exe = self._get_ffmpeg_exe()
@@ -82,7 +82,7 @@ class MetadataService:
             command,
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
-            timeout=ffmpeg_timeout
+            timeout=Config.from_args().cli_options['ffmpeg_timeout']
         )
 
         if subprocess_execution_result.returncode == 0:

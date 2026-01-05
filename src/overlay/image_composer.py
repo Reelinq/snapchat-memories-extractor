@@ -1,6 +1,6 @@
 from PIL import Image
 from io import BytesIO
-from src import config
+from src.config.main import Config
 
 
 class ImageComposer:
@@ -18,7 +18,7 @@ class ImageComposer:
         combined_image = Image.alpha_composite(base_image, overlay_image)
         combined_rgb_image = combined_image.convert('RGB')
 
-        quality = config.cli_options['jpeg_quality']
+        quality = Config.from_args().cli_options['jpeg_quality']
 
         return self._save_image_to_memory(combined_rgb_image, format='JPEG', quality=quality)
 

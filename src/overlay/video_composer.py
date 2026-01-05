@@ -4,7 +4,7 @@ from io import BytesIO
 import subprocess
 import tempfile
 from imageio_ffmpeg import get_ffmpeg_exe
-from src import config
+from src.config.main import Config
 
 #TODO: Image overlay returns bytes, video overlay writes to file. Make consistent.
 
@@ -20,7 +20,7 @@ class VideoComposer:
         overlay_temporary_file_path = self._write_overlay_to_temp_file(overlay_image)
 
         ffmpeg_command = self._build_ffmpeg_overlay_command(video_temporary_file_path, overlay_temporary_file_path, (output_path))
-        ffmpeg_timeout = config.cli_options['ffmpeg_timeout']
+        ffmpeg_timeout = Config.from_args().cli_options['ffmpeg_timeout']
         self._run_ffmpeg_command(ffmpeg_command, ffmpeg_timeout)
         self._cleanup_temp_files(video_temporary_file_path, overlay_temporary_file_path)
 
@@ -73,16 +73,16 @@ class VideoComposer:
 
     @staticmethod
     def _get_video_codec():
-        if config.cli_options['video_codec'] == 'h265':
+        if Config.from_args().cli_options['video_codec'] == 'h265':
             return 'libx265'
         return 'libx264'
 
 
     @staticmethod
     def _get_video_crf():
-        user_crf = getattr(config.cli_options, 'crf', None)
+        user_crf = getattr(Config.from_args().cli_options, 'crf', None)
         if user_crf == None:
-            return 23 if config.cli_options['video_codec'] == 'h264' else 28
+            return 23 if Config.from_args().cli_options['video_codec'] == 'h264' else 28
         return user_crf
 
 
