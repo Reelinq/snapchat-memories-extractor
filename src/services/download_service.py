@@ -95,7 +95,7 @@ class DownloadService:
 
         if self.config.cli_options['write_metadata']:
             filepath = media_file_processor.write_metadata(
-                memory, filepath, self.config.cli_options['ffmpeg_timeout'], self.config.cli_options['jpeg_quality'])
+                memory, filepath)
         elif self.config.cli_options['convert_to_jxl'] and memory.media_type == "Image" and JXLConverter.is_convertible_image(filepath):
             filepath = JXLConverter.convert_to_jxl(filepath)
 
@@ -116,7 +116,7 @@ class DownloadService:
                 self.config.cli_options['convert_to_jxl']
             )
             filepath = media_file_processor.write_metadata(
-                memory, filepath, self.config.cli_options['ffmpeg_timeout'], self.config.cli_options['jpeg_quality'])
+                memory, filepath)
         elif self.config.cli_options['convert_to_jxl'] and memory.media_type == "Image" and JXLConverter.is_convertible_image(filepath):
             filepath = JXLConverter.convert_to_jxl(filepath)
         with self.stats_lock:

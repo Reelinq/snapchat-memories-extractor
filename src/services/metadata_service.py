@@ -22,7 +22,7 @@ class MetadataService:
         else:
             self._write_video_metadata(memory, file_path, ffmpeg_timeout)
 
-    def _write_image_metadata(self, memory: Memory, file_path: Path, jpeg_quality: int = 95) -> None:
+    def _write_image_metadata(self, memory: Memory, file_path: Path) -> None:
         with Image.open(file_path) as image:
             exif_data_dictionary = {"0th": {}, "Exif": {}, "GPS": {}}
 
@@ -48,8 +48,9 @@ class MetadataService:
 
             exif_data_bytes = piexif.dump(exif_data_dictionary)
             image.save(str(file_path), exif=exif_data_bytes,
+                       quality=Config.from_args().cli_options['jpeg_quality'])
 
-    def _write_video_metadata(self, memory: Memory, file_path: Path, ffmpeg_timeout: int) -> None:
+    def _write_video_metadata(self, memory: Memory, file_path: Path) -> None:
         ffmpeg_exe = self._get_ffmpeg_exe()
         metadata_arguments = ['-metadata',
                               f'creation_time={memory.video_creation_time}']

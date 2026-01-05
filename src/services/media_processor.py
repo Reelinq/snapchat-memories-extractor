@@ -19,14 +19,12 @@ class MediaProcessor(ABC):
         self,
         media_bytes: bytes,
         overlay_bytes: bytes,
-        output_path: Optional[Path] = None,
-        ffmpeg_timeout: int = 60,
-        jpeg_quality: int = 95
+        output_path: Optional[Path] = None
     ) -> bytes:
         pass
 
     @abstractmethod
-    def write_metadata(self, memory: Memory, file_path: Path, ffmpeg_timeout: int = 60, jpeg_quality: int = 95) -> Path:
+    def write_metadata(self, memory: Memory, file_path: Path) -> Path:
         pass
 
 
@@ -39,8 +37,8 @@ class ImageProcessor(MediaProcessor):
     ) -> bytes:
         return ImageComposer().apply_overlay(media_bytes, overlay_bytes)
 
-    def write_metadata(self, memory: Memory, file_path: Path, jpeg_quality: int) -> Path:
-        self.metadata_service._write_image_metadata(memory, file_path, jpeg_quality)
+    def write_metadata(self, memory: Memory, file_path: Path) -> Path:
+        self.metadata_service._write_image_metadata(memory, file_path)
 
         # Convert to JPGXL after metadata is written
         if self.convert_to_jxl and JXLConverter.is_convertible_image(file_path):
@@ -67,8 +65,8 @@ class VideoProcessor(MediaProcessor):
         # Return original bytes since file is written directly
         return media_bytes
 
-    def write_metadata(self, memory: Memory, file_path: Path, ffmpeg_timeout: int = 60, jpeg_quality: int = 95) -> Path:
-        self.metadata_service._write_video_metadata(memory, file_path, ffmpeg_timeout)
+    def write_metadata(self, memory: Memory, file_path: Path) -> Path:
+        self.metadata_service._write_video_metadata(memory, file_path)
         return file_path
 
 
