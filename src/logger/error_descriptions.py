@@ -1,0 +1,19 @@
+
+#TODO: Make network errors work
+ERROR_DESCRIPTIONS = {
+    '401': 'Unauthorized - Invalid credentials',
+    '403': 'Forbidden - Link expired. Re-export memories_history.json',
+    '404': 'Not found - Resource no longer exists',
+    '408': 'Request timed out',
+    '410': 'Gone - Link permanently expired',
+    '429': 'Rate limited - Too many requests',
+    '502': 'Bad gateway - Server temporarily unavailable',
+    'NET': 'Network error - Connection failed',
+    'ZIP': 'ZIP processing error - Failed to extract media',
+    'FILE': 'File processing error - Failed to write/read file',
+    'DL': 'Download error - Failed to download file',
+    'OVR': 'Overlay error - Failed to apply overlay',
+    'LOC': 'Missing required location metadata',
+    'INT': 'Interrupted by user',
+    'ERR': 'Unexpected error',
+}
