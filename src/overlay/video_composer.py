@@ -7,6 +7,7 @@ from imageio_ffmpeg import get_ffmpeg_exe
 from src import config
 from src.error_handling import handle_errors
 
+#TODO: Image overlay returns bytes, video overlay writes to file. Make consistent.
 
 class VideoComposer:
     @handle_errors(return_on_error=None)
