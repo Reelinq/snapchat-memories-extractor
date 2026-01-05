@@ -312,6 +312,34 @@ Example image (4000x3000 photo):
 
 </details>
 
+<details>
+<summary><b>🎞️ Video Codec: --video-codec [h264|h265]</b></summary>
+
+**What it does:**
+- Lets you choose the video codec for processed videos: `h264` (default, maximum compatibility) or `h265` (smaller files, but less compatible)
+- `h264` is supported by nearly all devices and browsers
+- `h265` (HEVC) produces smaller files at the same quality, but may not play on older devices or some browsers
+
+**Examples**:
+
+Default (h264):
+```bash
+python main.py
+```
+
+Use h265 for more compact files:
+```bash
+python main.py --video-codec h265
+```
+
+**💡 Recommendations:**
+- Use `h264` for best compatibility (default)
+- Use `h265` if you want smaller files and know your devices support it
+
+> ⚠️ **Note**: H.265/HEVC is not supported by all players and may require more CPU to encode/decode.
+
+</details>
+
 ---
 
 ### 🛠️ Advanced Options
