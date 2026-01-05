@@ -1,12 +1,13 @@
 from PIL import Image
 from io import BytesIO
+from src import config
 from src.error_handling import handle_errors
 
 
 class ImageComposer:
     #TODO: Add concurrent processing for overlays on a higher level
     @handle_errors(return_on_error=b'') # TODO: Redo error handling
-    def apply_overlay(self, image_bytes: bytes, overlay_bytes: bytes, quality: int = 95) -> bytes:
+    def apply_overlay(self, image_bytes: bytes, overlay_bytes: bytes) -> bytes:
         base_image = Image.open(BytesIO(image_bytes))
         overlay_image = Image.open(BytesIO(overlay_bytes))
 
@@ -18,6 +19,8 @@ class ImageComposer:
 
         combined_image = Image.alpha_composite(base_image, overlay_image)
         combined_rgb_image = combined_image.convert('RGB')
+
+        quality = config.cli_options['jpeg_quality']
 
         return self._save_image_to_memory(combined_rgb_image, format='JPEG', quality=quality)
 

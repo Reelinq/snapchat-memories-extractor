@@ -36,12 +36,10 @@ class ImageProcessor(MediaProcessor):
         media_bytes: bytes,
         overlay_bytes: bytes,
         output_path: Optional[Path] = None,
-        ffmpeg_timeout: int = 60,
-        jpeg_quality: int = 95
     ) -> bytes:
-        return ImageComposer().apply_overlay(media_bytes, overlay_bytes, jpeg_quality)
+        return ImageComposer().apply_overlay(media_bytes, overlay_bytes)
 
-    def write_metadata(self, memory: Memory, file_path: Path, ffmpeg_timeout: int = 60, jpeg_quality: int = 95) -> Path:
+    def write_metadata(self, memory: Memory, file_path: Path, jpeg_quality: int) -> Path:
         self.metadata_service._write_image_metadata(memory, file_path, jpeg_quality)
 
         # Convert to JPGXL after metadata is written
@@ -56,9 +54,7 @@ class VideoProcessor(MediaProcessor):
         self,
         media_bytes: bytes,
         overlay_bytes: bytes,
-        output_path: Optional[Path] = None,
-        ffmpeg_timeout: int = 60,
-        jpeg_quality: int = 95
+        output_path: Optional[Path] = None
     ) -> bytes:
         if output_path is None:
             raise ValueError("output_path is required for video overlay processing")
@@ -66,8 +62,7 @@ class VideoProcessor(MediaProcessor):
         self.overlay_service.apply_overlay(
             media_bytes,
             overlay_bytes,
-            output_path,
-            ffmpeg_timeout
+            output_path
         )
         # Return original bytes since file is written directly
         return media_bytes

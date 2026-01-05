@@ -10,7 +10,7 @@ from src.error_handling import handle_errors
 
 class VideoComposer:
     @handle_errors(return_on_error=None)
-    def apply_overlay(self, video_bytes: bytes, overlay_bytes: bytes, output_path: Path, ffmpeg_timeout: int) -> None:
+    def apply_overlay(self, video_bytes: bytes, overlay_bytes: bytes, output_path: Path) -> None:
         # FFMPEG can't read from memory, so we need to write to temp files
         video_temporary_file_path = self._write_video_to_temp_file(video_bytes, '.mp4')
         video_width, video_height = self._get_video_dimensions(video_temporary_file_path)
@@ -21,6 +21,7 @@ class VideoComposer:
         overlay_temporary_file_path = self._write_overlay_to_temp_file(overlay_image)
 
         ffmpeg_command = self._build_ffmpeg_overlay_command(video_temporary_file_path, overlay_temporary_file_path, (output_path))
+        ffmpeg_timeout = config.cli_options['ffmpeg_timeout']
         self._run_ffmpeg_command(ffmpeg_command, ffmpeg_timeout)
         self._cleanup_temp_files(video_temporary_file_path, overlay_temporary_file_path)
 
