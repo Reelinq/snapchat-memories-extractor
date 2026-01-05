@@ -13,5 +13,6 @@ def build_cli_options(args):
         'log_level': parse_log_level(args.log_level),
         'request_timeout': args.request_timeout,
         'ffmpeg_timeout': args.ffmpeg_timeout,
+        'video_codec': args.video_codec,
         'stream_chunk_size': args.stream_chunk_size * 1024
     }
