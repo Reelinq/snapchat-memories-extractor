@@ -72,7 +72,7 @@ class MemoryDownloader:
                           for index, item in enumerate(raw_memory_items)]
 
         future_to_download_task_mapping = {
-            self.executor.submit(self._download_task, index, memory): (index, memory)
+            self.executor.submit(self._download_task, memory): (index, memory)
             for index, memory in download_tasks
         }
 
