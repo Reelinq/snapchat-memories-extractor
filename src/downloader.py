@@ -80,7 +80,7 @@ class MemoryDownloader:
             index, memory = future_to_download_task_mapping[future]
             completed_downloads_count += 1
 
-            file_path, download_succeeded = future
+            file_path, download_succeeded = future.result()
 
             if download_succeeded and file_path and file_path.exists():
                 file_size_mb = file_path.stat().st_size / (1024 * 1024)
