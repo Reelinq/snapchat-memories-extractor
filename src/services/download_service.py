@@ -7,6 +7,7 @@ from src.overlay.video_composer import VideoComposer
 from src.services.media_processor import get_media_processor
 from src.services.jxl_converter import JXLConverter
 from typing import List, Dict
+from src.logger.log import log
 import requests
 import threading
 from requests.adapters import HTTPAdapter
@@ -46,7 +47,10 @@ class DownloadService:
             timeout=self.config.cli_options['request_timeout'],
             stream=True
         )
-        http_response.raise_for_status()  # Decorator catches HTTPError
+        if http_response.status_code >= 400:
+            log(f"Failed to download {memory.filename_with_ext}",
+                "error", http_response.status_code)
+            return None, False
 
         downloaded_file_content = b''
         for chunk in http_response.iter_content(chunk_size=self.config.cli_options['stream_chunk_size']):
