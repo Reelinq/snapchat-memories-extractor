@@ -1,92 +1,92 @@
 from pathlib import Path
 from PIL import Image
 from io import BytesIO
-import re
 import subprocess
 import tempfile
 from imageio_ffmpeg import get_ffmpeg_exe
-from typing import Optional
+from src import config
 from src.error_handling import handle_errors
 
 
-class OverlayService:
-    _ffmpeg_exe_cache = None
+def _write_video_to_temp_file(data: bytes, suffix: str) -> str:
+    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as temp_file:
+        temp_file.write(data)
+        return temp_file.name
 
-    @classmethod
-    def _get_ffmpeg_exe(class_reference) -> str:
-        if class_reference._ffmpeg_exe_cache is None:
-            class_reference._ffmpeg_exe_cache = get_ffmpeg_exe()
-        return class_reference._ffmpeg_exe_cache
 
-    @handle_errors(return_on_error=None)
-    def apply_overlay_to_video(self, video_bytes: bytes, overlay_bytes: bytes, output_path: Path, ffmpeg_timeout: int = 60) -> None:
-        with tempfile.NamedTemporaryFile(delete=False, suffix='.mp4') as video_temporary_file:
-            video_temporary_file.write(video_bytes)
-            video_temporary_file_path = video_temporary_file.name
+def _get_video_dimensions(video_path) -> tuple[int, int]:
+    ffprobe_response = subprocess.check_output([
+        'ffprobe', '-v', 'error', '-select_streams', 'v:0',
+        '-show_entries', 'stream=width,height', '-of', 'csv=p=0', video_path
+    ], text=True)
+    return tuple(map(int, ffprobe_response.strip().split(',')))
 
-        overlay_temporary_file_path = None
 
-        ffmpeg_exe = self._get_ffmpeg_exe()
-        probe_command = [
-            ffmpeg_exe,
-            '-i', video_temporary_file_path,
-            '-hide_banner'
-        ]
+def _resize_to_match(image: Image.Image, target_size: tuple[int, int]) -> Image.Image:
+    if image.size != target_size:
+        return image.resize(target_size, Image.Resampling.LANCZOS)
+    return image
 
-        probe_result = subprocess.run(
-            probe_command,
-            capture_output=True,
-            text=True,
-            creationflags=subprocess.CREATE_NO_WINDOW if hasattr(
-                subprocess, 'CREATE_NO_WINDOW') else 0
+
+def _write_overlay_to_temp_file(overlay_image: bytes) -> str:
+    with tempfile.NamedTemporaryFile(delete=False, suffix='.png') as overlay_temporary_file:
+        overlay_image.save(overlay_temporary_file, format='PNG')
+        return overlay_temporary_file.name
+
+def _get_video_codec():
+    if config.cli_options['video_codec'] == 'h265':
+        return 'libx265'
+    return 'libx264'
+
+def _get_video_crf():
+    user_crf = getattr(config.cli_options, 'crf', None)
+    if user_crf == None:
+        return 23 if config.cli_options['video_codec'] == 'h264' else 28
+    return user_crf
+
+def _cleanup_temp_files(video_temporary_file_path: str, overlay_temporary_file_path: str):
+    Path(video_temporary_file_path).unlink(missing_ok=True)
+    Path(overlay_temporary_file_path).unlink(missing_ok=True)
+
+
+def _build_ffmpeg_overlay_command(video_path: str, overlay_path: str, output_path: Path) -> list:
+    return [
+        get_ffmpeg_exe(),
+        '-i', video_path,
+        '-i', overlay_path,
+        '-filter_complex', 'overlay=0:0',
+        '-c:v', _get_video_codec(),
+        '-preset', 'fast',
+        '-crf', str(_get_video_crf()),
+        '-pix_fmt', 'yuv420p',
+        '-c:a', 'copy',
+        '-movflags', '+faststart',
+        str(output_path)
+    ]
+
+def _run_ffmpeg_command(command: list, timeout: int):
+    return subprocess.run(
+        command,
+        check=True,
+        timeout=timeout,
+        capture_output=True,
+        creationflags=subprocess.CREATE_NO_WINDOW if hasattr(
+            subprocess, 'CREATE_NO_WINDOW') else 0
         )
 
-        video_dimensions_match = re.search(
-            r'(\d{2,5})x(\d{2,5})', probe_result.stderr)
-        if not video_dimensions_match:
-            raise Exception("Could not determine video dimensions")
-
-        video_width = int(video_dimensions_match.group(1))
-        video_height = int(video_dimensions_match.group(2))
+class VideoComposer:
+    @handle_errors(return_on_error=None)
+    def apply_overlay(self, video_bytes: bytes, overlay_bytes: bytes, output_path: Path, ffmpeg_timeout: int) -> None:
+        # FFMPEG can't read from memory, so we need to write to temp files
+        video_temporary_file_path = _write_video_to_temp_file(video_bytes, '.mp4')
+        video_width, video_height = _get_video_dimensions(video_temporary_file_path)
 
         overlay_image = Image.open(BytesIO(overlay_bytes))
+        # In some cases the overlay image is mismatched by 1 pixel
+        overlay_image = _resize_to_match(overlay_image, (video_width, video_height))
+        overlay_temporary_file_path = _write_overlay_to_temp_file(overlay_image)
 
-        if overlay_image.size != (video_width, video_height):
-            overlay_image = overlay_image.resize(
-                (video_width, video_height), Image.Resampling.LANCZOS)
+        ffmpeg_command = _build_ffmpeg_overlay_command(video_temporary_file_path, overlay_temporary_file_path, (output_path))
+        _run_ffmpeg_command(ffmpeg_command, ffmpeg_timeout)
 
-        overlay_buffer = BytesIO()
-        overlay_image.save(overlay_buffer, format='PNG')
-        overlay_buffer.seek(0)
-
-        with tempfile.NamedTemporaryFile(delete=False, suffix='.png') as overlay_temporary_file:
-            overlay_temporary_file.write(overlay_buffer.read())
-            overlay_temporary_file_path = overlay_temporary_file.name
-
-        command = [
-            ffmpeg_exe,
-            '-i', video_temporary_file_path,
-            '-i', overlay_temporary_file_path,
-            '-filter_complex', 'overlay=0:0',
-            '-c:v', 'libx264',
-            '-preset', 'fast',
-            '-crf', '23',
-            '-pix_fmt', 'yuv420p',
-            '-c:a', 'copy',
-            '-movflags', '+faststart',
-            '-y',
-            str(output_path)
-        ]
-
-        subprocess_execution_result = subprocess.run(
-            command,
-            check=True,
-            timeout=ffmpeg_timeout,
-            capture_output=True,
-            creationflags=subprocess.CREATE_NO_WINDOW if hasattr(
-                subprocess, 'CREATE_NO_WINDOW') else 0
-        )
-
-        Path(video_temporary_file_path).unlink(missing_ok=True)
-        if overlay_temporary_file_path is not None:
-            Path(overlay_temporary_file_path).unlink(missing_ok=True)
+        _cleanup_temp_files(video_temporary_file_path, overlay_temporary_file_path)
