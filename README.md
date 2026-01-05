@@ -526,6 +526,43 @@ python main.py -iow 1
 
 </details>
 
+<details>
+<summary><b>🎚️ Constant Rate Factor: --crf N</b></summary>
+
+**What it does:**
+- Sets the Constant Rate Factor (CRF) for video encoding quality and file size.
+- **Lower values = higher quality, larger files.**
+- **Higher values = lower quality, smaller files.**
+- **Valid range:** 0 (lossless) to 51 (worst). Typical: 18–28.
+- **Default:** 23 for H.264, 28 for H.265 (automatically chosen if not set).
+
+**Examples**:
+
+Use default (23 for H.264, 28 for H.265):
+```bash
+python main.py
+```
+
+Set CRF to 20 (higher quality, bigger files):
+```bash
+python main.py --crf 20
+```
+
+Set CRF to 30 (smaller files, lower quality):
+```bash
+python main.py --crf 30
+```
+
+**💡 Recommendations:**
+- **18–23:** Visually lossless or high quality.
+- **24–28:** Good balance for most uses.
+- **29–35:** Smallest files, but visible quality loss.
+- **0:** Lossless (huge files, rarely needed).
+
+> ⚠️ **Note:** If you use `--video-codec h265`, the default CRF is 28 unless you set `--crf` yourself.
+
+</details>
+
 ---
 
 ## 🔧 Troubleshooting
