@@ -2,6 +2,7 @@ import json
 import threading
 from pathlib import Path
 from typing import Dict, List
+from src.logger.log import log
 
 
 class MemoriesRepository:
@@ -29,7 +30,12 @@ class MemoriesRepository:
 
     @staticmethod
     def _prune_item(data: Dict, index: int) -> None:
-        del data.get('Saved Media', [])[index]
+        saved_media = data.get('Saved Media', [])
+        if 0 <= index < len(saved_media):
+            del saved_media[index]
+        else:
+            log(f"Index {index} is out of bounds for pruning.", "warning")
+            pass
 
 
     def _save(self, data: Dict) -> None:
