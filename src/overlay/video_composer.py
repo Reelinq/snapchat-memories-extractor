@@ -5,12 +5,10 @@ import subprocess
 import tempfile
 from imageio_ffmpeg import get_ffmpeg_exe
 from src import config
-from src.error_handling import handle_errors
 
 #TODO: Image overlay returns bytes, video overlay writes to file. Make consistent.
 
 class VideoComposer:
-    @handle_errors(return_on_error=None)
     def apply_overlay(self, video_bytes: bytes, overlay_bytes: bytes, output_path: Path) -> None:
         # FFMPEG can't read from memory, so we need to write to temp files
         video_temporary_file_path = self._write_video_to_temp_file(video_bytes, '.mp4')

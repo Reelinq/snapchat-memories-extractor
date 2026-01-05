@@ -1,12 +1,10 @@
 from PIL import Image
 from io import BytesIO
 from src import config
-from src.error_handling import handle_errors
 
 
 class ImageComposer:
     #TODO: Add concurrent processing for overlays on a higher level
-    @handle_errors(return_on_error=b'') # TODO: Redo error handling
     def apply_overlay(self, image_bytes: bytes, overlay_bytes: bytes) -> bytes:
         base_image = Image.open(BytesIO(image_bytes))
         overlay_image = Image.open(BytesIO(overlay_bytes))
