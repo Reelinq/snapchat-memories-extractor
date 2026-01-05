@@ -10,7 +10,6 @@ from typing import List, Dict
 import requests
 import threading
 from requests.adapters import HTTPAdapter
-from src.error_handling import handle_errors
 
 
 class DownloadService:
@@ -41,7 +40,6 @@ class DownloadService:
         from src.overlay.video_composer import VideoComposer
         VideoComposer.shutdown_process_pool()
 
-    @handle_errors(return_on_error=False)
     def download_and_process(self, memory: Memory):
         http_response = self.session.get(
             memory.media_download_url,
@@ -64,7 +62,6 @@ class DownloadService:
         else:
             return self._process_regular(downloaded_file_content, memory)
 
-    @handle_errors(return_on_error=False)
     def _process_zip(self, downloaded_file_content: bytes, memory: Memory):
         filepath = None
         media_bytes, extension, overlay_png = self.content_processor.extract_media_from_zip(
@@ -106,7 +103,6 @@ class DownloadService:
             self.total_bytes += filepath.stat().st_size
         return filepath, True
 
-    @handle_errors(return_on_error=False)
     def _process_regular(self, downloaded_file_content: bytes, memory: Memory):
         filepath = self.config.downloads_folder / memory.filename_with_ext
         filepath = self.filename_resolver.resolve_unique_path(filepath)

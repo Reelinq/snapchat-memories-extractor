@@ -4,7 +4,6 @@ import subprocess
 import piexif
 from PIL import Image
 import imageio_ffmpeg
-from src.error_handling import handle_errors
 
 
 class MetadataService:
@@ -22,7 +21,6 @@ class MetadataService:
         else:
             self._write_video_metadata(memory, file_path, ffmpeg_timeout)
 
-    @handle_errors(return_on_error=None)
     def _write_image_metadata(self, memory: Memory, file_path: Path, jpeg_quality: int = 95) -> None:
         with Image.open(file_path) as image:
             exif_data_dictionary = {"0th": {}, "Exif": {}, "GPS": {}}
@@ -51,7 +49,6 @@ class MetadataService:
             image.save(str(file_path), exif=exif_data_bytes,
                        quality=jpeg_quality)
 
-    @handle_errors(return_on_error=None)
     def _write_video_metadata(self, memory: Memory, file_path: Path, ffmpeg_timeout: int) -> None:
         ffmpeg_exe = self._get_ffmpeg_exe()
         metadata_arguments = ['-metadata',

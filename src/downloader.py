@@ -6,7 +6,6 @@ from src.models import Memory
 from src.repositories.memories_repository import MemoriesRepository
 from src.services.download_service import DownloadService
 from src.services.jxl_converter import JXLConverter
-from src.error_handling import handle_errors, handle_batch_errors, LocationMissingError, safe_future_result
 from src.ui.display import update_progress_threadsafe, clear_lines, print_status_threadsafe, print_info
 from src.stats.stats_manager import StatsManager
 from src.logger.log import log
@@ -60,7 +59,6 @@ class MemoryDownloader:
             if self.stats.failed_downloads_count == 0 or current_attempt_number == self.config.cli_options['max_attempts'] - 1:
                 break
 
-    @handle_batch_errors(cleanup_method='_batch_prune_if_needed')
     def _run_download_batch(self) -> None:
         raw_memory_items = self.memories_repository.get_raw_items()
         successfully_processed_indices: Set[int] = set()
@@ -82,9 +80,7 @@ class MemoryDownloader:
             index, memory = future_to_download_task_mapping[future]
             completed_downloads_count += 1
 
-            result = safe_future_result(
-                future, default_on_error=(None, False))
-            file_path, download_succeeded = result
+            file_path, download_succeeded = future
 
             if download_succeeded and file_path and file_path.exists():
                 file_size_mb = file_path.stat().st_size / (1024 * 1024)
@@ -192,11 +188,11 @@ class MemoryDownloader:
                 f"Post-interrupt conversion: {converted_files_count} JPEG(s) to JPGXL", "info"
             )
 
-    @handle_errors(return_on_error=False)
-    def _download_task(self, index: int, memory: Memory) -> bool:
+    def _download_task(self, memory: Memory) -> bool:
         if self.config.cli_options['strict_location']:
             if memory.location_coords is None:
-                raise LocationMissingError("No location data available")
+                log(f"Skipping {memory.filename_with_ext}: No location data available", "warning")
+                return False
 
         download_succeeded = self.download_service.download_and_process(memory)
 

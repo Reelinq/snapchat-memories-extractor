@@ -4,7 +4,6 @@ from typing import Optional
 import subprocess
 import sys
 from src.logger.log import log
-from src.error_handling import handle_errors
 
 class JXLConverter:
     _cjxl_path = None
@@ -35,14 +34,12 @@ class JXLConverter:
         return None
 
     @classmethod
-    @handle_errors(return_on_error=False)
     def _check_system_binary(class_reference, binary_name: str) -> bool:
         result = subprocess.run([binary_name, '--version'],
                                 capture_output=True, timeout=5)
         return result.returncode == 0
 
     @staticmethod
-    @handle_errors(return_on_error=None)
     def convert_to_jxl(
         input_path: Path,
         output_path: Optional[Path] = None,
@@ -79,7 +76,6 @@ class JXLConverter:
         return output_path
 
     @staticmethod
-    @handle_errors(return_on_error=False)
     def is_convertible_image(file_path: Path) -> bool:
         if not file_path.exists():
             return False
