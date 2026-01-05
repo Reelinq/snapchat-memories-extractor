@@ -1,5 +1,14 @@
 import argparse
 
+# Validate CRF value there to escape long help messages
+def crf_type(value):
+    ivalue = int(value)
+    if not (0 <= ivalue <= 51):
+        raise argparse.ArgumentTypeError(
+            "CRF must be between 0 (lossless) and 51 (worst quality)")
+    return ivalue
+
+
 def get_cli_args():
     parser = argparse.ArgumentParser(description='Snapchat Memories Downloader')
     parser.add_argument('--stream-chunk-size', '-S', type=int, default=1024, metavar='KB',
@@ -26,6 +35,8 @@ def get_cli_args():
                         metavar='N', help='Parallel workers for image overlay processing (default: 10). Short: -iow')
     parser.add_argument('--video-codec', '-vc', choices=['h264', 'h265'], default='h264',
                         help='Choose video codec: h264 (default, best compatibility) or h265 (smaller files, less compatible)')
+    parser.add_argument('--constant-rate-factor', '--crf', type=crf_type, default=23,
+                        help='Constant Rate Factor for video quality (0-51, lower=better, 0=lossless, 18-28 is typical, default: 23)')
     parser.add_argument('--log-level', '-l', type=str, default='OFF', metavar='LEVEL',
                         help='Logging level: 0=OFF, 1=CRITICAL, 2=ERROR, 3=WARNING, 4=INFO, 5=DEBUG. Can also use names: OFF, CRITICAL, ERROR, WARNING, INFO, DEBUG (default: 0/OFF). Short: -l')
     return parser.parse_args()
