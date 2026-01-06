@@ -527,6 +527,38 @@ python main.py -iow 1
 </details>
 
 <details>
+<summary><b>⏳ CJXL Timeout: -cjxlt / --cjxl-timeout SECONDS</b></summary>
+
+**What it does:**
+- Sets how many seconds the program will wait for the `cjxl` JPEG XL encoder to finish converting an image before giving up on the operation.
+- **Default**: `120` seconds
+- Increase if you have very large or slow-to-convert images; decrease for faster failure on stuck or problematic files.
+
+**Examples**:
+
+Default (120 seconds):
+```bash
+python main.py
+```
+
+Wait up to 300 seconds for each JPEG XL conversion:
+```bash
+python main.py -cjxlt 300
+python main.py --cjxl-timeout 300
+```
+
+Fail quickly (60 seconds):
+```bash
+python main.py -cjxlt 60
+```
+
+**💡 Recommendations:**
+- Use the default unless you experience frequent timeouts or have very large/complex images.
+- Increase for slow computers or very large images.
+
+</details>
+
+<details>
 <summary><b>🎚️ Constant Rate Factor: --crf N</b></summary>
 
 **What it does:**
