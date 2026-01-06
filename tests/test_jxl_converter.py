@@ -7,12 +7,10 @@ import pytest
 from PIL import Image, ImageChops
 import piexif
 from src.services.jxl_converter import JXLConverter
-from src.error_handling import handle_errors
 
 HAS_CJXL = JXLConverter._get_cjxl_path() is not None
 
 
-@handle_errors(return_on_error=None)
 def _get_djxl_path() -> Path | None:
     if sys.platform == 'win32':
         binary_name = 'djxl.exe'
