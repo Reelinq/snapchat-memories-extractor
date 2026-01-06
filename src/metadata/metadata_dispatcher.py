@@ -11,6 +11,6 @@ class MetadataDispatcher:
         jpeg_quality = Config.from_args().cli_options['jpeg_quality']
 
         if is_image:
-            ImageMetadataWriter()._write_image_metadata(memory, file_path, jpeg_quality)
+            ImageMetadataWriter().write_image_metadata(memory, file_path, jpeg_quality)
         else:
             VideoMetadataWriter()._write_video_metadata(memory, file_path, ffmpeg_timeout)
