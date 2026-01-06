@@ -1,7 +1,7 @@
 from pathlib import Path
 from unittest.mock import MagicMock
 import pytest
-from src.services.metadata_service import MetadataService
+from src.metadata.metadata_dispatcher import MetadataService
 
 @pytest.fixture
 def metadata_service():

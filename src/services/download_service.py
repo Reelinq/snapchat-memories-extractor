@@ -2,7 +2,7 @@ from src.overlay.zip_processor import ZipProcessor
 from src.processors.filename_resolver import FileNameResolver
 from src.models import Memory
 from src.config.main import Config
-from src.services.metadata_service import MetadataService
+from src.metadata.metadata_dispatcher import MetadataService
 from src.overlay.video_composer import VideoComposer
 from src.services.media_processor import get_media_processor
 from src.services.jxl_converter import JXLConverter

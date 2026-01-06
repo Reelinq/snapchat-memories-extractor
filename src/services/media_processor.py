@@ -3,7 +3,7 @@ from pathlib import Path
 from src.models import Memory
 from src.overlay.video_composer import VideoComposer
 from src.overlay.image_composer import ImageComposer
-from src.services.metadata_service import MetadataService
+from src.metadata.metadata_dispatcher import MetadataService
 from src.services.jxl_converter import JXLConverter
 from typing import Optional
 
