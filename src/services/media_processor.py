@@ -41,7 +41,7 @@ class ImageProcessor(MediaProcessor):
         self.metadata_service._write_image_metadata(memory, file_path)
 
         # Convert to JPGXL after metadata is written
-        if self.convert_to_jxl and JXLConverter.is_convertible_image(file_path):
+        if self.convert_to_jxl:
             file_path = JXLConverter.convert_to_jxl(file_path)
 
         return file_path

@@ -143,9 +143,6 @@ class MemoryDownloader:
             if jxl_file_path.exists():
                 continue
 
-            if not JXLConverter.is_convertible_image(jpeg_file_path):
-                continue
-
             converted_file_path = JXLConverter.convert_to_jxl(jpeg_file_path)
             if converted_file_path.suffix.lower() == '.jxl':
                 converted_files_count += 1
@@ -173,9 +170,6 @@ class MemoryDownloader:
         for jpeg_file_path in jpeg_file_paths:
             jxl_file_path = jpeg_file_path.with_suffix('.jxl')
             if jxl_file_path.exists():
-                continue
-
-            if not JXLConverter.is_convertible_image(jpeg_file_path):
                 continue
 
             converted_file_path = JXLConverter.convert_to_jxl(jpeg_file_path)

@@ -100,7 +100,7 @@ class DownloadService:
         if self.config.cli_options['write_metadata']:
             filepath = media_file_processor.write_metadata(
                 memory, filepath)
-        elif self.config.cli_options['convert_to_jxl'] and memory.media_type == "Image" and JXLConverter.is_convertible_image(filepath):
+        elif self.config.cli_options['convert_to_jxl']:
             filepath = JXLConverter.convert_to_jxl(filepath)
 
         with self.stats_lock:
@@ -121,7 +121,7 @@ class DownloadService:
             )
             filepath = media_file_processor.write_metadata(
                 memory, filepath)
-        elif self.config.cli_options['convert_to_jxl'] and memory.media_type == "Image" and JXLConverter.is_convertible_image(filepath):
+        elif self.config.cli_options['convert_to_jxl']:
             filepath = JXLConverter.convert_to_jxl(filepath)
         with self.stats_lock:
             self.total_bytes += filepath.stat().st_size
