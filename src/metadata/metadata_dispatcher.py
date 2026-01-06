@@ -13,4 +13,4 @@ class MetadataDispatcher:
         if is_image:
             ImageMetadataWriter().write_image_metadata(memory, file_path, jpeg_quality)
         else:
-            VideoMetadataWriter()._write_video_metadata(memory, file_path, ffmpeg_timeout)
+            VideoMetadataWriter().write_video_metadata(memory, file_path, ffmpeg_timeout)
