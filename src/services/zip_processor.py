@@ -1,24 +1,19 @@
 from zipfile import ZipFile
-from io import BytesIO
 from typing import Optional
+from src.config.main import Config
 
 
 class ZipProcessor:
-    @staticmethod
-    def is_zip(content: bytes, content_type: str) -> bool:
-        if 'zip' in content_type.lower():
-            return True
-        return content.startswith(b'PK\x03\x04')
-
-    def extract_media_from_zip(self,
-        content: bytes, extract_overlay: bool
+    def extract_media_from_zip(self, file_path: str
     ) -> tuple[Optional[bytes], Optional[str], Optional[bytes]]:
-        zip_file = ZipFile(BytesIO(content))
-        result = self._read_files(zip_file, extract_overlay)
-        zip_file.close()
+        with ZipFile(file_path, 'r') as zip_file:
+            result = self._read_files(zip_file)
         return result
 
-    def _read_files(self, zip_file: ZipFile, extract_overlay: bool):
+
+    def _read_files(self, zip_file: ZipFile):
+        extract_overlay = Config.from_args().cli_options['apply_overlay']
+
         overlay_file_name = self._find_file(zip_file, find_png=True)
         media_file_name = self._find_file(zip_file, find_png=False)
 
@@ -34,10 +29,12 @@ class ZipProcessor:
 
         return media_content, media_extension, media_overlay
 
+
     def _find_file(self, zip_file: ZipFile, find_png: bool) -> Optional[str]:
         for name in zip_file.namelist():
             return self._is_png_file(name, find_png)
         return None
+
 
     @staticmethod
     def _is_png_file(filename: str, find_png: bool) -> bool:
@@ -45,6 +42,7 @@ class ZipProcessor:
         if is_png_extension == find_png:
             return filename
         return None
+
 
     @staticmethod
     def _get_extension(filename: str) -> str:
