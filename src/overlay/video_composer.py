@@ -86,16 +86,21 @@ class VideoComposer:
         return user_crf
 
 
-    @staticmethod
-    def _run_ffmpeg_command(command: list, timeout: int):
+    def _run_ffmpeg_command(self, command: list, timeout: int):
         return subprocess.run(
             command,
             check=True,
             timeout=timeout,
             capture_output=True,
-            creationflags=subprocess.CREATE_NO_WINDOW if hasattr(
-                subprocess, 'CREATE_NO_WINDOW') else 0
+            creationflags=self.create_creation_flags()
         )
+
+
+    @staticmethod
+    def create_creation_flags():
+        if hasattr(subprocess, 'CREATE_NO_WINDOW'):
+            return subprocess.CREATE_NO_WINDOW
+        return 0
 
 
     @staticmethod
