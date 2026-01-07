@@ -1,11 +1,12 @@
 from PIL import Image
 from io import BytesIO
 from src.config.main import Config
+from pathlib import Path
 
 
 class ImageComposer:
     #TODO: Add concurrent processing for overlays on a higher level
-    def apply_overlay(self, image_bytes: bytes, overlay_bytes: bytes) -> bytes:
+    def apply_overlay(self, image_bytes: bytes, overlay_bytes: bytes, output_path: Path) -> bytes:
         base_image = Image.open(BytesIO(image_bytes))
         overlay_image = Image.open(BytesIO(overlay_bytes))
 
@@ -19,8 +20,7 @@ class ImageComposer:
         combined_rgb_image = combined_image.convert('RGB')
 
         quality = Config.from_args().cli_options['jpeg_quality']
-
-        return self._save_image_to_memory(combined_rgb_image, format='JPEG', quality=quality)
+        combined_rgb_image.save(str(output_path), format='JPEG', quality=quality)
 
 
     @staticmethod
@@ -35,11 +35,3 @@ class ImageComposer:
         if image.size != target_size:
             return image.resize(target_size, Image.Resampling.LANCZOS)
         return image
-
-
-    @staticmethod
-    def _save_image_to_memory(image: Image.Image, format: str, quality: int) -> bytes:
-        # Save image to memory buffer instead of disk for faster processing
-        buffer = BytesIO()
-        image.save(buffer, format=format, quality=quality)
-        return buffer.getvalue()
