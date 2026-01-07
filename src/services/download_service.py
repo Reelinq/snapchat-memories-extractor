@@ -2,7 +2,6 @@ from src.services.zip_processor import ZipProcessor
 from src.processors.filename_resolver import FileNameResolver
 from src.models import Memory
 from src.config.main import Config
-from src.metadata.metadata_dispatcher import MetadataService
 from src.overlay.video_composer import VideoComposer
 from src.media_dispatcher.media_dispatcher import process_media
 from src.services.jxl_converter import JXLConverter
@@ -18,7 +17,6 @@ class DownloadService:
         self.config = config
         self.filename_resolver = FileNameResolver(config.downloads_folder)
         self.content_processor = ZipProcessor()
-        self.metadata_service = MetadataService()
         self.overlay_service = VideoComposer()
         self.stats_lock = stats_lock
         self.errors: List[Dict[str, str]] = []
