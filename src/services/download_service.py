@@ -1,9 +1,10 @@
+from src.services.zip_processor import ZipProcessor
 from src.processors.filename_resolver import FileNameResolver
 from src.models import Memory
 from src.config.main import Config
 from src.metadata.metadata_dispatcher import MetadataService
 from src.overlay.video_composer import VideoComposer
-from src.services.media_processor import get_media_processor
+from src.media_dispatcher.media_dispatcher import process_media
 from src.services.jxl_converter import JXLConverter
 from typing import List, Dict
 from src.logger.log import log
@@ -72,7 +73,7 @@ class DownloadService:
             extract_overlay=self.config.cli_options['apply_overlay']
         )
 
-        media_file_processor = get_media_processor(
+        media_file_processor = process_media(
             memory.media_type,
             self.overlay_service,
             self.metadata_service,
@@ -112,7 +113,7 @@ class DownloadService:
 
         filepath.write_bytes(downloaded_file_content)
         if self.config.cli_options['write_metadata']:
-            media_file_processor = get_media_processor(
+            media_file_processor = process_media(
                 memory.media_type,
                 self.overlay_service,
                 self.metadata_service,
