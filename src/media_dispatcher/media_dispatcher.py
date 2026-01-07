@@ -1,6 +1,5 @@
 from src.models import Memory
 from pathlib import Path
-import src.media_dispatcher.video_processor
 from src.media_dispatcher.image_processor import ImageProcessor
 from src.media_dispatcher.video_processor import VideoProcessor
 from src.media_dispatcher.zip_processor import ZipProcessor
