@@ -22,22 +22,6 @@ class DownloadService:
         self.total_bytes = 0
         self.session = self._build_session()
 
-    def _build_session(self) -> requests.Session:
-        session = requests.Session()
-        max_concurrent = self.config.cli_options['max_concurrent_downloads']
-        adapter = HTTPAdapter(
-            pool_connections=max_concurrent,
-            pool_maxsize=max_concurrent * 2,
-        )
-        session.mount("http://", adapter)
-        session.mount("https://", adapter)
-        return session
-
-    def close(self) -> None:
-        self.session.close()
-        from src.overlay.video_composer import VideoComposer
-        VideoComposer.shutdown_process_pool()
-
     def download_and_process(self, memory: Memory):
         http_response = self.session.get(
             memory.media_download_url,
@@ -62,6 +46,28 @@ class DownloadService:
             return self._process_zip(downloaded_file_content, memory)
         else:
             return self._process_regular(downloaded_file_content, memory)
+
+
+    def _build_session(self) -> requests.Session:
+        http_session = requests.Session()
+        adapter = self._create_http_adapter()
+        http_session.mount("https://", adapter)
+        return http_session
+
+
+    def _create_http_adapter():
+        max_concurrent = Config.cli_options['max_concurrent_downloads']
+        adapter = HTTPAdapter(
+            pool_connections=max_concurrent,
+            pool_maxsize=max_concurrent * 2,
+        )
+        return adapter
+
+
+    def close(self) -> None:
+        self.session.close()
+        VideoComposer.shutdown_process_pool()
+
 
     def _process_zip(self, downloaded_file_content: bytes, memory: Memory):
         filepath = None
