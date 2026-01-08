@@ -4,18 +4,17 @@ from src.models import Memory
 from src.config.main import Config
 from src.overlay.video_composer import VideoComposer
 from src.media_dispatcher.media_dispatcher import process_media
-from src.services.jxl_converter import JXLConverter
 from typing import List, Dict
 from src.logger.log import log
 import requests
 import threading
 from requests.adapters import HTTPAdapter
+from src.overlay.video_composer import VideoComposer
 
 
 class DownloadService:
-    def __init__(self, config: Config, stats_lock: threading.Lock):
-        self.config = config
-        self.filename_resolver = FileNameResolver(config.downloads_folder)
+    def __init__(self, stats_lock: threading.Lock):
+        self.filename_resolver = FileNameResolver(Config.downloads_folder)
         self.content_processor = ZipProcessor()
         self.overlay_service = VideoComposer()
         self.stats_lock = stats_lock
@@ -83,23 +82,8 @@ class DownloadService:
                 f"{memory.filename}{extension}"
             filepath = self.filename_resolver.resolve_unique_path(filepath)
 
-        if self.config.cli_options['apply_overlay'] and overlay_png:
-            media_bytes = media_file_processor.apply_overlay(
-                media_bytes,
-                overlay_png,
-                filepath,
-                self.config.cli_options['ffmpeg_timeout'],
-                self.config.cli_options['jpeg_quality']
-            )
-
         if filepath is None or not filepath.exists():
             filepath.write_bytes(media_bytes)
-
-        if self.config.cli_options['write_metadata']:
-            filepath = media_file_processor.write_metadata(
-                memory, filepath)
-        elif self.config.cli_options['convert_to_jxl']:
-            filepath = JXLConverter.convert_to_jxl(filepath)
 
         with self.stats_lock:
             self.total_bytes += filepath.stat().st_size
@@ -110,17 +94,6 @@ class DownloadService:
         filepath = self.filename_resolver.resolve_unique_path(filepath)
 
         filepath.write_bytes(downloaded_file_content)
-        if self.config.cli_options['write_metadata']:
-            media_file_processor = process_media(
-                memory.media_type,
-                self.overlay_service,
-                self.metadata_service,
-                self.config.cli_options['convert_to_jxl']
-            )
-            filepath = media_file_processor.write_metadata(
-                memory, filepath)
-        elif self.config.cli_options['convert_to_jxl']:
-            filepath = JXLConverter.convert_to_jxl(filepath)
         with self.stats_lock:
             self.total_bytes += filepath.stat().st_size
         return filepath, True
