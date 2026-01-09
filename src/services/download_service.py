@@ -8,13 +8,18 @@ from requests.adapters import HTTPAdapter
 
 
 class DownloadService:
-    def download_and_process(self, memory: Memory):
-        download_response = self._download_memory(memory)
-        self._log_fetch_failure(download_response.status_code, memory)
+    def run(self, memory: Memory) -> tuple[bool, str | None]:
+        file_path = None
 
-        file_path = self._store_downloaded_memory(memory, download_response)
+        response = self._download_memory(memory)
+        if response.status_code >= 400:
+            self._log_fetch_failure(response.status_code, memory)
+            return False
 
+        file_path = self._store_downloaded_memory(memory, response)
         MediaDispatcher.process_media(file_path, memory)
+
+        return file_path, True
 
 
     def _download_memory(self, memory: Memory) -> requests.Response:
@@ -45,9 +50,8 @@ class DownloadService:
 
     @staticmethod
     def _log_fetch_failure(status_code: int, memory: Memory):
-        if status_code >= 400:
-            file_name = memory.filename_with_ext
-            log(f"Failed to download {file_name}", "error", status_code)
+        file_name = memory.filename_with_ext
+        log(f"Failed to download {file_name}", "error", status_code)
 
 
     @staticmethod
@@ -60,3 +64,5 @@ class DownloadService:
 
         with open(file_path, 'wb') as f:
             f.write(download_response.content)
+
+        return file_path
