@@ -13,10 +13,17 @@ class MemoriesRepository:
 
     def get_raw_items(self) -> List[Dict]:
         data = self._load()
+        if not data:
+            return []
+
         return data.get('Saved Media', [])
 
 
     def _load(self) -> Dict:
+        if not self.json_path.exists():
+            log(f"Memories JSON file not found at {self.json_path}", "error", "MISS")
+            return {}
+
         with open(self.json_path, 'r', encoding='utf-8') as file:
             return json.load(file)
 

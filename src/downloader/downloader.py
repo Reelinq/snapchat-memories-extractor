@@ -13,6 +13,10 @@ class MemoryDownloader:
         completed_indices = set()
         future_download_tasks = self._gather_future_download_tasks()
 
+        if not future_download_tasks:
+            log("No items to download.", "info")
+            return
+
         for future in as_completed(future_download_tasks):
             index, _ = future_download_tasks[future]
             completed_downloads_count += 1
