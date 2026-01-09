@@ -31,7 +31,7 @@ class MemoryDownloader:
 
     def _gather_future_download_tasks(self):
         download_tasks = self._gather_download_tasks()
-        max_workers = Config.cli_options['max_concurrent_downloads']
+        max_workers = Config.from_args().cli_options['max_concurrent_downloads']
         executor = ThreadPoolExecutor(max_workers=max_workers)
 
         # Use dictonary becaude otherwsie index gets lost in 'as_completed'
