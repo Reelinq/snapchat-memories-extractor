@@ -12,7 +12,6 @@ class SetupDownloader:
         while current_attempt_number < max_attempts or failure_count != 0:
             self._initialize_retry_attempt(current_attempt_number, max_attempts)
             self._ui_stuff()
-            self._run()
 
             current_attempt_number += 1
 
