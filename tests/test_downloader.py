@@ -3,7 +3,7 @@ from pathlib import Path
 from unittest.mock import MagicMock
 import pytest
 from src.config import Config
-from src.downloader import MemoryDownloader
+from src.downloader.downloader import MemoryDownloader
 from src.models import Memory
 
 @pytest.fixture
@@ -50,5 +50,3 @@ def test_strict_location_blocks_download(downloader, memory_without_location):
     downloader.download_service.download_and_process.assert_not_called()
     assert len(downloader.errors) > 0
     assert downloader.errors[-1]['code'] == 'LOC'
-
-

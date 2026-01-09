@@ -2,7 +2,7 @@ import logging
 from unittest.mock import MagicMock
 import pytest
 from src.config import Config
-from src.downloader import MemoryDownloader
+from src.downloader.downloader import MemoryDownloader
 
 @pytest.mark.parametrize("max_attempts", [1, 2, 3])
 def test_max_attempts_behavior(max_attempts):
@@ -21,8 +21,8 @@ def test_max_attempts_behavior(max_attempts):
     }
     config = Config(cli_options=cli_options)
     md = MemoryDownloader(config)
-    md._run_download_batch = MagicMock()
+    md.ui_stuff = MagicMock()
     md.failed_downloads_count = 1
-    md._run_download_batch.side_effect = lambda: setattr(md, 'failed_downloads_count', 0)
+    md.ui_stuff.side_effect = lambda: setattr(md, 'failed_downloads_count', 0)
     md.run()
-    assert md._run_download_batch.call_count <= max_attempts
+    assert md.ui_stuff.call_count <= max_attempts

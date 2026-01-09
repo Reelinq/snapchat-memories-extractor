@@ -4,7 +4,7 @@ import shutil
 from pathlib import Path
 from unittest.mock import patch, MagicMock
 from src.config import Config
-from src.downloader import MemoryDownloader
+from src.downloader.downloader import MemoryDownloader
 import pytest
 
 @pytest.mark.parametrize("max_workers", [1, 3, 5])
