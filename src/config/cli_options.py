@@ -15,6 +15,5 @@ def build_cli_options(args):
         'ffmpeg_timeout': args.ffmpeg_timeout,
         'video_codec': args.video_codec,
         'crf': args.constant_rate_factor,
-        'cjxl_timeout': args.cjxl_timeout,
-        'stream_chunk_size': args.stream_chunk_size * 1024
+        'cjxl_timeout': args.cjxl_timeout
     }

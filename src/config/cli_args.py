@@ -11,8 +11,6 @@ def crf_type(value):
 
 def get_cli_args():
     parser = argparse.ArgumentParser(description='Snapchat Memories Downloader')
-    parser.add_argument('--stream-chunk-size', '-S', type=int, default=1024, metavar='KB',
-                        help='Size of each chunk in kilobytes (default: 1024, i.e. 1 MB). Short: -S')
     parser.add_argument('--ffmpeg-timeout', '-f', type=int, default=60, metavar='SECONDS',
                         help='Seconds to wait for ffmpeg operations (default: 60). Short: -f')
     parser.add_argument('--request-timeout', '-t', type=int, default=30, metavar='SECONDS',
