@@ -1,51 +1,29 @@
-from src.services.zip_processor import ZipProcessor
 from src.processors.filename_resolver import FileNameResolver
 from src.models import Memory
 from src.config.main import Config
-from src.overlay.video_composer import VideoComposer
-from src.media_dispatcher.media_dispatcher import process_media
-from typing import List, Dict
+from src.media_dispatcher.media_dispatcher import MediaDispatcher
 from src.logger.log import log
 import requests
-import threading
 from requests.adapters import HTTPAdapter
-from src.overlay.video_composer import VideoComposer
 
 
 class DownloadService:
-    def __init__(self, stats_lock: threading.Lock):
-        self.filename_resolver = FileNameResolver(Config.downloads_folder)
-        self.content_processor = ZipProcessor()
-        self.overlay_service = VideoComposer()
-        self.stats_lock = stats_lock
-        self.errors: List[Dict[str, str]] = []
-        self.total_bytes = 0
-        self.session = self._build_session()
-
     def download_and_process(self, memory: Memory):
-        http_response = self.session.get(
+        download_response = self._download_memory(memory)
+        self._log_fetch_failure(download_response.status_code, memory)
+
+        file_path = self._store_downloaded_memory(memory, download_response)
+
+        MediaDispatcher.process_media(file_path, memory)
+
+
+    def _download_memory(self, memory: Memory) -> requests.Response:
+        timeout = Config.cli_options['request_timeout']
+        http_response = self._build_session().get(
             memory.media_download_url,
-            timeout=self.config.cli_options['request_timeout'],
-            stream=True
+            timeout=timeout
         )
-        if http_response.status_code >= 400:
-            log(f"Failed to download {memory.filename_with_ext}",
-                "error", http_response.status_code)
-            return None, False
-
-        downloaded_file_content = b''
-        for chunk in http_response.iter_content(chunk_size=self.config.cli_options['stream_chunk_size']):
-            if chunk:
-                downloaded_file_content += chunk
-
-        is_zip_file = self.content_processor.is_zip(
-            downloaded_file_content,
-            http_response.headers.get('Content-Type', '')
-        )
-        if is_zip_file:
-            return self._process_zip(downloaded_file_content, memory)
-        else:
-            return self._process_regular(downloaded_file_content, memory)
+        return http_response
 
 
     def _build_session(self) -> requests.Session:
@@ -55,6 +33,7 @@ class DownloadService:
         return http_session
 
 
+    @staticmethod
     def _create_http_adapter():
         max_concurrent = Config.cli_options['max_concurrent_downloads']
         adapter = HTTPAdapter(
@@ -64,42 +43,20 @@ class DownloadService:
         return adapter
 
 
-    def close(self) -> None:
-        self.session.close()
-        VideoComposer.shutdown_process_pool()
+    @staticmethod
+    def _log_fetch_failure(status_code: int, memory: Memory):
+        if status_code >= 400:
+            file_name = memory.filename_with_ext
+            log(f"Failed to download {file_name}", "error", status_code)
 
 
-    def _process_zip(self, downloaded_file_content: bytes, memory: Memory):
-        filepath = None
-        media_bytes, extension, overlay_png = self.content_processor.extract_media_from_zip(
-            downloaded_file_content,
-            extract_overlay=self.config.cli_options['apply_overlay']
-        )
+    @staticmethod
+    def _store_downloaded_memory(memory: Memory, download_response: requests.Response):
+        downloads_folder = Config.downloads_folder
+        file_path = downloads_folder / memory.filename_with_ext
 
-        media_file_processor = process_media(
-            memory.media_type,
-            self.overlay_service,
-            self.metadata_service,
-            self.config.cli_options['convert_to_jxl']
-        )
+        if file_path.exists():
+            file_path = FileNameResolver.resolve_unique_path(file_path)
 
-        if filepath is None:
-            filepath = self.config.downloads_folder / \
-                f"{memory.filename}{extension}"
-            filepath = self.filename_resolver.resolve_unique_path(filepath)
-
-        if filepath is None or not filepath.exists():
-            filepath.write_bytes(media_bytes)
-
-        with self.stats_lock:
-            self.total_bytes += filepath.stat().st_size
-        return filepath, True
-
-    def _process_regular(self, downloaded_file_content: bytes, memory: Memory):
-        filepath = self.config.downloads_folder / memory.filename_with_ext
-        filepath = self.filename_resolver.resolve_unique_path(filepath)
-
-        filepath.write_bytes(downloaded_file_content)
-        with self.stats_lock:
-            self.total_bytes += filepath.stat().st_size
-        return filepath, True
+        with open(file_path, 'wb') as f:
+            f.write(download_response.content)
