@@ -2,12 +2,13 @@ import logging
 from pathlib import Path
 from datetime import datetime
 from src.logger.formatter import JSONFormatter
+from src.config.main import Config
 
 
 class LogInitializer:
     def configure_logger(self) -> logging.Logger:
         logger = logging.getLogger("__name__")
-        logger.setLevel(self.config.cli_options["log_level"])
+        logger.setLevel(Config.cli_options["log_level"])
 
         log_path = self._build_log_path()
         self._ensure_log_dir(log_path)
@@ -15,7 +16,7 @@ class LogInitializer:
         return logger
 
     def _build_log_path(self) -> Path:
-        return Path(self.config.logs_folder) / self._create_log_filename()
+        return Path(Config.logs_folder) / self._create_log_filename()
 
     @staticmethod
     def _ensure_log_dir(log_path: Path) -> None:
@@ -26,6 +27,6 @@ class LogInitializer:
 
     def _create_file_handler(self, path: Path) -> logging.Handler:
         handler = logging.FileHandler(path, encoding="utf-8", delay=True)
-        handler.setLevel(self.config.cli_options["log_level"])
+        handler.setLevel(Config.cli_options["log_level"])
         handler.setFormatter(JSONFormatter())
         return handler
