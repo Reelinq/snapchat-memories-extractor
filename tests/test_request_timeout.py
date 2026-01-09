@@ -2,7 +2,7 @@ import logging
 from unittest.mock import patch, MagicMock
 import pytest
 from src.config import Config
-from src.services.download_service import DownloadService
+from src.download_service import DownloadService
 
 @pytest.mark.parametrize("timeout", [5, 30, 99])
 def test_request_timeout_behavior(timeout):

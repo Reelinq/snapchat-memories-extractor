@@ -4,7 +4,7 @@ from unittest.mock import patch, MagicMock
 import pytest
 import logging
 from src.config import Config
-from src.services.download_service import DownloadService
+from src.download_service import DownloadService
 
 @pytest.mark.parametrize("apply_overlay", [True, False])
 def test_apply_overlay_flag_behavior(apply_overlay):

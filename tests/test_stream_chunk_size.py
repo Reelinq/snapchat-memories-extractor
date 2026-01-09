@@ -2,7 +2,7 @@ import logging
 from unittest.mock import patch, MagicMock
 import pytest
 from src.config import Config
-from src.services.download_service import DownloadService
+from src.download_service import DownloadService
 
 @pytest.mark.parametrize("chunk_size", [512, 2048, 4096])
 def test_stream_chunk_size_behavior(chunk_size):

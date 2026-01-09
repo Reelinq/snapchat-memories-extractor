@@ -3,8 +3,8 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from src.config.main import Config
 from src.downloader.download_task import DownloadTask
 from src.models import Memory
-from src.repositories.memories_repository import MemoriesRepository
-from src.stats.stats_manager import StatsManager
+from src.memories_repository import MemoriesRepository
+from src.stats_manager import StatsManager
 from src.logger.log import log
 
 

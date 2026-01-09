@@ -1,5 +1,5 @@
 from src.config.main import Config
-from src.stats.stats_manager import StatsManager
+from src.stats_manager import StatsManager
 from src.logger.log import log
 
 

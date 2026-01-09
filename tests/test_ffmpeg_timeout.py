@@ -2,7 +2,7 @@ import logging
 from unittest.mock import patch, MagicMock
 import pytest
 from src.config import Config
-from src.services.download_service import DownloadService
+from src.download_service import DownloadService
 
 @pytest.mark.parametrize("ffmpeg_timeout", [1, 10, 60])
 def test_ffmpeg_timeout_behavior(ffmpeg_timeout):

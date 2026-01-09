@@ -1,4 +1,4 @@
-from src.processors.filename_resolver import FileNameResolver
+from src.filename_resolver import FileNameResolver
 from src.models import Memory
 from src.config.main import Config
 from src.media_dispatcher.media_dispatcher import MediaDispatcher

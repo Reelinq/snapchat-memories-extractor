@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from src.processors.filename_resolver import FileNameResolver
+from src.filename_resolver import FileNameResolver
 
 
 @pytest.fixture

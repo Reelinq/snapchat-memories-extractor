@@ -1,7 +1,7 @@
 from src.config.main import Config
 from src.models import Memory
 from src.logger.log import log
-from src.services.download_service import DownloadService
+from src.download_service import DownloadService
 
 
 class DownloadTask:
