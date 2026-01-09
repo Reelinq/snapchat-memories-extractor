@@ -18,7 +18,7 @@ class SetupDownloader:
 
 
     @staticmethod
-    def _initialize_retry_attempt(self, attempt: int, max_attempts: int) -> None:
+    def _initialize_retry_attempt(attempt: int, max_attempts: int) -> None:
         if attempt > 0:
             log(f"Starting attempt {attempt + 1}/{max_attempts}...", "info")
             StatsManager().reset()
