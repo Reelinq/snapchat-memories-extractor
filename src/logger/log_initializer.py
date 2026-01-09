@@ -5,11 +5,7 @@ from src.logger.formatter import JSONFormatter
 
 
 class LogInitializer:
-    def __init__(self, config):
-        self.config = config
-        self.logger = self._configure_logger()
-
-    def _configure_logger(self) -> logging.Logger:
+    def configure_logger(self) -> logging.Logger:
         logger = logging.getLogger("__name__")
         logger.setLevel(self.config.cli_options["log_level"])
 
