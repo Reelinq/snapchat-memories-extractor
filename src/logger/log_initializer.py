@@ -8,7 +8,7 @@ from src.config.main import Config
 class LogInitializer:
     def configure_logger(self) -> logging.Logger:
         logger = logging.getLogger("__name__")
-        logger.setLevel(Config.cli_options["log_level"])
+        logger.setLevel(Config.from_args().cli_options["log_level"])
 
         log_path = self._build_log_path()
         self._ensure_log_dir(log_path)
@@ -27,6 +27,6 @@ class LogInitializer:
 
     def _create_file_handler(self, path: Path) -> logging.Handler:
         handler = logging.FileHandler(path, encoding="utf-8", delay=True)
-        handler.setLevel(Config.cli_options["log_level"])
+        handler.setLevel(Config.from_args().cli_options["log_level"])
         handler.setFormatter(JSONFormatter())
         return handler

@@ -5,7 +5,7 @@ from src.logger.log import log
 
 class SetupDownloader:
     def run(self) -> None:
-        max_attempts = Config.cli_options['max_attempts']
+        max_attempts = Config.from_args().cli_options['max_attempts']
         current_attempt_number = 0
         failure_count = StatsManager().failed_downloads_count
 
