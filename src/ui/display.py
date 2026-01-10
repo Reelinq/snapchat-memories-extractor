@@ -52,14 +52,12 @@ class Display:
     def display_width(self, text: str) -> int:
         width = 0
         for character in text:
-            width += 2 if self._is_emoji_two_char_width(character) else 1
+            width += 2 if self._has_double_width(character) else 1
         return width
 
 
     @staticmethod
-    def _is_emoji_two_char_width(character: str) -> bool:
-        if character in "📥❌⏳🕐":  # 2 char width emojis
+    def _has_double_width(character: str) -> bool:
+        if character in "📥❌⏳🕐":
             return True
-        if character in "⏱️": # 1 char width emojis
-            return False
         return False
