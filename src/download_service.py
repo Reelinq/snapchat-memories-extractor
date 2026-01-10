@@ -64,8 +64,7 @@ class DownloadService:
 
     @staticmethod
     def _store_downloaded_memory(memory: Memory, download_response: requests.Response):
-        downloads_folder = Config.downloads_folder
-        file_path = downloads_folder / memory.filename_with_ext
+        file_path = Config.downloads_folder / memory.filename_with_ext
 
         if file_path.exists():
             file_path = FileNameResolver().run(file_path)
