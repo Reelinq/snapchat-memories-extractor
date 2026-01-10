@@ -1,7 +1,7 @@
 from pathlib import Path
 from src.models import Memory
 from src.config.main import Config
-from src.zip_processor import ZipProcessor
+from src.zip_processor import ZipProcessor as CoreZipProcessor
 from src.overlay.image_composer import ImageComposer
 from src.overlay.video_composer import VideoComposer
 from src.media_dispatcher.image_processor import process_image
@@ -11,8 +11,7 @@ from src.media_dispatcher.video_processor import process_video
 class ZipProcessor:
     def run(self, memory: Memory, file_path: Path):
         apply_overlay = Config.from_args().cli_options['apply_overlay']
-
-        content, overlay, extention = ZipProcessor.extract_media_from_zip(file_path)
+        content, overlay, extention = CoreZipProcessor().extract_media_from_zip(file_path)
         output_path = file_path.with_suffix(extention)
         file_path.unlink()
 

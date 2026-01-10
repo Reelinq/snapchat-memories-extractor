@@ -18,21 +18,20 @@ class ZipProcessor:
         media_file_name = self._find_file(zip_file, find_png=False)
 
         media_overlay = None
-        if overlay_file_name and extract_overlay:
+        if extract_overlay:
             media_overlay = zip_file.read(overlay_file_name)
 
-        media_content = None
-        media_extension = None
-        if media_file_name:
-            media_content = zip_file.read(media_file_name)
-            media_extension = self._get_extension(media_file_name)
+        media_content = zip_file.read(media_file_name)
+        media_extension = self._get_extension(media_file_name)
 
         return media_content, media_extension, media_overlay
 
 
     def _find_file(self, zip_file: ZipFile, find_png: bool) -> Optional[str]:
         for name in zip_file.namelist():
-            return self._is_png_file(name, find_png)
+            result = self._is_png_file(name, find_png)
+            if result:
+                return result
         return None
 
 
