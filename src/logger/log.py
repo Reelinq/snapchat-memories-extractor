@@ -6,6 +6,6 @@ def log(message: str, level: Literal["debug", "info", "warning", "error", "criti
 
     if level == "error" and error_code:
         extra = {'error_code': error_code}
-        getattr(logger, level)(message, extra=extra, statcklevel=2)
+        getattr(logger, level)(message, extra=extra, stacklevel=2)
     else:
         getattr(logger, level)(message, stacklevel=2)
