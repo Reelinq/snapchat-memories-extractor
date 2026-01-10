@@ -4,8 +4,8 @@ from src.config.main import Config
 from src.zip_processor import ZipProcessor
 from src.overlay.image_composer import ImageComposer
 from src.overlay.video_composer import VideoComposer
-from src.media_dispatcher.image_processor import ImageProcessor
-from src.media_dispatcher.video_processor import VideoProcessor
+from src.media_dispatcher.image_processor import process_image
+from src.media_dispatcher.video_processor import process_video
 
 
 class ZipProcessor:
@@ -22,9 +22,9 @@ class ZipProcessor:
             self._bytes_to_path(content, output_path)
 
         if extention == '.jpg':
-            ImageProcessor.process_image(memory, output_path)
+            process_image(memory, output_path)
         else:
-            VideoProcessor.process_video(memory, output_path)
+            process_video(memory, output_path)
 
 
     @staticmethod
