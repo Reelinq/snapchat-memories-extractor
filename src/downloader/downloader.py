@@ -78,9 +78,6 @@ class MemoryDownloader:
 
     @staticmethod
     def _convert_file_size(file_path: Path) -> float:
-        if not file_path.exists():
-            log(f"File not found: {file_path}", "error")
-            return 0.0
         return file_path.stat().st_size / (1024 * 1024)
 
 

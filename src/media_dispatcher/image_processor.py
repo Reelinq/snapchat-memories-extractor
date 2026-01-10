@@ -14,3 +14,5 @@ def process_image(memory: Memory, file_path: Path):
 
     if convert_to_jxl:
         file_path = JXLConverter().run(file_path)
+
+    return file_path

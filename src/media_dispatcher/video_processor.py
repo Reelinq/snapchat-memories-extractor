@@ -8,4 +8,6 @@ def process_video(memory: Memory, file_path: Path):
     write_metadata = Config.from_args().cli_options['write_metadata']
 
     if write_metadata:
-        VideoMetadataWriter().write_video_metadata(memory, file_path)
+        return VideoMetadataWriter().write_video_metadata(memory, file_path)
+
+    return file_path

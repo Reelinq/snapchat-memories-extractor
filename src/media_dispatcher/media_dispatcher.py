@@ -7,9 +7,8 @@ from src.media_dispatcher.zip_processor import ZipProcessor
 
 def process_media(memory: Memory, file_path: Path):
     if memory.is_zip:
-        ZipProcessor().run(memory, file_path)
-        return
+        return ZipProcessor().run(memory, file_path)
     if memory.media_type == "Image":
-        process_image(memory, file_path)
+        return process_image(memory, file_path)
     else:
-        process_video(memory, file_path)
+        return process_video(memory, file_path)

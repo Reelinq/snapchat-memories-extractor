@@ -19,6 +19,8 @@ class VideoMetadataWriter:
         else:
             self._log_ffmpeg_failure(ffmpeg_run_result, file_path, temporary_video_path)
 
+        return file_path
+
 
     def _build_ffmpeg_command(self, file_path: Path, memory: Memory, temporary_video_path: Path) -> list[str]:
         ffmpeg_exe = imageio_ffmpeg.get_ffmpeg_exe()

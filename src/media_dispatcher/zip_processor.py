@@ -21,9 +21,9 @@ class ZipProcessor:
             self._bytes_to_path(content, output_path)
 
         if extention == '.jpg':
-            process_image(memory, output_path)
-        else:
-            process_video(memory, output_path)
+            return process_image(memory, output_path)
+
+        return process_video(memory, output_path)
 
 
     @staticmethod

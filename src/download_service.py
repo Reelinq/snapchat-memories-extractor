@@ -19,7 +19,7 @@ class DownloadService:
         memory.is_zip = self._is_zip_response(response)
 
         file_path = self._store_downloaded_memory(memory, response)
-        process_media(memory, file_path)
+        file_path = process_media(memory, file_path)
 
         return file_path, True
 
