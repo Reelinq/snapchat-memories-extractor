@@ -9,6 +9,6 @@ class UpdateUI():
 
 
     @staticmethod
-    def _clear_display(lines=10):
+    def _clear_display(lines = 8):
         for _ in range(lines):
             sys.stdout.write('\033[F\033[K')
