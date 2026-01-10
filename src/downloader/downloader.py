@@ -46,6 +46,7 @@ class MemoryDownloader:
     def _gather_download_tasks():
         download_tasks = []
         raw_memory_items = MemoriesRepository().get_raw_items()
+        StatsManager().total_files = len(raw_memory_items)
 
         for item in raw_memory_items:
             memory = Memory.model_validate(item)
