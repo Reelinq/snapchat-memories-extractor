@@ -8,7 +8,7 @@ from src.download_service import DownloadService
 class DownloadTask:
     def run(self, memory: Memory) -> tuple[Path, bool]:
         if not self._ensure_strict_location(memory):
-            return False
+            return None, False
 
         return DownloadService().run(memory)
 

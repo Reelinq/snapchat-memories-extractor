@@ -40,5 +40,5 @@ class JSONFormatter(logging.Formatter):
         code = getattr(record, 'error_code', 'ERR')
         return {
             "error_code": code,
-            "error_message": ERROR_DESCRIPTIONS.get(code, 'Unexpected error'),
+            "error_message": ERROR_DESCRIPTIONS.get(str(code), 'Unexpected error'),
         }

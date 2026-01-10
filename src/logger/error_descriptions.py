@@ -1,5 +1,3 @@
-
-#TODO: Make network errors work
 ERROR_DESCRIPTIONS = {
     "401": "Unauthorized - Invalid credentials",
     "403": "Forbidden - Link expired. Re-export memories_history.json",

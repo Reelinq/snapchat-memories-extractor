@@ -14,7 +14,7 @@ class DownloadService:
         response = self._download_memory(memory)
         if response.status_code >= 400:
             self._log_fetch_failure(response.status_code, memory)
-            return False
+            return None, False
 
         memory.is_zip = self._is_zip_response(response)
 
