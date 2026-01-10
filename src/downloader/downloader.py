@@ -5,12 +5,13 @@ from src.downloader.download_task import DownloadTask
 from src.models import Memory
 from src.memories_repository import MemoriesRepository
 from src.logger.log import log
+from src.ui.stats_manager import StatsManager
+from src.ui.update_ui import UpdateUI
 
 
 class MemoryDownloader:
     def run(self) -> None:
         completed_downloads_count = 0
-        completed_indices = set()
         future_download_tasks = self._gather_future_download_tasks()
 
         if not future_download_tasks:
@@ -23,10 +24,7 @@ class MemoryDownloader:
 
             file_path, download_succeeded = future.result()
 
-            self._prune_memory_item(index, file_path, download_succeeded)
-            completed_indices.add(index)
-            self._update_ui()
-            self._log_processed_indices(completed_indices)
+            self._check_for_success(download_succeeded, index, file_path)
 
 
     def _gather_future_download_tasks(self):
@@ -56,10 +54,22 @@ class MemoryDownloader:
         return download_tasks
 
 
-    def _prune_memory_item(self, index: int, file_path: Path, download_succeeded: bool) -> None:
-        if not download_succeeded:
-            return
+    def _check_for_success(self, download_succeeded: bool, index: int, file_path: Path) -> None:
+        if download_succeeded:
+            self._download_succeeded(index, file_path)
+        else:
+            StatsManager().failed_downloads_count += 1
+        UpdateUI().run()
 
+
+    def _download_succeeded(self, index: int, file_path: Path) -> None:
+        self._prune_memory_item(index, file_path)
+        StatsManager().completed_indices.add(index)
+        StatsManager().successful_downloads_count += 1
+        self._log_processed_indices(StatsManager().completed_indices)
+
+
+    def _prune_memory_item(self, index: int, file_path: Path) -> None:
         file_size_mb = self._convert_file_size(file_path)
         MemoriesRepository().prune(index)
         log(f"Downloaded item {file_path.name}. File size: {file_size_mb:.2f} MB. Successfully pruned from json.", "info")
@@ -68,33 +78,6 @@ class MemoryDownloader:
     @staticmethod
     def _convert_file_size(file_path: Path) -> float:
         return file_path.stat().st_size / (1024 * 1024)
-
-
-    @staticmethod
-    def _update_ui():
-        # TODO: Update UI in a thread-safe manner
-        """with self.stats.lock:
-            if download_succeeded:
-                self.stats.successful_downloads_count += 1
-                self.successfully_processed_indices.add(index)
-                self.pending_prune_indices.add(index)
-            else:
-                self.stats.failed_downloads_count += 1
-
-            current_successful = self.stats.successful_downloads_count
-            current_failed = self.stats.failed_downloads_count
-
-            total_files_count = len(MemoriesRepository(Config.json_path).get_raw_items())
-
-            update_progress_threadsafe(
-                completed_downloads_count,
-                total_files_count,
-                current_successful,
-                current_failed,
-                time.time(),
-                memory.filename_with_ext,
-                self.ui_shown
-            )"""
 
 
     @staticmethod
