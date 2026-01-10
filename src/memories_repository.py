@@ -6,7 +6,7 @@ from src.config.main import Config
 
 
 class MemoriesRepository:
-    json_path = Config.downloads_folder / "memories.json"
+    json_path = Config.downloads_folder / "memories_history.json"
 
     def get_raw_items(self) -> List[Dict]:
         data = self._load()
