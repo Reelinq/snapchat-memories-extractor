@@ -20,8 +20,8 @@ class Display:
 
         line1 = ' SNAPCHAT MEMORIES DOWNLOADER '
         line2 = f"  [{progress_bar}] {percent:5.1f}%"
-        line3 = f"  📥 Downloaded: {successful:>5}  │  ❌ Failed: {failed:>5}  │  ⏳ Remaining: {remaining:>5}"
-        line4 = f"  ⏱️  Elapsed: {format_time(elapsed_time):>10}  │  🕐 ETA: {eta:>30}"
+        line3 = f"  📥 Downloaded: {successful}  │  ❌ Failed: {failed}  │  ⏳ Remaining: {remaining}"
+        line4 = f"  ⏱️  Elapsed: {format_time(elapsed_time):>10}  │  🕐 ETA: {eta:>10}"
 
         print(f"╔{'═' * display_size}╗")
         print(f"║{self.padding_line(line1)}║")
@@ -52,20 +52,14 @@ class Display:
     def display_width(self, text: str) -> int:
         width = 0
         for character in text:
-            codepoint = ord(character)
-            width += 2 if self._is_codepoint_emoji(codepoint) else 1
+            width += 2 if self._is_emoji_two_char_width(character) else 1
         return width
 
 
     @staticmethod
-    def _is_codepoint_emoji(codepoint: int) -> bool:
-        if (
-            0x1F300 <= codepoint <= 0x1F5FF or  # Misc Symbols and Pictographs
-            0x1F600 <= codepoint <= 0x1F64F or  # Emoticons
-            0x1F680 <= codepoint <= 0x1F6FF or  # Transport & Map Symbols
-            0x2600 <= codepoint <= 0x26FF or    # Misc symbols
-            0x2700 <= codepoint <= 0x27BF or    # Dingbats
-            0x1F900 <= codepoint <= 0x1F9FF     # Supplemental Symbols and Pictographs
-        ):
+    def _is_emoji_two_char_width(character: str) -> bool:
+        if character in "📥❌⏳🕐":  # 2 char width emojis
             return True
+        if character in "⏱️": # 1 char width emojis
+            return False
         return False
