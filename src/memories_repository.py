@@ -24,20 +24,16 @@ class MemoriesRepository:
             return json.load(file)
 
 
-    def prune(self, memory_index_to_remove: int) -> None:
+    def prune_by_media_download_url(self, media_download_url: str) -> None:
         data = self._load()
-        self._prune_item(data, memory_index_to_remove)
-        self._save(data)
-
-
-    @staticmethod
-    def _prune_item(data: Dict, index: int) -> None:
         saved_media = data.get('Saved Media', [])
-        if 0 <= index < len(saved_media):
+        for index, item in enumerate(saved_media):
+            if item.get('Media Download Url') != media_download_url:
+                continue
             del saved_media[index]
-        else:
-            log(f"Index {index} is out of bounds for pruning.", "warning")
-            pass
+            self._save(data)
+            return
+        log(f"Media Download Url {media_download_url} not found for pruning.", "warning")
 
 
     @staticmethod

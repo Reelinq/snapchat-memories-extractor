@@ -19,12 +19,12 @@ class MemoryDownloader:
             return
 
         for future in as_completed(future_download_tasks):
-            index, _ = future_download_tasks[future]
+            _, memory = future_download_tasks[future]
             completed_downloads_count += 1
 
             file_path, download_succeeded = future.result()
 
-            self._check_for_success(download_succeeded, index, file_path)
+            self._check_for_success(download_succeeded, memory, file_path)
 
 
     def _gather_future_download_tasks(self):
@@ -55,25 +55,25 @@ class MemoryDownloader:
         return download_tasks
 
 
-    def _check_for_success(self, download_succeeded: bool, index: int, file_path: Path) -> None:
+    def _check_for_success(self, download_succeeded: bool, memory: Memory, file_path: Path) -> None:
         if download_succeeded:
-            self._download_succeeded(index, file_path)
+            self._download_succeeded(memory, file_path)
         else:
             StatsManager().failed_downloads_count += 1
         UpdateUI().run()
 
 
-    def _download_succeeded(self, index: int, file_path: Path) -> None:
-        self._prune_memory_item(index, file_path)
-        StatsManager().completed_indices.add(index)
+    def _download_succeeded(self, memory: Memory, file_path: Path) -> None:
+        self._prune_memory_item(memory, file_path)
+        StatsManager().completed_indices.add(memory.media_download_url)
         StatsManager().successful_downloads_count += 1
         self._log_processed_indices(StatsManager().completed_indices)
 
 
-    def _prune_memory_item(self, index: int, file_path: Path) -> None:
+    def _prune_memory_item(self, memory: Memory, file_path: Path) -> None:
         file_size_mb = self._convert_file_size(file_path)
-        MemoriesRepository().prune(index)
-        log(f"Downloaded item {file_path.name}. File size: {file_size_mb:.2f} MB. Successfully pruned from json.", "info")
+        MemoriesRepository().prune_by_media_download_url(memory.media_download_url)
+        log(f"Downloaded item {memory.filename_with_ext}. File size: {file_size_mb:.2f} MB. Successfully pruned from json.", "info")
 
 
     @staticmethod
