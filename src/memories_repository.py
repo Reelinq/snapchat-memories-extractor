@@ -14,7 +14,8 @@ class MemoriesRepository:
         return data.get('Saved Media', [])
 
 
-    def _load(self) -> Dict:
+    @staticmethod
+    def _load() -> Dict:
         if not Config.json_path.exists():
             log(f"Memories JSON file not found at {Config.json_path}", "error", "MISS")
             return {}
@@ -39,6 +40,7 @@ class MemoriesRepository:
             pass
 
 
-    def _save(self, data: Dict) -> None:
+    @staticmethod
+    def _save(data: Dict) -> None:
         text = json.dumps(data, ensure_ascii=False, indent=4)
-        self.json_path.write_text(text, encoding='utf-8')
+        Config.json_path.write_text(text, encoding='utf-8')
