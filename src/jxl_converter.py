@@ -7,7 +7,7 @@ from src.config.main import Config
 
 
 class JXLConverter:
-    def convert_to_jxl(self, input_path: Path) -> Path:
+    def run(self, input_path: Path) -> Path:
         if not self._is_convertible_image(input_path):
             return input_path
 
