@@ -8,10 +8,8 @@ from src.media_dispatcher.image_processor import ImageProcessor
 from src.media_dispatcher.video_processor import VideoProcessor
 
 
-
-
 class ZipProcessor:
-    def process_zip(self, memory: Memory, file_path: Path):
+    def run(self, memory: Memory, file_path: Path):
         apply_overlay = Config.from_args().cli_options['apply_overlay']
 
         content, overlay, extention = ZipProcessor.extract_media_from_zip(file_path)

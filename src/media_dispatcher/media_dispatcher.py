@@ -11,4 +11,4 @@ def process_media(memory: Memory, file_path: Path):
     elif memory.media_type == "Video":
         VideoProcessor.process_video(memory, file_path)
     else:
-        ZipProcessor.process_zip(memory, file_path)
+        ZipProcessor.run(memory, file_path)
