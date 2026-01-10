@@ -2,7 +2,7 @@ import pytest
 import tempfile
 import shutil
 from pathlib import Path
-from src.config import Config
+from src.config.main import Config
 
 @pytest.mark.parametrize("cli_args, expected", [
     (["--stream-chunk-size", "2048"], {"stream_chunk_size": 2048 * 1024}),
@@ -36,6 +36,6 @@ def test_config_cli_flags(monkeypatch, cli_args, expected):
         monkeypatch.setattr(sys, "argv", ["main.py"] + cli_args)
         config = Config.from_args()
         for key, value in expected.items():
-            assert config.cli_options[key] == value, f"{key} expected {value}, got {config.cli_options[key]}"
+            assert Config.from_args().cli_options[key] == value, f"{key} expected {value}, got {Config.from_args().cli_options[key]}"
     finally:
         shutil.rmtree(temp_dir)

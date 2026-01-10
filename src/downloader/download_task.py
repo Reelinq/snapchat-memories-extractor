@@ -14,7 +14,7 @@ class DownloadTask:
 
 
     def _ensure_strict_location(self, memory: Memory) -> bool:
-        if Config.cli_options['strict_location'] and memory.location_coords is None:
+        if Config.from_args().cli_options['strict_location'] and memory.location_coords is None:
             log(f"Skipping {memory.filename_with_ext}: No location data available", "warning")
             return False
 

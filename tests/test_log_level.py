@@ -3,8 +3,7 @@ import logging
 import tempfile
 import shutil
 from pathlib import Path
-from src.config import Config
-from src.logger import log_initializer
+from src.config.main import Config
 import json
 import os
 
@@ -33,12 +32,11 @@ def test_log_file_levels(level_input, expected_level, expected_levels):
             'ffmpeg_timeout': 60,
             'stream_chunk_size': 1024 * 1024
         }
-        config = Config(cli_options=cli_options, logs_folder=temp_dir)
         from src.logger import setup_logging
         logger = setup_logging(
             name="snapchat_extractor",
-            log_level=config.cli_options['log_level'],
-            log_dir=config.cli_options['logs_folder']
+            log_level=Config.from_args().cli_options['log_level'],
+            log_dir=Config.from_args().cli_options['logs_folder']
         )
 
         logger.debug("debug message")
