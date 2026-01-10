@@ -1,7 +1,7 @@
 from src.filename_resolver import FileNameResolver
 from src.models import Memory
 from src.config.main import Config
-from src.media_dispatcher.media_dispatcher import MediaDispatcher
+from src.media_dispatcher.media_dispatcher import process_media
 from src.logger.log import log
 import requests
 from requests.adapters import HTTPAdapter
@@ -17,7 +17,7 @@ class DownloadService:
             return False
 
         file_path = self._store_downloaded_memory(memory, response)
-        MediaDispatcher.process_media(memory, file_path)
+        process_media(memory, file_path)
 
         return file_path, True
 
