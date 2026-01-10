@@ -24,6 +24,9 @@ class JXLConverter:
             self._log_cjxl_failure(result, input_path)
             return input_path
 
+        if output_path.exists() and input_path.exists():
+            input_path.unlink()
+
         return output_path
 
 
