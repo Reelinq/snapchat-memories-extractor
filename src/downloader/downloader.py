@@ -45,7 +45,7 @@ class MemoryDownloader:
     @staticmethod
     def _gather_download_tasks():
         download_tasks = []
-        raw_memory_items = MemoriesRepository(Config.json_path).get_raw_items()
+        raw_memory_items = MemoriesRepository().get_raw_items()
 
         for item in raw_memory_items:
             memory = Memory.model_validate(item)
@@ -77,6 +77,9 @@ class MemoryDownloader:
 
     @staticmethod
     def _convert_file_size(file_path: Path) -> float:
+        if not file_path.exists():
+            log(f"File not found: {file_path}", "error")
+            return 0.0
         return file_path.stat().st_size / (1024 * 1024)
 
 
