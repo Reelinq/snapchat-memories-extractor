@@ -24,7 +24,7 @@ class ZipProcessor:
         media_content = zip_file.read(media_file_name)
         media_extension = self._get_extension(media_file_name)
 
-        return media_content, media_extension, media_overlay
+        return media_content, media_overlay, media_extension
 
 
     def _find_file(self, zip_file: ZipFile, find_png: bool) -> Optional[str]:
