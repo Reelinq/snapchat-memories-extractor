@@ -7,7 +7,7 @@ display_size = 70
 
 class Display:
     def print_display(self):
-        total = StatsManager().total_downloads_count
+        total = StatsManager().total_files
         current = StatsManager().successful_downloads_count + \
             StatsManager().failed_downloads_count
         remaining = total - current
@@ -16,15 +16,12 @@ class Display:
         elapsed_time = int(time() - StatsManager().start_time)
         successful = StatsManager().successful_downloads_count
         failed = StatsManager().failed_downloads_count
-        current_file = f"Downloading: {StatsManager().current_file_being_processed}"
         eta = self._calculate_eta(current, elapsed_time, remaining)
-        display_file = self._format_display_file(current_file)
 
         line1 = ' SNAPCHAT MEMORIES DOWNLOADER '
         line2 = f"  [{progress_bar}] {percent:5.1f}%"
         line3 = f"  📥 Downloaded: {successful:>5}  │  ❌ Failed: {failed:>5}  │  ⏳ Remaining: {remaining:>5}"
         line4 = f"  ⏱️  Elapsed: {format_time(elapsed_time):>10}  │  🕐 ETA: {eta:>30}"
-        line5 = f"  📄 {display_file}"
 
         print(f"╔{'═' * display_size}╗")
         print(f"║{self.padding_line(line1)}║")
@@ -33,8 +30,6 @@ class Display:
         print(f"╠{'═' * display_size}╣")
         print(f"║{self.padding_line(line3)}║")
         print(f"║{self.padding_line(line4)}║")
-        print(f"╠{'═' * display_size}╣")
-        print(f"║{self.padding_line(line5)}║")
         print(f"╚{'═' * display_size}╝")
 
 
@@ -46,13 +41,6 @@ class Display:
         avg_time = elapsed_time / current
         eta = avg_time * remaining
         return format_time(eta)
-
-
-    @staticmethod
-    def _format_display_file(current_file: str, max_file_len: int = 60) -> str:
-        if len(current_file) > max_file_len:
-            return current_file[:max_file_len - 3] + "..."
-        return current_file
 
 
     def padding_line(self, content, total_width=display_size):
