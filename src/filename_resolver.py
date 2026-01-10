@@ -1,25 +1,27 @@
 from pathlib import Path
+from src.config.main import Config
 
 
 class FileNameResolver:
-    def __init__(self, base_folder: Path):
-        self.used_names = [path.name for path in base_folder.iterdir()]
-
-    def resolve_unique_path(self, path: Path) -> Path:
-        candidate = self._next_available(path)
-        self.used_names.append(candidate.name)
+    def run(self, path: Path) -> Path:
+        used_names = [path.name for path in Config.downloads_folder.iterdir()]
+        candidate = self._next_available(path, used_names)
+        used_names.append(candidate.name)
         return candidate
 
-    def _next_available(self, path: Path) -> Path:
+
+    def _next_available(self, path: Path, used_names: list[str]) -> Path:
         candidate = path
         index = 1
-        while self._is_used(candidate):
+        while self._is_used(candidate, used_names):
             candidate = self._with_index(path, index)
             index += 1
         return candidate
 
-    def _is_used(self, path: Path) -> bool:
-        return path.name in self.used_names
+
+    def _is_used(self, path: Path, used_names: list[str]) -> bool:
+        return path.name in used_names
+
 
     @staticmethod
     def _with_index(path: Path, index: int) -> Path:

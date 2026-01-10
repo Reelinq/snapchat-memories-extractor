@@ -60,7 +60,7 @@ class DownloadService:
         file_path = downloads_folder / memory.filename_with_ext
 
         if file_path.exists():
-            file_path = FileNameResolver.resolve_unique_path(file_path)
+            file_path = FileNameResolver().run(file_path)
 
         with open(file_path, 'wb') as f:
             f.write(download_response.content)
