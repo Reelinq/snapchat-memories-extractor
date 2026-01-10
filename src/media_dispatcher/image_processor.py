@@ -13,4 +13,4 @@ def process_image(memory: Memory, file_path: Path):
         file_path = JXLConverter().run(file_path)
 
     if write_metadata:
-        ImageMetadataWriter.write_image_metadata(memory, file_path)
+        ImageMetadataWriter().write_image_metadata(memory, file_path)
