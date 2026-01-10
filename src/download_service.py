@@ -17,7 +17,7 @@ class DownloadService:
             return False
 
         file_path = self._store_downloaded_memory(memory, response)
-        MediaDispatcher.process_media(file_path, memory)
+        MediaDispatcher.process_media(memory, file_path)
 
         return file_path, True
 
