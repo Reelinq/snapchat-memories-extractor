@@ -6,24 +6,27 @@ from src.config.main import Config
 
 
 class LogInitializer:
-    def configure_logger(self) -> logging.Logger:
+    def configure_logger(self):
         logger = logging.getLogger("__name__")
         logger.setLevel(Config.from_args().cli_options["log_level"])
 
         log_path = self._build_log_path()
         self._ensure_log_dir(log_path)
         logger.addHandler(self._create_file_handler(log_path))
-        return logger
+
 
     def _build_log_path(self) -> Path:
         return Path(Config.logs_folder) / self._create_log_filename()
+
 
     @staticmethod
     def _ensure_log_dir(log_path: Path) -> None:
         log_path.parent.mkdir(parents=True, exist_ok=True)
 
+
     def _create_log_filename(self) -> str:
         return f"{datetime.now().strftime('%Y%m%d_%H%M%S')}.jsonl"
+
 
     def _create_file_handler(self, path: Path) -> logging.Handler:
         handler = logging.FileHandler(path, encoding="utf-8", delay=True)
