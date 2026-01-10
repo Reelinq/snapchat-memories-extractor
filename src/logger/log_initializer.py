@@ -7,7 +7,7 @@ from src.config.main import Config
 
 class LogInitializer:
     def configure_logger(self):
-        logger = logging.getLogger("__name__")
+        logger = logging.getLogger()
         logger.setLevel(Config.from_args().cli_options["log_level"])
 
         log_path = self._build_log_path()
