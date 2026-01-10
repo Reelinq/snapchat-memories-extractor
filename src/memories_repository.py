@@ -6,8 +6,6 @@ from src.config.main import Config
 
 
 class MemoriesRepository:
-    json_path = Config.downloads_folder / "memories_history.json"
-
     def get_raw_items(self) -> List[Dict]:
         data = self._load()
         if not data:
@@ -17,11 +15,11 @@ class MemoriesRepository:
 
 
     def _load(self) -> Dict:
-        if not self.json_path.exists():
-            log(f"Memories JSON file not found at {self.json_path}", "error", "MISS")
+        if not Config.json_path.exists():
+            log(f"Memories JSON file not found at {Config.json_path}", "error", "MISS")
             return {}
 
-        with open(self.json_path, 'r', encoding='utf-8') as file:
+        with open(Config.json_path, 'r', encoding='utf-8') as file:
             return json.load(file)
 
 
