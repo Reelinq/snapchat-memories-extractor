@@ -34,7 +34,7 @@ class JXLConverter:
         else:
             rel_path = Path('libjxl-binaries/linux/cjxl')
 
-        base_dir = Path(__file__).resolve().parents[2]
+        base_dir = Path(__file__).resolve().parents[1]
         cjxl_full_path = base_dir / rel_path
 
         if not cjxl_full_path.exists():
