@@ -29,9 +29,9 @@ class ZipProcessor:
     @staticmethod
     def _apply_overlay(content: bytes, overlay: bytes, extention: str, output_path: Path):
         if extention == '.jpg':
-            ImageComposer.apply_overlay(content, overlay, output_path)
+            ImageComposer().apply_overlay(content, overlay, output_path)
         else:
-            VideoComposer.apply_overlay(content, overlay, output_path)
+            VideoComposer().apply_overlay(content, overlay, output_path)
 
 
     @staticmethod
