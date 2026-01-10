@@ -16,6 +16,8 @@ class DownloadService:
             self._log_fetch_failure(response.status_code, memory)
             return False
 
+        memory.is_zip = self._is_zip_response(response)
+
         file_path = self._store_downloaded_memory(memory, response)
         process_media(memory, file_path)
 
@@ -52,6 +54,12 @@ class DownloadService:
     def _log_fetch_failure(status_code: int, memory: Memory):
         file_name = memory.filename_with_ext
         log(f"Failed to download {file_name}", "error", status_code)
+
+
+    @staticmethod
+    def _is_zip_response(response: requests.Response) -> bool:
+        content_type = response.headers.get("Content-Type", "")
+        return content_type.lower() == "application/zip"
 
 
     @staticmethod

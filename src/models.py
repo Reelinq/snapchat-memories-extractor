@@ -8,6 +8,7 @@ class Memory(BaseModel):
     media_download_url: str = Field(alias="Media Download Url")
     media_type: str = Field(alias="Media Type")
     location: Optional[str] = Field(default=None, alias="Location")
+    is_zip: bool = False
 
     exif_datetime: str = ""
     video_creation_time: str = ""
