@@ -1,15 +1,12 @@
 import json
 import threading
-from pathlib import Path
 from typing import Dict, List
 from src.logger.log import log
+from src.config.main import Config
 
 
 class MemoriesRepository:
-    def __init__(self, json_path: Path):
-        self.json_path = json_path
-        self._file_lock = threading.Lock()
-
+    json_path = Config.downloads_folder / "memories.json"
 
     def get_raw_items(self) -> List[Dict]:
         data = self._load()
@@ -29,10 +26,9 @@ class MemoriesRepository:
 
 
     def prune(self, memory_index_to_remove: int) -> None:
-        with self._file_lock:
-            data = self._load()
-            self._prune_item(data, memory_index_to_remove)
-            self._save(data)
+        data = self._load()
+        self._prune_item(data, memory_index_to_remove)
+        self._save(data)
 
 
     @staticmethod
