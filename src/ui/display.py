@@ -20,8 +20,8 @@ class Display:
 
         line1 = ' SNAPCHAT MEMORIES DOWNLOADER '
         line2 = f"  [{progress_bar}] {percent:5.1f}%"
-        line3 = f"  📥 Downloaded: {successful}  │  ❌ Failed: {failed}  │  ⏳ Remaining: {remaining}"
-        line4 = f"  ⏱️  Elapsed: {format_time(elapsed_time):>10}  │  🕐 ETA: {eta:>10}"
+        line3 = f"  📥 Downloaded: {successful}  │  ❌ Failed: {failed}  │  📁 Remaining: {remaining}"
+        line4 = f"  🕐  Elapsed: {format_time(elapsed_time):>10}  │  ⏳ ETA: {eta:>10}"
 
         print(f"╔{'═' * display_size}╗")
         print(f"║{self.padding_line(line1)}║")
@@ -58,6 +58,6 @@ class Display:
 
     @staticmethod
     def _has_double_width(character: str) -> bool:
-        if character in "📥❌⏳🕐":
+        if character in "📥❌📁🕐⏳":
             return True
         return False
