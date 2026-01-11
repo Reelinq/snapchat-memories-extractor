@@ -5,7 +5,6 @@ from pathlib import Path
 
 
 class ImageComposer:
-    #TODO: Add concurrent processing for overlays on a higher level
     def apply_overlay(self, image_bytes: bytes, overlay_bytes: bytes, output_path: Path) -> bytes:
         base_image = Image.open(BytesIO(image_bytes))
         overlay_image = Image.open(BytesIO(overlay_bytes))
