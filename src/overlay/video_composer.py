@@ -6,7 +6,6 @@ import tempfile
 from imageio_ffmpeg import get_ffmpeg_exe
 from src.config.main import Config
 
-#TODO: Image overlay returns bytes, video overlay writes to file. Make consistent.
 
 class VideoComposer:
     def apply_overlay(self, video_bytes: bytes, overlay_bytes: bytes, output_path: Path) -> None:
