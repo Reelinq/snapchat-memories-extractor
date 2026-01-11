@@ -29,8 +29,6 @@ def get_cli_args():
                         metavar='N', help='JPEG quality 1-100 (default: 95). Short: -q')
     parser.add_argument('--no-jxl', '-J', default=False, action='store_true',
                         help='Skip JPGXL conversion and keep original JPEG (default: convert to lossless JPGXL). Short: -J')
-    parser.add_argument('--image-overlay-workers', '-iow', type=int, default=10,
-                        metavar='N', help='Parallel workers for image overlay processing (default: 10). Short: -iow')
     parser.add_argument('--video-codec', '-vc', choices=['h264', 'h265'], default='h264',
                         help='Choose video codec: h264 (default, best compatibility) or h265 (smaller files, less compatible)')
     parser.add_argument('--constant-rate-factor', '--crf', type=crf_type, default=23,
