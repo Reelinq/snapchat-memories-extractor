@@ -5,6 +5,8 @@ import subprocess
 import tempfile
 from imageio_ffmpeg import get_ffmpeg_exe
 from src.config.main import Config
+from src.config.ffmpeg_crf import get_video_crf
+
 
 
 class VideoComposer:
@@ -62,7 +64,7 @@ class VideoComposer:
             '-filter_complex', 'overlay=0:0',
             '-c:v', self._get_video_codec(),
             '-preset', 'fast',
-            '-crf', str(self._get_video_crf()),
+            '-crf', str(get_video_crf()),
             '-pix_fmt', 'yuv420p',
             '-c:a', 'copy',
             '-movflags', '+faststart',
@@ -75,14 +77,6 @@ class VideoComposer:
         if Config.from_args().cli_options['video_codec'] == 'h265':
             return 'libx265'
         return 'libx264'
-
-
-    @staticmethod
-    def _get_video_crf():
-        user_crf = getattr(Config.from_args().cli_options, 'crf', None)
-        if user_crf == None:
-            return 23 if Config.from_args().cli_options['video_codec'] == 'h264' else 28
-        return user_crf
 
 
     def _run_ffmpeg_command(self, command: list, timeout: int):
