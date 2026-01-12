@@ -377,6 +377,38 @@ python main.py -f 30
 </details>
 
 <details>
+<summary><b>🎛️ FFmpeg Preset: --ffmpeg-preset/-fp [preset]</b></summary>
+
+**What it does:**
+- Sets the FFmpeg encoding preset, which controls the speed/compression tradeoff for video encoding.
+- **Presets:** `ultrafast`, `superfast`, `veryfast`, `faster`, `fast`, `medium`, `slow`, `slower`, `veryslow`, `placebo`
+- **Default:** `fast`
+- Faster presets (e.g., `ultrafast`) encode quickly but produce larger files. Slower presets (e.g., `veryslow`) take longer but create smaller, more efficient files.
+
+**Examples**:
+
+Use the default preset (`fast`):
+```bash
+python main.py
+```
+
+Use a slower preset for better compression:
+```bash
+python main.py --ffmpeg-preset slow
+```
+
+Use the fastest preset (largest files, lowest CPU usage):
+```bash
+python main.py -fp ultrafast
+```
+
+**💡 Recommendations:**
+- Use `fast` or `medium` for a good balance of speed and file size.
+- Use `veryslow` or `placebo` only if you want the smallest possible files and don't mind long processing times.
+
+</details>
+
+<details>
 <summary><b>⏳ Request Timeout: -t / --request-timeout SECONDS</b></summary>
 
 **What it does:**
