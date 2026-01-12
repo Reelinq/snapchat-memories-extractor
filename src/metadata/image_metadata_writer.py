@@ -6,7 +6,8 @@ from src.config.main import Config
 
 
 class ImageMetadataWriter:
-    exif_metadata = {"0th": {}, "Exif": {}, "GPS": {}}
+    def __init__(self):
+        self.exif_metadata = {"0th": {}, "Exif": {}, "GPS": {}}
 
 
     def write_image_metadata(self, memory: Memory, file_path: Path):
