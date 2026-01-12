@@ -409,6 +409,38 @@ python main.py -fp ultrafast
 </details>
 
 <details>
+<summary><b>🎨 FFmpeg Pixel Format: --ffmpeg-pixel-format/-pf [format]</b></summary>
+
+**What it does:**
+- Sets the pixel format for video encoding in FFmpeg, which affects compatibility, color depth, and file size.
+- **Formats:** `yuv420p`, `rgb24`, `rgba`, `nv12`, `yuv422p`, `yuv444p`, `bgr24`, `gray`, `yuyv422`, `p010le`, `yuv420p10le`, `nv21`, `bgra`, `argb`
+- **Default:** `yuv420p` (widest compatibility)
+
+**Examples**:
+
+Use the default pixel format (`yuv420p`):
+```bash
+python main.py
+```
+
+Use a format with alpha channel (transparency):
+```bash
+python main.py --ffmpeg-pixel-format rgba
+```
+
+Use a high color depth format:
+```bash
+python main.py -pf yuv444p
+```
+
+**💡 Recommendations:**
+- Use `yuv420p` for maximum compatibility with most devices and players.
+- Use `rgb24` or `rgba` if you need true color or transparency (note: larger files, less compatible).
+- Only change this if you know your target device/player supports the chosen format.
+
+</details>
+
+<details>
 <summary><b>⏳ Request Timeout: -t / --request-timeout SECONDS</b></summary>
 
 **What it does:**
