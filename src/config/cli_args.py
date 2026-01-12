@@ -5,7 +5,7 @@ def crf_type(value):
     ivalue = int(value)
     if not (0 <= ivalue <= 51):
         raise argparse.ArgumentTypeError(
-            "CRF must be between 0 (lossless) and 51 (worst quality)")
+            'CRF must be between 0 (lossless) and 51 (worst quality)')
     return ivalue
 
 
@@ -29,7 +29,7 @@ def get_cli_args():
                         metavar='N', help='JPEG quality 1-100 (default: 95). Short: -q')
     parser.add_argument('--no-jxl', '-J', default=False, action='store_true',
                         help='Skip JPGXL conversion and keep original JPEG (default: convert to lossless JPGXL). Short: -J')
-    parser.add_argument('--video-codec', '-vc', choices=['h264', 'h265'], default='h264',
+    parser.add_argument('--video-codec', '-vc', type=str, choices=['h264', 'h265'], default='h264',
                         help='Choose video codec: h264 (default, best compatibility) or h265 (smaller files, less compatible)')
     parser.add_argument('--constant-rate-factor', '--crf', type=crf_type, default=23,
                         help='Constant Rate Factor for video quality (0-51, lower=better, 0=lossless, 18-28 is typical, default: 23)')
