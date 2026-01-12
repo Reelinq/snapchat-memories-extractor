@@ -1,7 +1,7 @@
 from src.models import Memory
 from pathlib import Path
 from src.config.main import Config
-from src.jxl_converter import JXLConverter
+from src.converters.jxl_converter import JXLConverter
 from src.metadata.image_metadata_writer import ImageMetadataWriter
 
 

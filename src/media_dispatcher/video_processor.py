@@ -2,7 +2,7 @@ from pathlib import Path
 from src.metadata.video_metadata_writer import VideoMetadataWriter
 from src.models import Memory
 from src.config.main import Config
-from src.h265_converter import VideoConverter
+from src.converters.h265_converter import VideoConverter
 
 
 def process_video(memory: Memory, file_path: Path, overlay_applied: bool = False):

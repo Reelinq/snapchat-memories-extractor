@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 from PIL import Image, ImageChops
 import piexif
-from src.jxl_converter import JXLConverter
+from src.converters.jxl_converter import JXLConverter
 
 HAS_CJXL = JXLConverter._get_cjxl_path() is not None
 
