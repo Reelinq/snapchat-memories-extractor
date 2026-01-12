@@ -52,7 +52,7 @@ class VideoMetadataWriter:
     def _to_iso6709(lat: float, lon: float) -> str:
         lat_sign = '+' if lat >= 0 else ''
         lon_sign = '+' if lon >= 0 else ''
-        return f"{lat_sign}{lat:.6f}{lon_sign}{lon:.6f}/"
+        return f'{lat_sign}{lat:.6f}{lon_sign}{lon:.6f}/'
 
 
     @staticmethod
@@ -68,4 +68,4 @@ class VideoMetadataWriter:
     def _log_ffmpeg_failure(result, file_path, temp_path):
         if temp_path.exists():
             temp_path.unlink()
-        log(f"ffmpeg failed with code {result.returncode} for {file_path}", "warning")
+        log(f'ffmpeg failed with code {result.returncode} for {file_path}', 'warning')
