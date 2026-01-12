@@ -1,6 +1,7 @@
 from pathlib import Path
 import subprocess
 from src.config.ffmpeg_crf import get_video_crf
+from imageio_ffmpeg import get_ffmpeg_exe
 
 
 class VideoConverter:
@@ -12,7 +13,7 @@ class VideoConverter:
 
     def _build_ffmpeg_command(self, file_path) -> list:
         return [
-            "ffmpeg",
+            get_ffmpeg_exe(),
             "-y",
             "-i", str(file_path),
             "-c:v", "libx265",

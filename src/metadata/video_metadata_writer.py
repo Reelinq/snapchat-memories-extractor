@@ -1,7 +1,7 @@
 import subprocess
 from src.models import Memory
 from pathlib import Path
-import imageio_ffmpeg
+from imageio_ffmpeg import get_ffmpeg_exe
 from src.config.main import Config
 from src.logger.log import log
 
@@ -23,13 +23,13 @@ class VideoMetadataWriter:
 
 
     def _build_ffmpeg_command(self, file_path: Path, memory: Memory, temporary_video_path: Path) -> list[str]:
-        ffmpeg_exe = imageio_ffmpeg.get_ffmpeg_exe()
         metadata_arguments = self._ffmpeg_metadata_arguments(memory)
 
         command = [
-            ffmpeg_exe,
+            get_ffmpeg_exe(),
             '-i', str(file_path),
             '-c', 'copy',
+
             *metadata_arguments,
             str(temporary_video_path)
         ]
