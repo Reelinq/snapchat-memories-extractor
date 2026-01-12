@@ -15,15 +15,18 @@ class ZipProcessor:
         output_path = file_path.with_suffix(extention)
         file_path.unlink()
 
+        overlay_applied = False
+
         if apply_overlay:
             self._apply_overlay(content, overlay, extention, output_path)
+            overlay_applied = True
         else:
             self._bytes_to_path(content, output_path)
 
         if extention == '.jpg':
             return process_image(memory, output_path)
 
-        return process_video(memory, output_path)
+        return process_video(memory, output_path, overlay_applied)
 
 
     @staticmethod
