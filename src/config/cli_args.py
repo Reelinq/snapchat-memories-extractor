@@ -40,6 +40,10 @@ def get_cli_args():
                             'medium', 'slow', 'slower', 'veryslow', 'placebo'
                         ], default='fast', help=(
                             'FFmpeg preset for video encoding (default: fast). Short: -fp'))
+    parser.add_argument('--ffmpeg-pixel-format', '-pf', type=str, choices=[
+                            'yuv420p', 'rgb24', 'rgba', 'nv12', 'yuv422p', 'yuv444p', 'bgr24', 'gray',
+                            'yuyv422', 'p010le', 'yuv420p10le', 'nv21', 'bgra', 'argb'], default='yuv420p',
+                            help='FFmpeg pixel format for video encoding (default: yuv420p). Short: -pf')
     parser.add_argument('--log-level', '-l', type=str, default='OFF', metavar='LEVEL',
                         help='Logging level: 0=OFF, 1=CRITICAL, 2=ERROR, 3=WARNING, 4=INFO, 5=DEBUG. Can also use names: OFF, CRITICAL, ERROR, WARNING, INFO, DEBUG (default: 0/OFF). Short: -l')
     return parser.parse_args()
