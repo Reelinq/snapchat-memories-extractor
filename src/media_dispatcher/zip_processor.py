@@ -5,7 +5,7 @@ from src.zip_processor import ZipProcessor as CoreZipProcessor
 from src.overlay.image_composer import ImageComposer
 from src.overlay.video_composer import VideoComposer
 from src.media_dispatcher.image_processor import process_image
-from src.media_dispatcher.video_processor import process_video
+from src.media_dispatcher.video_processor import ProcessVideo
 
 
 class ZipProcessor:
@@ -26,7 +26,7 @@ class ZipProcessor:
         if extention == '.jpg':
             return process_image(memory, output_path)
 
-        return process_video(memory, output_path, overlay_applied)
+        return ProcessVideo().run(memory, output_path)
 
 
     @staticmethod
