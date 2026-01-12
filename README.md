@@ -377,7 +377,7 @@ python main.py -f 30
 </details>
 
 <details>
-<summary><b>🎛️ FFmpeg Preset: --ffmpeg-preset/-fp [preset]</b></summary>
+<summary><b>🎛️ FFmpeg Preset: -fp / --ffmpeg-preset [preset]</b></summary>
 
 **What it does:**
 - Sets the FFmpeg encoding preset, which controls the speed/compression tradeoff for video encoding.
@@ -409,7 +409,7 @@ python main.py -fp ultrafast
 </details>
 
 <details>
-<summary><b>🎨 FFmpeg Pixel Format: --ffmpeg-pixel-format/-pf [format]</b></summary>
+<summary><b>🎨 FFmpeg Pixel Format: -pf / --ffmpeg-pixel-format [format]</b></summary>
 
 **What it does:**
 - Sets the pixel format for video encoding in FFmpeg, which affects compatibility, color depth, and file size.
