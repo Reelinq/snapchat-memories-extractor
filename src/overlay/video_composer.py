@@ -5,8 +5,6 @@ import subprocess
 import tempfile
 from imageio_ffmpeg import get_ffmpeg_exe
 from src.config.main import Config
-from src.config.ffmpeg_crf import get_video_crf
-
 
 
 class VideoComposer:
@@ -62,12 +60,7 @@ class VideoComposer:
             '-i', video_path,
             '-i', overlay_path,
             '-filter_complex', 'overlay=0:0',
-            '-c:v', self._get_video_codec(),
-            '-preset', 'fast',
-            '-crf', str(get_video_crf()),
-            '-pix_fmt', 'yuv420p',
-            '-c:a', 'copy',
-            '-movflags', '+faststart',
+            '-c', 'copy',
             str(output_path)
         ]
 
