@@ -6,22 +6,29 @@ from src.ui.format_time import format_time
 display_size = 70
 
 class Display:
-    def print_display(self):
+    def __init__(self):
         total = StatsManager().total_files
         current = StatsManager().successful_downloads_count + \
             StatsManager().failed_downloads_count
-        remaining = total - current
-        percent = (current / total * 100) if total > 0 else 0
-        progress_bar = GenerateProgressBar().run(current, total)
-        elapsed_time = int(time() - StatsManager().start_time)
-        successful = StatsManager().successful_downloads_count
-        failed = StatsManager().failed_downloads_count
-        eta = self._calculate_eta(current, elapsed_time, remaining)
+        self.remaining = total - current
+        self.progress_bar = GenerateProgressBar().run(current, total)
+        self.percent = (current / total * 100) if total > 0 else 0
+        self.successful = StatsManager().successful_downloads_count
+        self.failed = StatsManager().failed_downloads_count
+        self.elapsed_time = int(time() - StatsManager().start_time)
+        self.eta = self._calculate_eta(current, self.elapsed_time, self.remaining)
 
+
+    def print_display(self, loading = False, finished = False):
         line1 = ' SNAPCHAT MEMORIES DOWNLOADER '
-        line2 = f"  [{progress_bar}] {percent:5.1f}%"
-        line3 = f"  📥 Downloaded: {successful}  │  ❌ Failed: {failed}  │  📁 Remaining: {remaining}"
-        line4 = f"  🕐  Elapsed: {format_time(elapsed_time):>10}  │  ⏳ ETA: {eta:>10}"
+        line2 = f"  [{self.progress_bar}] {self.percent:5.1f}%"
+
+        if loading:
+            line3, line4 = self._get_loading_display_lines()
+        elif finished:
+            line3, line4 = self._get_finished_display_lines()
+        else:
+            line3, line4 = self._get_base_display_lines()
 
         print(f"╔{'═' * display_size}╗")
         print(f"║{self.padding_line(line1)}║")
@@ -43,6 +50,24 @@ class Display:
         return format_time(eta)
 
 
+    def _get_loading_display_lines(self):
+        line3 = "  ⏳ Initializing, scanning your memories..."
+        line4 = "  📋 Preparing download list..."
+        return line3, line4
+
+
+    def _get_finished_display_lines(self):
+        line3 = f"  ✅ All downloads completed!"
+        line4 = f"  📥 Downloaded: {self.successful}  │  ❌ Failed: {self.failed}  │  🕐 Total Time: {format_time(self.elapsed_time):>10}"
+        return line3, line4
+
+
+    def _get_base_display_lines(self):
+        line3 = f"  📥 Downloaded: {self.successful}  │  ❌ Failed: {self.failed}  │  📁 Remaining: {self.remaining}"
+        line4 = f"  🕐  Elapsed: {format_time(self.elapsed_time):>10}  │  ⏳ ETA: {self.eta:>10}"
+        return line3, line4
+
+
     def padding_line(self, content, total_width=display_size):
         visible_width = self.display_width(content)
         padding_needed = total_width - visible_width
@@ -58,6 +83,6 @@ class Display:
 
     @staticmethod
     def _has_double_width(character: str) -> bool:
-        if character in "📥❌📁🕐⏳":
+        if character in "📥❌📁🕐⏳📋✅":
             return True
         return False
