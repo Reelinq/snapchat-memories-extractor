@@ -2,25 +2,22 @@ from time import time
 
 
 class StatsManager:
-    _instance = None
+    current_attempt = 0
+    total_files = 0
+    start_time = time()
+    successful_downloads_count = 0
+    failed_downloads_count = 0
+    total_bytes = 0
+    errors = []
+    completed_indices = set()
 
-    def __new__(cls):
-        if not cls._instance:
-            cls._instance = super().__new__(cls)
-        return cls._instance
-
-
-    def __init__(self):
-        if not hasattr(self, 'initialized'):
-            self.total_files = 0
-            self.start_time = time()
-            self.successful_downloads_count = 0
-            self.failed_downloads_count = 0
-            self.total_bytes = 0
-            self.errors = []
-            self.completed_indices = set()
-            self.initialized = True
-
-
-    def reset(self):
-        type(self)._instance = None
+    @classmethod
+    def new_attempt(cls):
+        cls.current_attempt += 1
+        cls.total_files = cls.failed_downloads_count
+        cls.start_time = time()
+        cls.successful_downloads_count = 0
+        cls.failed_downloads_count = 0
+        cls.total_bytes = 0
+        cls.errors = []
+        cls.completed_indices = set()
