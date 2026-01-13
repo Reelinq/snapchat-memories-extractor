@@ -7,15 +7,15 @@ display_size = 70
 
 class Display:
     def __init__(self):
-        total = StatsManager().total_files
-        current = StatsManager().successful_downloads_count + \
-            StatsManager().failed_downloads_count
+        total = StatsManager.total_files
+        current = StatsManager.successful_downloads_count + \
+            StatsManager.failed_downloads_count
         self.remaining = total - current
         self.progress_bar = GenerateProgressBar().run(current, total)
         self.percent = (current / total * 100) if total > 0 else 0
-        self.successful = StatsManager().successful_downloads_count
-        self.failed = StatsManager().failed_downloads_count
-        self.elapsed_time = int(time() - StatsManager().start_time)
+        self.successful = StatsManager.successful_downloads_count
+        self.failed = StatsManager.failed_downloads_count
+        self.elapsed_time = int(time() - StatsManager.start_time)
         self.eta = self._calculate_eta(current, self.elapsed_time, self.remaining)
 
 
