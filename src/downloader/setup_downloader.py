@@ -12,6 +12,9 @@ class SetupDownloader:
         while current_attempt_number < max_attempts or failure_count != 0:
             self._initialize_retry_attempt(current_attempt_number, max_attempts)
             current_attempt_number += 1
+        for attempt in range(max_attempts):
+            Display().print_display(loading=True)
+            MemoryDownloader().run()
 
 
     @staticmethod
