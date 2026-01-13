@@ -1,6 +1,8 @@
 from src.memories import Memory
 from pathlib import Path
-from src.media_dispatcher import process_image, ProcessVideo, ZipProcessor
+from src.media_dispatcher.image_processor import process_image
+from src.media_dispatcher.video_processor import ProcessVideo
+from src.media_dispatcher.zip_processor import ZipProcessor
 from src.config import Config
 
 

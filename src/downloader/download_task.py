@@ -2,7 +2,7 @@ from pathlib import Path
 from src.config import Config
 from src.memories import Memory
 from src.logger import log
-from src.downloader import DownloadService
+from src.downloader.download_service import DownloadService
 
 
 class DownloadTask:

@@ -1,7 +1,7 @@
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from src.config import Config
-from src.downloader import DownloadTask
+from src.downloader.download_task import DownloadTask
 from src.memories import *
 from src.logger import log
 from src.ui import StatsManager, UpdateUI

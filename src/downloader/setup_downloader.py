@@ -1,11 +1,11 @@
 from src.config import Config
-from src.downloader import MemoryDownloader
+from src.downloader.downloader import MemoryDownloader
 from src.ui import Display, StatsManager
 from src.logger import log
 
 
 class SetupDownloader:
-    def run(self, config) -> None:
+    def run(self, config: Config) -> None:
         max_attempts = config.from_args().cli_options['max_attempts']
 
         for attempt in range(max_attempts):

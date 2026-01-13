@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from pathlib import Path
-from src.config import get_cli_args, build_cli_options, ensure_directories
+from src.config.cli_args import get_cli_args
+from src.config.cli_options import build_cli_options
+from src.config.paths import ensure_directories
 
 @dataclass
 class Config:

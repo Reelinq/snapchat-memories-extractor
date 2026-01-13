@@ -1,6 +1,8 @@
 from time import time
 from src.config import Config
-from src.ui import StatsManager, GenerateProgressBar, format_time
+from src.ui.stats_manager import StatsManager
+from src.ui.generate_progress_bar import GenerateProgressBar
+from src.ui.format_time import format_time
 
 
 display_size = 70

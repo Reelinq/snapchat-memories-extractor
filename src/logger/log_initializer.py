@@ -1,7 +1,7 @@
 import logging
 from pathlib import Path
 from datetime import datetime
-from src.logger import JSONFormatter
+from src.logger.formatter import JSONFormatter
 from src.config import Config
 
 

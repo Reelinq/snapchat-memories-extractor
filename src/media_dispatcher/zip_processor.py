@@ -3,7 +3,8 @@ from src.memories import Memory
 from src.config import Config
 from src import ZipProcessor as CoreZipProcessor
 from src.overlay import *
-from src.media_dispatcher import process_image, ProcessVideo
+from src.media_dispatcher.image_processor import process_image
+from src.media_dispatcher.video_processor import ProcessVideo
 
 
 class ZipProcessor:

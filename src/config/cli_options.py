@@ -1,4 +1,4 @@
-from src.config import parse_log_level
+from src.config.logging_config import parse_log_level
 
 def build_cli_options(args):
     return {
