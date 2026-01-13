@@ -1,5 +1,5 @@
 from pathlib import Path
-from src.models import Memory
+from src.memory_model import Memory
 from src.config.main import Config
 from src.zip_processor import ZipProcessor as CoreZipProcessor
 from src.overlay.image_composer import ImageComposer

@@ -2,7 +2,7 @@ import logging
 from unittest.mock import patch, MagicMock
 import pytest
 from src.config import Config
-from src.download_service import DownloadService
+from src.downloader.download_service import DownloadService
 
 @pytest.mark.parametrize("jpeg_quality", [50, 77, 95])
 def test_jpeg_quality_behavior(jpeg_quality):

@@ -4,7 +4,7 @@ from unittest.mock import patch, MagicMock
 import pytest
 import logging
 from src.config import Config
-from src.download_service import DownloadService
+from src.downloader.download_service import DownloadService
 
 @pytest.mark.parametrize("write_metadata", [True, False])
 def test_write_metadata_flag_behavior(write_metadata):

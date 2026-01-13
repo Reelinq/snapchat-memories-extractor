@@ -1,5 +1,5 @@
 import pytest
-from src.models import Memory
+from src.memory_model import Memory
 
 @pytest.fixture
 def image_memory_data():

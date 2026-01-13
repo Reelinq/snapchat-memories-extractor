@@ -1,4 +1,4 @@
-from src.models import Memory
+from src.memory_model import Memory
 from pathlib import Path
 from src.config.main import Config
 from src.converters.jxl_converter import JXLConverter

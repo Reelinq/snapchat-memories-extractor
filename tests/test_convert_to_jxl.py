@@ -4,7 +4,7 @@ from unittest.mock import patch, MagicMock
 import pytest
 from pathlib import Path
 from src.config import Config
-from src.download_service import DownloadService
+from src.downloader.download_service import DownloadService
 
 @pytest.mark.parametrize("convert_to_jxl", [True, False])
 def test_convert_to_jxl_behavior(convert_to_jxl):

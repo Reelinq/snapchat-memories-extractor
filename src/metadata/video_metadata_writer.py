@@ -1,5 +1,5 @@
 import subprocess
-from src.models import Memory
+from src.memory_model import Memory
 from pathlib import Path
 from imageio_ffmpeg import get_ffmpeg_exe
 from src.config.main import Config

@@ -1,6 +1,6 @@
 from pathlib import Path
 from src.metadata.video_metadata_writer import VideoMetadataWriter
-from src.models import Memory
+from src.memory_model import Memory
 from src.config.main import Config
 from src.converters.ffmpeg_converter import VideoConverter
 

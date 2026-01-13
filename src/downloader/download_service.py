@@ -1,5 +1,5 @@
 from src.filename_resolver import FileNameResolver
-from src.models import Memory
+from src.memory_model import Memory
 from src.config.main import Config
 from src.media_dispatcher.media_dispatcher import process_media
 from src.logger.log import log
