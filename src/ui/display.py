@@ -34,12 +34,12 @@ class Display:
             line3, line4 = self._get_base_display_lines()
 
         print(f"╔{'═' * display_size}╗")
-        print(f"║{self.padding_line(line1)}║")
+        print(f"║{self._padding_line(line1)}║")
         print(f"╠{'═' * display_size}╣")
-        print(f"║{self.padding_line(line2)}║")
+        print(f"║{self._padding_line(line2)}║")
         print(f"╠{'═' * display_size}╣")
-        print(f"║{self.padding_line(line3)}║")
-        print(f"║{self.padding_line(line4)}║")
+        print(f"║{self._padding_line(line3)}║")
+        print(f"║{self._padding_line(line4)}║")
         print(f"╚{'═' * display_size}╝")
 
 
@@ -80,13 +80,13 @@ class Display:
         return line3, line4
 
 
-    def padding_line(self, content, total_width=display_size):
-        visible_width = self.display_width(content)
+    def _padding_line(self, content, total_width=display_size):
+        visible_width = self._display_width(content)
         padding_needed = total_width - visible_width
         return content + (' ' * max(0, padding_needed))
 
 
-    def display_width(self, text: str) -> int:
+    def _display_width(self, text: str) -> int:
         width = 0
         for character in text:
             width += 2 if self._has_double_width(character) else 1
