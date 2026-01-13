@@ -1,11 +1,9 @@
 from pathlib import Path
-from src.memories.memory_model import Memory
-from src.config.main import Config
-from src.zip_processor import ZipProcessor as CoreZipProcessor
-from src.overlay.image_composer import ImageComposer
-from src.overlay.video_composer import VideoComposer
-from src.media_dispatcher.image_processor import process_image
-from src.media_dispatcher.video_processor import ProcessVideo
+from src.memories import Memory
+from src.config import Config
+from src import ZipProcessor as CoreZipProcessor
+from src.overlay import *
+from src.media_dispatcher import process_image, ProcessVideo
 
 
 class ZipProcessor:

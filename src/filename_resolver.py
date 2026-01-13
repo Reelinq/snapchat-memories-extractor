@@ -1,5 +1,5 @@
 from pathlib import Path
-from src.config.main import Config
+from src.config import Config
 
 
 class FileNameResolver:

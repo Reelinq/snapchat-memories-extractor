@@ -1,6 +1,6 @@
 from zipfile import ZipFile
 from typing import Optional
-from src.config.main import Config
+from src.config import Config
 
 
 class ZipProcessor:

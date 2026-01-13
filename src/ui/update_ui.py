@@ -1,5 +1,5 @@
 import sys
-from src.ui.display import Display
+from src.ui import Display
 
 
 class UpdateUI():

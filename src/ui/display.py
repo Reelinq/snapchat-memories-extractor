@@ -1,8 +1,6 @@
 from time import time
-from src.config.main import Config
-from src.ui.stats_manager import StatsManager
-from src.ui.generate_progress_bar import GenerateProgressBar
-from src.ui.format_time import format_time
+from src.config import Config
+from src.ui import StatsManager, GenerateProgressBar, format_time
 
 
 display_size = 70
@@ -19,7 +17,6 @@ class Display:
         self.failed = StatsManager.failed_downloads_count
         self.elapsed_time = int(time() - StatsManager.start_time)
         self.eta = self._calculate_eta(current, self.elapsed_time, self.remaining)
-
 
 
     def print_display(self, loading = False, finished = False):

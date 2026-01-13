@@ -2,8 +2,8 @@ from pathlib import Path
 from typing import Optional
 import subprocess
 import sys
-from src.logger.log import log
-from src.config.main import Config
+from src.logger import log
+from src.config import Config
 
 
 class JXLConverter:

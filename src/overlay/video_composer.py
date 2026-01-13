@@ -4,7 +4,7 @@ from io import BytesIO
 import subprocess
 import tempfile
 from imageio_ffmpeg import get_ffmpeg_exe
-from src.config.main import Config
+from src.config import Config
 
 
 class VideoComposer:

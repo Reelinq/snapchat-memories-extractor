@@ -1,8 +1,8 @@
-from src.memories.memory_model import Memory
+from src.memories import Memory
 from pathlib import Path
-from src.config.main import Config
-from src.converters.jxl_converter import JXLConverter
-from src.metadata.image_metadata_writer import ImageMetadataWriter
+from src.config import Config
+from src.converters import JXLConverter
+from src.metadata import ImageMetadataWriter
 
 
 def process_image(memory: Memory, file_path: Path):

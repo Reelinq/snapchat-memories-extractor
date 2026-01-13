@@ -1,6 +1,6 @@
 from PIL import Image
 from io import BytesIO
-from src.config.main import Config
+from src.config import Config
 from pathlib import Path
 
 

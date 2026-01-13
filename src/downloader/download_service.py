@@ -1,10 +1,9 @@
-from src.filename_resolver import FileNameResolver
-from src.memories.memory_model import Memory
-from src.config.main import Config
-from src.media_dispatcher.media_dispatcher import process_media
-from src.logger.log import log
-import requests
-from requests.adapters import HTTPAdapter
+from src import FileNameResolver
+from src.memories import Memory
+from src.config import Config
+from src.media_dispatcher import process_media
+from src.logger import log
+from requests import Response, Session, adapters
 
 
 class DownloadService:
@@ -24,7 +23,7 @@ class DownloadService:
         return file_path, True
 
 
-    def _download_memory(self, memory: Memory) -> requests.Response:
+    def _download_memory(self, memory: Memory) -> Response:
         timeout = Config.from_args().cli_options['request_timeout']
         http_response = self._build_session().get(
             memory.media_download_url,
@@ -33,8 +32,8 @@ class DownloadService:
         return http_response
 
 
-    def _build_session(self) -> requests.Session:
-        http_session = requests.Session()
+    def _build_session(self) -> Session:
+        http_session = Session()
         adapter = self._create_http_adapter()
         http_session.mount("https://", adapter)
         return http_session
@@ -43,7 +42,7 @@ class DownloadService:
     @staticmethod
     def _create_http_adapter():
         max_concurrent = Config.from_args().cli_options['max_concurrent_downloads']
-        adapter = HTTPAdapter(
+        adapter = adapters.HTTPAdapter(
             pool_connections=max_concurrent,
             pool_maxsize=max_concurrent * 2,
         )
@@ -57,13 +56,13 @@ class DownloadService:
 
 
     @staticmethod
-    def _is_zip_response(response: requests.Response) -> bool:
+    def _is_zip_response(response: Response) -> bool:
         content_type = response.headers.get("Content-Type", "")
         return content_type.lower() == "application/zip"
 
 
     @staticmethod
-    def _store_downloaded_memory(memory: Memory, download_response: requests.Response):
+    def _store_downloaded_memory(memory: Memory, download_response: Response):
         file_path = Config.downloads_folder / memory.filename_with_ext
 
         if file_path.exists():

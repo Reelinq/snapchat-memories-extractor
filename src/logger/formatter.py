@@ -1,7 +1,7 @@
 import logging
 from datetime import datetime
 import json
-from src.logger.error_descriptions import ERROR_DESCRIPTIONS
+from src.logger import ERROR_DESCRIPTIONS
 
 
 class JSONFormatter(logging.Formatter):

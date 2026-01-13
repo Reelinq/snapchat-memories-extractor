@@ -1,8 +1,8 @@
 import piexif
 from pathlib import Path
 from PIL import Image
-from src.memories.memory_model import Memory
-from src.config.main import Config
+from src.memories import Memory
+from src.config import Config
 
 
 class ImageMetadataWriter:

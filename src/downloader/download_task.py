@@ -1,8 +1,8 @@
 from pathlib import Path
-from src.config.main import Config
-from src.memories.memory_model import Memory
-from src.logger.log import log
-from src.downloader.download_service import DownloadService
+from src.config import Config
+from src.memories import Memory
+from src.logger import log
+from src.downloader import DownloadService
 
 
 class DownloadTask:

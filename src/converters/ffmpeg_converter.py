@@ -1,7 +1,7 @@
 from pathlib import Path
 import subprocess
 from imageio_ffmpeg import get_ffmpeg_exe
-from src.config.main import Config
+from src.config import Config
 
 
 class VideoConverter:

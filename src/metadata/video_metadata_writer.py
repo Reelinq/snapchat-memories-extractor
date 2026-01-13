@@ -1,9 +1,9 @@
 import subprocess
-from src.memories.memory_model import Memory
+from src.memories import Memory
 from pathlib import Path
 from imageio_ffmpeg import get_ffmpeg_exe
-from src.config.main import Config
-from src.logger.log import log
+from src.config import Config
+from src.logger import log
 
 
 class VideoMetadataWriter:

@@ -1,7 +1,7 @@
 import json
 from typing import Dict, List
-from src.logger.log import log
-from src.config.main import Config
+from src.logger import log
+from src.config import Config
 
 
 class MemoriesRepository:

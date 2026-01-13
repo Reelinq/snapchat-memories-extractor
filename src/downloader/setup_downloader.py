@@ -1,8 +1,7 @@
-from src.config.main import Config
-from src.downloader.downloader import MemoryDownloader
-from src.ui.display import Display
-from src.ui.stats_manager import StatsManager
-from src.logger.log import log
+from src.config import Config
+from src.downloader import MemoryDownloader
+from src.ui import Display, StatsManager
+from src.logger import log
 
 
 class SetupDownloader:

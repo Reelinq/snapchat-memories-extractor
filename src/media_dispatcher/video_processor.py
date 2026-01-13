@@ -1,8 +1,9 @@
 from pathlib import Path
-from src.metadata.video_metadata_writer import VideoMetadataWriter
-from src.memories.memory_model import Memory
-from src.config.main import Config
-from src.converters.ffmpeg_converter import VideoConverter
+from src.metadata import VideoMetadataWriter
+from src.memories import Memory
+from src.config import Config
+from src.converters import VideoConverter
+
 
 class ProcessVideo:
     def run(self, memory: Memory, file_path: Path):

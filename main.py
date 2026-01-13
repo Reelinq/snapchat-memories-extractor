@@ -1,9 +1,6 @@
-from src.downloader.setup_downloader import SetupDownloader
-from src.logger.log_initializer import LogInitializer
-from src.logger.log import log
-from src.ui.stats_manager import StatsManager
-from src.ui.display import Display
-from src.ui.update_ui import UpdateUI
+from src.downloader import SetupDownloader
+from src.logger import LogInitializer, log
+from src.ui import StatsManager, UpdateUI, Display
 
 
 if __name__ == "__main__":
