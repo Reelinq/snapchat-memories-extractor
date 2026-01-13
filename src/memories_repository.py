@@ -1,5 +1,4 @@
 import json
-import threading
 from typing import Dict, List
 from src.logger.log import log
 from src.config.main import Config
