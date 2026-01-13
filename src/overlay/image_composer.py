@@ -5,7 +5,7 @@ from pathlib import Path
 
 
 class ImageComposer:
-    def apply_overlay(self, image_bytes: bytes, overlay_bytes: bytes, output_path: Path) -> bytes:
+    def apply_overlay(self, image_bytes: bytes, overlay_bytes: bytes, output_path: Path, config: Config) -> bytes:
         base_image = Image.open(BytesIO(image_bytes))
         overlay_image = Image.open(BytesIO(overlay_bytes))
 
@@ -18,7 +18,7 @@ class ImageComposer:
         combined_image = Image.alpha_composite(base_image, overlay_image)
         combined_rgb_image = combined_image.convert('RGB')
 
-        quality = Config.from_args().cli_options['jpeg_quality']
+        quality = config.from_args().cli_options['jpeg_quality']
         combined_rgb_image.save(str(output_path), format='JPEG', quality=quality)
 
 

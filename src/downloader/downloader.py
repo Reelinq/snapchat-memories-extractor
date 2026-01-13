@@ -8,9 +8,9 @@ from src.ui import StatsManager, UpdateUI
 
 
 class MemoryDownloader:
-    def run(self) -> None:
+    def run(self, config: Config) -> None:
         completed_downloads_count = 0
-        future_download_tasks = self._gather_future_download_tasks()
+        future_download_tasks = self._gather_future_download_tasks(config)
 
         if not future_download_tasks:
             log("No items to download.", "info")
@@ -22,19 +22,19 @@ class MemoryDownloader:
 
             file_path, download_succeeded = future.result()
 
-            self._check_for_success(download_succeeded, memory, file_path)
+            self._check_for_success(download_succeeded, memory, file_path, config)
 
 
-    def _gather_future_download_tasks(self):
+    def _gather_future_download_tasks(self, config):
         download_tasks = self._gather_download_tasks()
-        max_workers = Config.from_args().cli_options['max_concurrent_downloads']
+        max_workers = config.from_args().cli_options['max_concurrent_downloads']
         executor = ThreadPoolExecutor(max_workers=max_workers)
 
         # Use dictonary becaude otherwsie index gets lost in 'as_completed'
         futures = {}
 
         for index, memory in enumerate(download_tasks):
-            future = executor.submit(DownloadTask().run, memory)
+            future = executor.submit(DownloadTask().run, memory, config)
             futures[future] = (index, memory)
 
         return futures
@@ -53,12 +53,12 @@ class MemoryDownloader:
         return download_tasks
 
 
-    def _check_for_success(self, download_succeeded: bool, memory: Memory, file_path: Path) -> None:
+    def _check_for_success(self, download_succeeded: bool, memory: Memory, file_path: Path, config: Config) -> None:
         if download_succeeded:
             self._download_succeeded(memory, file_path)
         else:
             StatsManager.failed_downloads_count += 1
-        UpdateUI().run()
+        UpdateUI().run(config)
 
 
     def _download_succeeded(self, memory: Memory, file_path: Path) -> None:

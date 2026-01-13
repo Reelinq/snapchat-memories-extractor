@@ -19,8 +19,8 @@ class Display:
         self.eta = self._calculate_eta(current, self.elapsed_time, self.remaining)
 
 
-    def print_display(self, loading = False, finished = False):
-        line1 = self._get_first_line()
+    def print_display(self, config: Config, loading = False, finished = False):
+        line1 = self._get_first_line(config)
         line2 = f"  [{self.progress_bar}] {self.percent:5.1f}%"
 
         if loading:
@@ -41,9 +41,9 @@ class Display:
 
 
     @staticmethod
-    def _get_first_line():
+    def _get_first_line(config: Config) -> str:
         attempt = str(StatsManager.current_attempt)
-        total_attempts = Config.from_args().cli_options['max_attempts']
+        total_attempts = config.from_args().cli_options['max_attempts']
         left = " SNAPCHAT MEMORIES DOWNLOADER"
         right = f"ATTEMPT {attempt} / {total_attempts} "
         return left.ljust(display_size - len(right)) + right

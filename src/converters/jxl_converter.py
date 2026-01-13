@@ -7,7 +7,7 @@ from src.config import Config
 
 
 class JXLConverter:
-    def run(self, input_path: Path) -> Path:
+    def run(self, input_path: Path, config: Config) -> Path:
         if not self._is_convertible_image(input_path):
             return input_path
 
@@ -17,7 +17,7 @@ class JXLConverter:
 
         output_path = input_path.with_suffix('.jxl')
         command = self._build_cjxl_command(cjxl_path, input_path, output_path)
-        timeout = Config.from_args().cli_options['cjxl_timeout']
+        timeout = config.from_args().cli_options['cjxl_timeout']
         result = subprocess.run(command, capture_output=True, timeout=timeout)
 
         if result.returncode != 0:

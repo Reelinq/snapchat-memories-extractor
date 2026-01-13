@@ -6,17 +6,17 @@ from src.config import Config
 
 
 class LogInitializer:
-    def configure_logger(self):
+    def configure_logger(self, config):
         logger = logging.getLogger()
-        logger.setLevel(Config.from_args().cli_options["log_level"])
+        logger.setLevel(config.from_args().cli_options["log_level"])
 
-        log_path = self._build_log_path()
+        log_path = self._build_log_path(config)
         self._ensure_log_dir(log_path)
-        logger.addHandler(self._create_file_handler(log_path))
+        logger.addHandler(self._create_file_handler(log_path, config))
 
 
-    def _build_log_path(self) -> Path:
-        return Path(Config.logs_folder) / self._create_log_filename()
+    def _build_log_path(self, config: Config) -> Path:
+        return Path(config.logs_folder) / self._create_log_filename()
 
 
     @staticmethod
@@ -28,8 +28,8 @@ class LogInitializer:
         return f"{datetime.now().strftime('%Y%m%d_%H%M%S')}.jsonl"
 
 
-    def _create_file_handler(self, path: Path) -> logging.Handler:
+    def _create_file_handler(self, path: Path, config: Config) -> logging.Handler:
         handler = logging.FileHandler(path, encoding="utf-8", delay=True)
-        handler.setLevel(Config.from_args().cli_options["log_level"])
+        handler.setLevel(config.from_args().cli_options["log_level"])
         handler.setFormatter(JSONFormatter())
         return handler

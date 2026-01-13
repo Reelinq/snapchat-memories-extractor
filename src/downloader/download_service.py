@@ -1,3 +1,4 @@
+from pathlib import Path
 from src import FileNameResolver
 from src.memories import Memory
 from src.config import Config
@@ -7,41 +8,41 @@ from requests import Response, Session, adapters
 
 
 class DownloadService:
-    def run(self, memory: Memory) -> tuple[bool, str | None]:
+    def run(self, memory: Memory, config: Config) -> tuple[bool, str | None]:
         file_path = None
 
-        response = self._download_memory(memory)
+        response = self._download_memory(memory, config)
         if response.status_code >= 400:
             self._log_fetch_failure(response.status_code, memory)
             return None, False
 
         memory.is_zip = self._is_zip_response(response)
 
-        file_path = self._store_downloaded_memory(memory, response)
-        file_path = process_media(memory, file_path)
+        file_path = self._store_downloaded_memory(memory, response, config)
+        file_path = process_media(memory, file_path, config)
 
         return file_path, True
 
 
-    def _download_memory(self, memory: Memory) -> Response:
-        timeout = Config.from_args().cli_options['request_timeout']
-        http_response = self._build_session().get(
+    def _download_memory(self, memory: Memory, config: Config) -> Response:
+        timeout = config.from_args().cli_options['request_timeout']
+        http_response = self._build_session(config).get(
             memory.media_download_url,
             timeout=timeout
         )
         return http_response
 
 
-    def _build_session(self) -> Session:
+    def _build_session(self, config: Config) -> Session:
         http_session = Session()
-        adapter = self._create_http_adapter()
+        adapter = self._create_http_adapter(config)
         http_session.mount("https://", adapter)
         return http_session
 
 
     @staticmethod
-    def _create_http_adapter():
-        max_concurrent = Config.from_args().cli_options['max_concurrent_downloads']
+    def _create_http_adapter(config: Config):
+        max_concurrent = config.from_args().cli_options['max_concurrent_downloads']
         adapter = adapters.HTTPAdapter(
             pool_connections=max_concurrent,
             pool_maxsize=max_concurrent * 2,
@@ -62,8 +63,8 @@ class DownloadService:
 
 
     @staticmethod
-    def _store_downloaded_memory(memory: Memory, download_response: Response):
-        file_path = Config.downloads_folder / memory.filename_with_ext
+    def _store_downloaded_memory(memory: Memory, download_response: Response, config: Config) -> Path:
+        file_path = config.downloads_folder / memory.filename_with_ext
 
         if file_path.exists():
             file_path = FileNameResolver().run(file_path)

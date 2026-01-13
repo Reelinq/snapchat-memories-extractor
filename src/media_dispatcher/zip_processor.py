@@ -7,32 +7,32 @@ from src.media_dispatcher import process_image, ProcessVideo
 
 
 class ZipProcessor:
-    def run(self, memory: Memory, file_path: Path):
-        apply_overlay = Config.from_args().cli_options['apply_overlay']
-        content, overlay, extention = CoreZipProcessor().extract_media_from_zip(file_path)
+    def run(self, memory: Memory, file_path: Path, config: Config):
+        apply_overlay = config.from_args().cli_options['apply_overlay']
+        content, overlay, extention = CoreZipProcessor().extract_media_from_zip(file_path, config)
         output_path = file_path.with_suffix(extention)
         file_path.unlink()
 
         overlay_applied = False
 
         if apply_overlay:
-            self._apply_overlay(content, overlay, extention, output_path)
+            self._apply_overlay(content, overlay, extention, output_path, config)
             overlay_applied = True
         else:
             self._bytes_to_path(content, output_path)
 
         if extention == '.jpg':
-            return process_image(memory, output_path)
+            return process_image(memory, output_path, config)
 
-        return ProcessVideo().run(memory, output_path)
+        return ProcessVideo().run(memory, output_path, config)
 
 
     @staticmethod
-    def _apply_overlay(content: bytes, overlay: bytes, extention: str, output_path: Path):
+    def _apply_overlay(content: bytes, overlay: bytes, extention: str, output_path: Path, config):
         if extention == '.jpg':
-            ImageComposer().apply_overlay(content, overlay, output_path)
+            ImageComposer().apply_overlay(content, overlay, output_path, config)
         else:
-            VideoComposer().apply_overlay(content, overlay, output_path)
+            VideoComposer().apply_overlay(content, overlay, output_path, config)
 
 
     @staticmethod

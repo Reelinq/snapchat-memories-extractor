@@ -10,10 +10,10 @@ class ImageMetadataWriter:
         self.exif_metadata = {"0th": {}, "Exif": {}, "GPS": {}}
 
 
-    def write_image_metadata(self, memory: Memory, file_path: Path):
+    def write_image_metadata(self, memory: Memory, file_path: Path, config: Config):
         self._set_datetime_fields(memory.exif_datetime)
         self._set_gps_fields(memory.location_coords)
-        self._save_image_with_exif(file_path, self.exif_metadata)
+        self._save_image_with_exif(file_path, self.exif_metadata, config)
 
 
     def _set_datetime_fields(self, exif_datetime):
@@ -67,8 +67,8 @@ class ImageMetadataWriter:
 
 
     @staticmethod
-    def _save_image_with_exif(file_path: Path, exif_metadata: dict) -> None:
-        quality = Config.from_args().cli_options['jpeg_quality']
+    def _save_image_with_exif(file_path: Path, exif_metadata: dict, config: Config) -> None:
+        quality = config.from_args().cli_options['jpeg_quality']
         exif_data_bytes = piexif.dump(exif_metadata)
 
         with Image.open(file_path) as image:
