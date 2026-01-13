@@ -1,6 +1,6 @@
 from pathlib import Path
 from src.config.main import Config
-from src.memory_model import Memory
+from src.memories.memory_model import Memory
 from src.logger.log import log
 from src.downloader.download_service import DownloadService
 

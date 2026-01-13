@@ -4,7 +4,7 @@ from unittest.mock import MagicMock
 import pytest
 from src.config import Config
 from src.downloader.downloader import MemoryDownloader
-from src.memory_model import Memory
+from src.memories.memory_model import Memory
 
 @pytest.fixture
 def temp_config():

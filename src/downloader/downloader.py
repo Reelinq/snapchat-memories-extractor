@@ -2,8 +2,8 @@ from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from src.config.main import Config
 from src.downloader.download_task import DownloadTask
-from src.memory_model import Memory
-from src.memories_repository import MemoriesRepository
+from src.memories.memory_model import Memory
+from src.memories.memories_repository import MemoriesRepository
 from src.logger.log import log
 from src.ui.stats_manager import StatsManager
 from src.ui.update_ui import UpdateUI

@@ -1,7 +1,7 @@
 import piexif
 from pathlib import Path
 from PIL import Image
-from src.memory_model import Memory
+from src.memories.memory_model import Memory
 from src.config.main import Config
 
 
