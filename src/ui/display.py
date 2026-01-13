@@ -1,7 +1,9 @@
 from time import time
+from src.config.main import Config
 from src.ui.stats_manager import StatsManager
 from src.ui.generate_progress_bar import GenerateProgressBar
 from src.ui.format_time import format_time
+
 
 display_size = 70
 
@@ -19,8 +21,9 @@ class Display:
         self.eta = self._calculate_eta(current, self.elapsed_time, self.remaining)
 
 
+
     def print_display(self, loading = False, finished = False):
-        line1 = ' SNAPCHAT MEMORIES DOWNLOADER '
+        line1 = self._get_first_line()
         line2 = f"  [{self.progress_bar}] {self.percent:5.1f}%"
 
         if loading:
@@ -38,6 +41,15 @@ class Display:
         print(f"║{self.padding_line(line3)}║")
         print(f"║{self.padding_line(line4)}║")
         print(f"╚{'═' * display_size}╝")
+
+
+    @staticmethod
+    def _get_first_line():
+        attempt = str(StatsManager.current_attempt)
+        total_attempts = Config.from_args().cli_options['max_attempts']
+        left = " SNAPCHAT MEMORIES DOWNLOADER"
+        right = f"ATTEMPT {attempt} / {total_attempts} "
+        return left.ljust(display_size - len(right)) + right
 
 
     @staticmethod
