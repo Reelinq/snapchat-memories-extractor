@@ -1,4 +1,6 @@
 from src.config.main import Config
+from src.downloader.downloader import MemoryDownloader
+from src.ui.display import Display
 from src.ui.stats_manager import StatsManager
 from src.logger.log import log
 
@@ -6,19 +8,23 @@ from src.logger.log import log
 class SetupDownloader:
     def run(self) -> None:
         max_attempts = Config.from_args().cli_options['max_attempts']
-        current_attempt_number = 0
-        failure_count = StatsManager().failed_downloads_count
 
-        while current_attempt_number < max_attempts or failure_count != 0:
-            self._initialize_retry_attempt(current_attempt_number, max_attempts)
-            current_attempt_number += 1
         for attempt in range(max_attempts):
             Display().print_display(loading=True)
+            log(f"Starting attempt {attempt + 1} / {max_attempts}...", "info")
+            StatsManager.new_attempt()
             MemoryDownloader().run()
+
+            if not self._check_for_failures():
+                break
+
+        if StatsManager.failed_downloads_count > 0:
+            log(f"Max attempts ({max_attempts}) reached with failures", "info")
 
 
     @staticmethod
-    def _initialize_retry_attempt(attempt: int, max_attempts: int) -> None:
-        if attempt > 0:
-            log(f"Starting attempt {attempt + 1}/{max_attempts}...", "info")
-            StatsManager().reset()
+    def _check_for_failures() -> bool:
+        if StatsManager.failed_downloads_count == 0:
+            log("All downloads successful, no retry needed", "info")
+            return False
+        return True
