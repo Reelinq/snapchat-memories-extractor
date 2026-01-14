@@ -38,7 +38,7 @@ class MemoryDownloader:
         futures = {}
 
         for index, memory in enumerate(download_tasks):
-            future = executor.submit(DownloadTask(memory, self.config).run)
+            future = executor.submit(DownloadTask(memory, self.config).run())
             futures[future] = (index, memory)
 
         return futures
