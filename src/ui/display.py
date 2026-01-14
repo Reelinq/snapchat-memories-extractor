@@ -8,7 +8,9 @@ from src.ui.format_time import format_time
 display_size = 70
 
 class Display:
-    def __init__(self):
+    def __init__(self, config: Config):
+        self.config = config
+
         total = StatsManager.total_files
         current = StatsManager.successful_downloads_count + \
             StatsManager.failed_downloads_count
@@ -21,8 +23,8 @@ class Display:
         self.eta = self._calculate_eta(current, self.elapsed_time, self.remaining)
 
 
-    def print_display(self, config: Config, loading = False, finished = False):
-        line1 = self._get_first_line(config)
+    def print_display(self, loading = False, finished = False):
+        line1 = self._get_first_line()
         line2 = f"  [{self.progress_bar}] {self.percent:5.1f}%"
 
         if loading:
@@ -42,10 +44,9 @@ class Display:
         print(f"╚{'═' * display_size}╝")
 
 
-    @staticmethod
-    def _get_first_line(config: Config) -> str:
+    def _get_first_line(self) -> str:
         attempt = str(StatsManager.current_attempt)
-        total_attempts = config.from_args().cli_options['max_attempts']
+        total_attempts = self.config.from_args().cli_options['max_attempts']
         left = " SNAPCHAT MEMORIES DOWNLOADER"
         right = f"ATTEMPT {attempt} / {total_attempts} "
         return left.ljust(display_size - len(right)) + right
@@ -61,7 +62,8 @@ class Display:
         return format_time(eta)
 
 
-    def _get_loading_display_lines(self):
+    @staticmethod
+    def _get_loading_display_lines():
         line3 = "  ⏳ Initializing, scanning your memories..."
         line4 = "  📋 Preparing download list..."
         return line3, line4

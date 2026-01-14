@@ -10,7 +10,7 @@ def process_image(memory: Memory, file_path: Path, config: Config):
     write_metadata = config.from_args().cli_options['write_metadata']
 
     if write_metadata:
-        ImageMetadataWriter().write_image_metadata(memory, file_path, config)
+        ImageMetadataWriter(memory, file_path, config).write_image_metadata()
 
     if convert_to_jxl:
         file_path = JXLConverter().run(file_path, config)

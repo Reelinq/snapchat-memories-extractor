@@ -7,26 +7,30 @@ from src.config import Config
 
 
 class JXLConverter:
-    def run(self, input_path: Path, config: Config) -> Path:
-        if not self._is_convertible_image(input_path):
-            return input_path
+    def __init__(self, config: Config, input_path: Path):
+        self.config = config
+        self.input_path = input_path
+
+
+    def run(self) -> Path:
+        if not self._is_convertible_image():
+            return self.input_path
 
         cjxl_path = JXLConverter._get_cjxl_path()
         if cjxl_path is None:
-            return input_path
+            return self.input_path
 
-        output_path = input_path.with_suffix('.jxl')
-        command = self._build_cjxl_command(cjxl_path, input_path, output_path)
-        timeout = config.from_args().cli_options['cjxl_timeout']
+        output_path = self.input_path.with_suffix('.jxl')
+        command = self._build_cjxl_command(cjxl_path, output_path)
+        timeout = self.config.from_args().cli_options['cjxl_timeout']
         result = subprocess.run(command, capture_output=True, timeout=timeout)
 
         if result.returncode != 0:
-            self._log_cjxl_failure(result, input_path)
-            return input_path
+            self._log_cjxl_failure(result)
+            return self.input_path
 
-        if output_path.exists() and input_path.exists():
-            input_path.unlink()
-
+        if output_path.exists() and self.input_path.exists():
+            self.input_path.unlink()
         return output_path
 
 
@@ -48,28 +52,25 @@ class JXLConverter:
         return cjxl_full_path
 
 
-    @staticmethod
-    def _is_convertible_image(file_path: Path) -> bool:
-        if file_path.suffix.lower() in ('.jpg', '.jpeg'):
+    def _is_convertible_image(self) -> bool:
+        if self.input_path.suffix.lower() in ('.jpg', '.jpeg'):
             return True
         return False
 
 
-    @staticmethod
-    def _build_cjxl_command(cjxl_path: Path, input_path: Path, output_path: Path) -> list[str]:
+    def _build_cjxl_command(self, cjxl_path: Path, output_path: Path) -> list[str]:
         return [
             str(cjxl_path),
             '--lossless_jpeg=1',
             '--effort=9',
-            str(input_path),
+            str(self.input_path),
             str(output_path)
         ]
 
 
-    @staticmethod
-    def _log_cjxl_failure(result, input_path):
+    def _log_cjxl_failure(self, result):
         if result.stderr:
             stderr = result.stderr.decode('utf-8', errors='ignore')
         else:
             stderr = ''
-        log(f"cjxl failed ({result.returncode}) for {input_path}: {stderr.strip()}", "warning")
+        log(f"cjxl failed ({result.returncode}) for {self.input_path}: {stderr.strip()}", "warning")

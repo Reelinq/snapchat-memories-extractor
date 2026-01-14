@@ -8,41 +8,44 @@ from requests import Response, Session, adapters
 
 
 class DownloadService:
-    def run(self, memory: Memory, config: Config) -> tuple[bool, str | None]:
+    def __init__(self, config: Config, memory: Memory):
+        self.config = config
+        self.memory = memory
+
+    def run(self) -> tuple[bool, str | None]:
         file_path = None
 
-        response = self._download_memory(memory, config)
+        response = self._download_memory()
         if response.status_code >= 400:
-            self._log_fetch_failure(response.status_code, memory)
+            self._log_fetch_failure(response.status_code)
             return None, False
 
-        memory.is_zip = self._is_zip_response(response)
+        self.memory.is_zip = self._is_zip_response(response)
 
-        file_path = self._store_downloaded_memory(memory, response, config)
-        file_path = process_media(memory, file_path, config)
+        file_path = self._store_downloaded_memory(response)
+        file_path = process_media(self.memory, file_path, self.config)
 
         return file_path, True
 
 
-    def _download_memory(self, memory: Memory, config: Config) -> Response:
-        timeout = config.from_args().cli_options['request_timeout']
-        http_response = self._build_session(config).get(
-            memory.media_download_url,
+    def _download_memory(self) -> Response:
+        timeout = self.config.from_args().cli_options['request_timeout']
+        http_response = self._build_session().get(
+            self.memory.media_download_url,
             timeout=timeout
         )
         return http_response
 
 
-    def _build_session(self, config: Config) -> Session:
+    def _build_session(self) -> Session:
         http_session = Session()
-        adapter = self._create_http_adapter(config)
+        adapter = self._create_http_adapter()
         http_session.mount("https://", adapter)
         return http_session
 
 
-    @staticmethod
-    def _create_http_adapter(config: Config):
-        max_concurrent = config.from_args().cli_options['max_concurrent_downloads']
+    def _create_http_adapter(self) -> adapters.HTTPAdapter:
+        max_concurrent = self.config.from_args().cli_options['max_concurrent_downloads']
         adapter = adapters.HTTPAdapter(
             pool_connections=max_concurrent,
             pool_maxsize=max_concurrent * 2,
@@ -50,9 +53,8 @@ class DownloadService:
         return adapter
 
 
-    @staticmethod
-    def _log_fetch_failure(status_code: int, memory: Memory):
-        file_name = memory.filename_with_ext
+    def _log_fetch_failure(self, status_code: int):
+        file_name = self.memory.filename_with_ext
         log(f"Failed to download {file_name}", "error", status_code)
 
 
@@ -62,12 +64,11 @@ class DownloadService:
         return content_type.lower() == "application/zip"
 
 
-    @staticmethod
-    def _store_downloaded_memory(memory: Memory, download_response: Response, config: Config) -> Path:
-        file_path = config.downloads_folder / memory.filename_with_ext
+    def _store_downloaded_memory(self, download_response: Response) -> Path:
+        file_path = self.config.downloads_folder / self.memory.filename_with_ext
 
         if file_path.exists():
-            file_path = FileNameResolver().run(file_path)
+            file_path = FileNameResolver(file_path).run()
 
         with open(file_path, 'wb') as f:
             f.write(download_response.content)

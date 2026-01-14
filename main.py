@@ -5,7 +5,8 @@ from src.config import Config
 
 
 if __name__ == "__main__":
-    LogInitializer().configure_logger(Config)
+    LogInitializer(Config).configure_logger
+
     StatsManager()
 
     log("Application started", "info")
@@ -15,5 +16,5 @@ if __name__ == "__main__":
 # ------------------------------------------------
 
     UpdateUI()._clear_display()
-    Display().print_display(Config, finished = True)
+    Display(Config).print_display(finished = True)
     log("Application finished", "info")

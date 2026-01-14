@@ -4,15 +4,19 @@ from src.config import Config
 
 
 class ZipProcessor:
-    def extract_media_from_zip(self, file_path: str, config: Config
-    ) -> tuple[Optional[bytes], Optional[str], Optional[bytes]]:
-        with ZipFile(file_path, 'r') as zip_file:
-            result = self._read_files(zip_file, config)
+    def __init__(self, file_path: str, config: Config):
+        self.file_path = file_path
+        self.config = config
+
+
+    def extract_media_from_zip(self) -> tuple[Optional[bytes], Optional[str], Optional[bytes]]:
+        with ZipFile(self.file_path, 'r') as zip_file:
+            result = self._read_files(zip_file)
         return result
 
 
-    def _read_files(self, zip_file: ZipFile, config: Config):
-        extract_overlay = config.from_args().cli_options['apply_overlay']
+    def _read_files(self, zip_file: ZipFile):
+        extract_overlay = self.config.from_args().cli_options['apply_overlay']
 
         overlay_file_name = self._find_file(zip_file, find_png=True)
         media_file_name = self._find_file(zip_file, find_png=False)

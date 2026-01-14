@@ -7,27 +7,33 @@ from src.logger import log
 
 
 class VideoMetadataWriter:
-    def write_video_metadata(self, memory: Memory, file_path: Path, config: Config) -> Path:
-        temporary_video_path = file_path.with_suffix('.tmp.mp4')
-        command = self._build_ffmpeg_command(file_path, memory, temporary_video_path)
+    def __init__(self, memory: Memory, file_path: Path, config: Config):
+        self.memory = memory
+        self.file_path = file_path
+        self.config = config
 
-        timeout = config.from_args().cli_options['ffmpeg_timeout']
+
+    def write_video_metadata(self) -> Path:
+        temporary_video_path = self.file_path.with_suffix('.tmp.mp4')
+        command = self._build_ffmpeg_command(temporary_video_path)
+
+        timeout = self.config.from_args().cli_options['ffmpeg_timeout']
         ffmpeg_run_result = subprocess.run(command, capture_output=True, timeout=timeout)
 
         if ffmpeg_run_result.returncode == 0:
-            temporary_video_path.replace(file_path)
+            temporary_video_path.replace(self.file_path)
         else:
-            self._log_ffmpeg_failure(ffmpeg_run_result, file_path, temporary_video_path)
+            self._log_ffmpeg_failure(ffmpeg_run_result, temporary_video_path)
 
-        return file_path
+        return self.file_path
 
 
-    def _build_ffmpeg_command(self, file_path: Path, memory: Memory, temporary_video_path: Path) -> list[str]:
-        metadata_arguments = self._ffmpeg_metadata_arguments(memory)
+    def _build_ffmpeg_command(self, temporary_video_path: Path) -> list[str]:
+        metadata_arguments = self._ffmpeg_metadata_arguments()
 
         command = [
             get_ffmpeg_exe(),
-            '-i', str(file_path),
+            '-i', str(self.file_path),
             '-c', 'copy',
 
             *metadata_arguments,
@@ -37,11 +43,11 @@ class VideoMetadataWriter:
         return command
 
 
-    def _ffmpeg_metadata_arguments(self, memory) -> list[str]:
-        meta_args = ['-metadata', f'creation_time={memory.video_creation_time}']
+    def _ffmpeg_metadata_arguments(self) -> list[str]:
+        meta_args = ['-metadata', f'creation_time={self.memory.video_creation_time}']
 
-        if memory.location_coords:
-            latitude, longitude = memory.location_coords
+        if self.memory.location_coords:
+            latitude, longitude = self.memory.location_coords
             iso6709 = self._to_iso6709(latitude, longitude)
             self._extend_meta_args(meta_args, latitude, longitude, iso6709)
 
@@ -64,8 +70,7 @@ class VideoMetadataWriter:
         ])
 
 
-    @staticmethod
-    def _log_ffmpeg_failure(result, file_path, temp_path):
+    def _log_ffmpeg_failure(self, result, temp_path):
         if temp_path.exists():
             temp_path.unlink()
-        log(f'ffmpeg failed with code {result.returncode} for {file_path}', 'warning')
+        log(f'ffmpeg failed with code {result.returncode} for {self.file_path}', 'warning')

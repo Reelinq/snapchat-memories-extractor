@@ -3,26 +3,29 @@ from src.config import Config
 
 
 class FileNameResolver:
-    def run(self, path: Path) -> Path:
+    def __init__(self, path: Path):
+        self.path = path
+
+
+    def run(self) -> Path:
         used_names = [path.name for path in Config.downloads_folder.iterdir()]
-        candidate = self._next_available(path, used_names)
+        candidate = self._next_available(used_names)
         used_names.append(candidate.name)
         return candidate
 
 
-    def _next_available(self, path: Path, used_names: list[str]) -> Path:
-        candidate = path
+    def _next_available(self, used_names: list[str]) -> Path:
+        candidate = self.path
         index = 1
-        while self._is_used(candidate, used_names):
-            candidate = self._with_index(path, index)
+        while self._is_used(used_names):
+            candidate = self._with_index(index)
             index += 1
         return candidate
 
 
-    def _is_used(self, path: Path, used_names: list[str]) -> bool:
-        return path.name in used_names
+    def _is_used(self, used_names: list[str]) -> bool:
+        return self.path.name in used_names
 
 
-    @staticmethod
-    def _with_index(path: Path, index: int) -> Path:
-        return path.parent / f"{path.stem}_{index}{path.suffix}"
+    def _with_index(self, index: int) -> Path:
+        return self.path.parent / f"{self.path.stem}_{index}{self.path.suffix}"

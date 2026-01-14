@@ -5,7 +5,7 @@ from src.ui import Display
 class UpdateUI():
     def run(self, config):
         self._clear_display()
-        Display().print_display(config)
+        Display(config).print_display()
 
 
     @staticmethod

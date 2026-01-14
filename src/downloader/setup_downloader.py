@@ -9,10 +9,10 @@ class SetupDownloader:
         max_attempts = config.from_args().cli_options['max_attempts']
 
         for attempt in range(max_attempts):
-            Display().print_display(config, loading=True)
+            Display(config).print_display(loading=True)
             log(f"Starting attempt {attempt + 1} / {max_attempts}...", "info")
             StatsManager.new_attempt()
-            MemoryDownloader().run(config)
+            MemoryDownloader(config).run()
 
             if not self._check_for_failures():
                 break

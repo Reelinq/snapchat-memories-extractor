@@ -8,32 +8,36 @@ from src.media_dispatcher.video_processor import ProcessVideo
 
 
 class ZipProcessor:
-    def run(self, memory: Memory, file_path: Path, config: Config):
-        apply_overlay = config.from_args().cli_options['apply_overlay']
-        content, overlay, extention = CoreZipProcessor().extract_media_from_zip(file_path, config)
-        output_path = file_path.with_suffix(extention)
-        file_path.unlink()
+    def __init__(self, memory: Memory, file_path: Path, config: Config):
+        self.memory = memory
+        self.file_path = file_path
+        self.config = config
 
+
+    def run(self):
+        apply_overlay = self.config.from_args().cli_options['apply_overlay']
+        content, overlay, extention = CoreZipProcessor(self.file_path, self.config).extract_media_from_zip()
+        output_path = self.file_path.with_suffix(extention)
+        self.file_path.unlink()
         overlay_applied = False
 
         if apply_overlay:
-            self._apply_overlay(content, overlay, extention, output_path, config)
+            self._apply_overlay(content, overlay, extention, output_path)
             overlay_applied = True
         else:
             self._bytes_to_path(content, output_path)
 
         if extention == '.jpg':
-            return process_image(memory, output_path, config)
+            return process_image(self.memory, output_path, self.config)
 
-        return ProcessVideo().run(memory, output_path, config)
+        return ProcessVideo(self.memory, output_path, self.config).run()
 
 
-    @staticmethod
-    def _apply_overlay(content: bytes, overlay: bytes, extention: str, output_path: Path, config):
+    def _apply_overlay(self, content: bytes, overlay: bytes, extention: str, output_path: Path):
         if extention == '.jpg':
-            ImageComposer().apply_overlay(content, overlay, output_path, config)
+            ImageComposer().apply_overlay(content, overlay, output_path, self.config)
         else:
-            VideoComposer().apply_overlay(content, overlay, output_path, config)
+            VideoComposer().apply_overlay(content, overlay, output_path, self.config)
 
 
     @staticmethod

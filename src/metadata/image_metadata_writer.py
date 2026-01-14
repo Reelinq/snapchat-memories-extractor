@@ -6,18 +6,21 @@ from src.config import Config
 
 
 class ImageMetadataWriter:
-    def __init__(self):
+    def __init__(self, memory: Memory, file_path: Path, config: Config):
+        self.memory = memory
+        self.file_path = file_path
+        self.config = config
         self.exif_metadata = {"0th": {}, "Exif": {}, "GPS": {}}
 
 
-    def write_image_metadata(self, memory: Memory, file_path: Path, config: Config):
-        self._set_datetime_fields(memory.exif_datetime)
-        self._set_gps_fields(memory.location_coords)
-        self._save_image_with_exif(file_path, self.exif_metadata, config)
+    def write_image_metadata(self):
+        self._set_datetime_fields()
+        self._set_gps_fields()
+        self._save_image_with_exif()
 
 
-    def _set_datetime_fields(self, exif_datetime):
-        datetime_bytes = exif_datetime.encode('utf-8')
+    def _set_datetime_fields(self):
+        datetime_bytes = self.memory.exif_datetime.encode('utf-8')
         exif = self.exif_metadata["Exif"]
         zeroth = self.exif_metadata["0th"]
 
@@ -26,11 +29,11 @@ class ImageMetadataWriter:
         zeroth[piexif.ImageIFD.DateTime] = datetime_bytes
 
 
-    def _set_gps_fields(self, coordinates):
-        if not coordinates:
+    def _set_gps_fields(self):
+        if not self.memory.location_coords:
             return
 
-        latitude, longitude = coordinates
+        latitude, longitude = self.memory.location_coords
         gps = self.exif_metadata["GPS"]
         latitude_dms = self._decimal_to_dms(latitude)
         longitude_dms = self._decimal_to_dms(longitude)
@@ -66,10 +69,9 @@ class ImageMetadataWriter:
         )
 
 
-    @staticmethod
-    def _save_image_with_exif(file_path: Path, exif_metadata: dict, config: Config) -> None:
-        quality = config.from_args().cli_options['jpeg_quality']
-        exif_data_bytes = piexif.dump(exif_metadata)
+    def _save_image_with_exif(self) -> None:
+        quality = self.config.from_args().cli_options['jpeg_quality']
+        exif_data_bytes = piexif.dump(self.exif_metadata)
 
-        with Image.open(file_path) as image:
-            image.save(str(file_path), exif=exif_data_bytes, quality=quality)
+        with Image.open(self.file_path) as image:
+            image.save(str(self.file_path), exif=exif_data_bytes, quality=quality)
