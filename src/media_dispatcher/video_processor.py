@@ -17,7 +17,7 @@ class ProcessVideo:
             return VideoMetadataWriter(self.memory, self.file_path, self.config).write_video_metadata()
 
         if self._should_process_video():
-            file_path = VideoConverter().run(self.file_path, self.config)
+            file_path = VideoConverter(self.config).run(self.file_path)
 
         return file_path
 

@@ -13,6 +13,6 @@ def process_image(memory: Memory, file_path: Path, config: Config):
         ImageMetadataWriter(memory, file_path, config).write_image_metadata()
 
     if convert_to_jxl:
-        file_path = JXLConverter().run(file_path, config)
+        file_path = JXLConverter(config, file_path).run()
 
     return file_path
