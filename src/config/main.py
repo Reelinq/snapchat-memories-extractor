@@ -19,4 +19,5 @@ class Config:
     def setup_config(cls) -> 'Config':
         args = get_cli_args()
         cli_options = build_cli_options(args)
+        cls.cli_options = cli_options
         return cls(cli_options=cli_options)
