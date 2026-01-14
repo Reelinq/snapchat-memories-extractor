@@ -16,7 +16,7 @@ class ZipProcessor:
 
 
     def _read_files(self, zip_file: ZipFile):
-        extract_overlay = self.config.from_args().cli_options['apply_overlay']
+        extract_overlay = self.config.cli_options['apply_overlay']
 
         overlay_file_name = self._find_file(zip_file, find_png=True)
         media_file_name = self._find_file(zip_file, find_png=False)

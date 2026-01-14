@@ -18,7 +18,7 @@ class DownloadTask:
         return DownloadService(self.config, self.memory).run()
 
     def _ensure_strict_location(self) -> bool:
-        if self.config.from_args().cli_options['strict_location'] and self.memory.location_coords is None:
+        if self.config.cli_options['strict_location'] and self.memory.location_coords is None:
             log(f"Skipping {self.memory.filename_with_ext}: No location data available", "warning")
             return False
 

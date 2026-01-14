@@ -34,8 +34,8 @@ def test_config_cli_flags(monkeypatch, cli_args, expected):
         # Patch sys.argv for argparse
         import sys
         monkeypatch.setattr(sys, "argv", ["main.py"] + cli_args)
-        config = Config.from_args()
+        config = config
         for key, value in expected.items():
-            assert Config.from_args().cli_options[key] == value, f"{key} expected {value}, got {Config.from_args().cli_options[key]}"
+            assert config.cli_options[key] == value, f"{key} expected {value}, got {config.cli_options[key]}"
     finally:
         shutil.rmtree(temp_dir)

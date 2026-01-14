@@ -26,7 +26,7 @@ class VideoComposer:
         overlay_temporary_file_path = self._write_overlay_to_temp_file(overlay_image)
 
         ffmpeg_command = self._build_ffmpeg_overlay_command(video_temporary_file_path, overlay_temporary_file_path)
-        ffmpeg_timeout = self.config.from_args().cli_options['ffmpeg_timeout']
+        ffmpeg_timeout = self.config.cli_options['ffmpeg_timeout']
         self._run_ffmpeg_command(ffmpeg_command, ffmpeg_timeout)
         self._cleanup_temp_files(video_temporary_file_path, overlay_temporary_file_path)
 

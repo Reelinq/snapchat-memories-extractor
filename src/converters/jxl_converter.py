@@ -22,7 +22,7 @@ class JXLConverter:
 
         output_path = self.input_path.with_suffix('.jxl')
         command = self._build_cjxl_command(cjxl_path, output_path)
-        timeout = self.config.from_args().cli_options['cjxl_timeout']
+        timeout = self.config.cli_options['cjxl_timeout']
         result = subprocess.run(command, capture_output=True, timeout=timeout)
 
         if result.returncode != 0:

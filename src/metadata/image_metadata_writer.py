@@ -70,7 +70,7 @@ class ImageMetadataWriter:
 
 
     def _save_image_with_exif(self) -> None:
-        quality = self.config.from_args().cli_options['jpeg_quality']
+        quality = self.config.cli_options['jpeg_quality']
         exif_data_bytes = piexif.dump(self.exif_metadata)
 
         with Image.open(self.file_path) as image:

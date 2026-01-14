@@ -15,7 +15,7 @@ class Config:
         ensure_directories(self.downloads_folder, self.logs_folder)
 
     @classmethod
-    def from_args(class_reference) -> 'Config':
+    def setup_config(class_reference) -> 'Config':
         args = get_cli_args()
         cli_options = build_cli_options(args)
         return class_reference(cli_options=cli_options)

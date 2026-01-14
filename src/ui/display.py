@@ -46,7 +46,7 @@ class Display:
 
     def _get_first_line(self) -> str:
         attempt = str(StatsManager.current_attempt)
-        total_attempts = self.config.from_args().cli_options['max_attempts']
+        total_attempts = self.config.cli_options['max_attempts']
         left = " SNAPCHAT MEMORIES DOWNLOADER"
         right = f"ATTEMPT {attempt} / {total_attempts} "
         return left.ljust(display_size - len(right)) + right

@@ -29,7 +29,7 @@ class DownloadService:
 
 
     def _download_memory(self) -> Response:
-        timeout = self.config.from_args().cli_options['request_timeout']
+        timeout = self.config.cli_options['request_timeout']
         http_response = self._build_session().get(
             self.memory.media_download_url,
             timeout=timeout
@@ -45,7 +45,7 @@ class DownloadService:
 
 
     def _create_http_adapter(self) -> adapters.HTTPAdapter:
-        max_concurrent = self.config.from_args().cli_options['max_concurrent_downloads']
+        max_concurrent = self.config.cli_options['max_concurrent_downloads']
         adapter = adapters.HTTPAdapter(
             pool_connections=max_concurrent,
             pool_maxsize=max_concurrent * 2,

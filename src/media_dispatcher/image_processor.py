@@ -6,8 +6,8 @@ from src.metadata import ImageMetadataWriter
 
 
 def process_image(memory: Memory, file_path: Path, config: Config):
-    convert_to_jxl = config.from_args().cli_options['convert_to_jxl']
-    write_metadata = config.from_args().cli_options['write_metadata']
+    convert_to_jxl = config.cli_options['convert_to_jxl']
+    write_metadata = config.cli_options['write_metadata']
 
     if write_metadata:
         ImageMetadataWriter(memory, file_path, config).write_image_metadata()

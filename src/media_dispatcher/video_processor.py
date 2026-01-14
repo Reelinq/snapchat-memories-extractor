@@ -13,7 +13,7 @@ class ProcessVideo:
 
 
     def run(self):
-        if self.config.from_args().cli_options['write_metadata']:
+        if self.config.cli_options['write_metadata']:
             return VideoMetadataWriter(self.memory, self.file_path, self.config).write_video_metadata()
 
         if self._should_process_video():
@@ -24,11 +24,11 @@ class ProcessVideo:
 
     def _should_process_video(self):
         if (
-            self.config.from_args().cli_options['video_codec'] != 'h264' or
-            self.config.from_args().cli_options['ffmpeg_preset'] != 'fast' or
-            self.config.from_args().cli_options['ffmpeg_pixel_format'] != 'yuv420p' or
-            self.config.from_args().cli_options['write_metadata'] != True or
-            self.config.from_args().cli_options['crf'] != 23
+            self.config.cli_options['video_codec'] != 'h264' or
+            self.config.cli_options['ffmpeg_preset'] != 'fast' or
+            self.config.cli_options['ffmpeg_pixel_format'] != 'yuv420p' or
+            self.config.cli_options['write_metadata'] != True or
+            self.config.cli_options['crf'] != 23
             ):
             return True
         return False

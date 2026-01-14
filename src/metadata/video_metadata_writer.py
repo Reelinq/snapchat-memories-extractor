@@ -17,7 +17,7 @@ class VideoMetadataWriter:
         temporary_video_path = self.file_path.with_suffix('.tmp.mp4')
         command = self._build_ffmpeg_command(temporary_video_path)
 
-        timeout = self.config.from_args().cli_options['ffmpeg_timeout']
+        timeout = self.config.cli_options['ffmpeg_timeout']
         ffmpeg_run_result = subprocess.run(command, capture_output=True, timeout=timeout)
 
         if ffmpeg_run_result.returncode == 0:

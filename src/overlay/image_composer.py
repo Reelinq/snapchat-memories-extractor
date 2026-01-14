@@ -18,7 +18,7 @@ class ImageComposer:
         combined_image = Image.alpha_composite(base_image, overlay_image)
         combined_rgb_image = combined_image.convert('RGB')
 
-        quality = config.from_args().cli_options['jpeg_quality']
+        quality = config.cli_options['jpeg_quality']
         combined_rgb_image.save(str(output_path), format='JPEG', quality=quality)
 
 

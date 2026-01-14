@@ -15,7 +15,7 @@ class ZipProcessor:
 
 
     def run(self):
-        apply_overlay = self.config.from_args().cli_options['apply_overlay']
+        apply_overlay = self.config.cli_options['apply_overlay']
         content, overlay, extention = CoreZipProcessor(self.file_path, self.config).extract_media_from_zip()
         output_path = self.file_path.with_suffix(extention)
         self.file_path.unlink()

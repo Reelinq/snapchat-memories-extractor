@@ -35,8 +35,8 @@ def test_log_file_levels(level_input, expected_level, expected_levels):
         from src.logger import setup_logging
         logger = setup_logging(
             name="snapchat_extractor",
-            log_level=Config.from_args().cli_options['log_level'],
-            log_dir=Config.from_args().cli_options['logs_folder']
+            log_level=config.cli_options['log_level'],
+            log_dir=config.cli_options['logs_folder']
         )
 
         logger.debug("debug message")

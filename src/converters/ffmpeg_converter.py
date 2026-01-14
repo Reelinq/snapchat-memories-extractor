@@ -30,21 +30,21 @@ class VideoConverter:
 
 
     def _get_video_codec(self) -> str:
-        if self.config.from_args().cli_options['video_codec'] == 'h265':
+        if self.config.cli_options['video_codec'] == 'h265':
             return 'libx265'
         return 'libx264'
 
 
     def _get_video_crf(self) -> str:
-        user_crf = getattr(self.config.from_args().cli_options, 'crf', None)
+        user_crf = getattr(self.config.cli_options, 'crf', None)
         if user_crf == None:
-            return "23" if self.config.from_args().cli_options['video_codec'] == 'h264' else "28"
+            return "23" if self.config.cli_options['video_codec'] == 'h264' else "28"
         return str(user_crf)
 
 
     def _get_ffmpeg_preset(self) -> str:
-        return self.config.from_args().cli_options['ffmpeg_preset']
+        return self.config.cli_options['ffmpeg_preset']
 
 
     def _get_video_pixel_format(self) -> str:
-        return self.config.from_args().cli_options['ffmpeg_pixel_format']
+        return self.config.cli_options['ffmpeg_pixel_format']
