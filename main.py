@@ -5,17 +5,17 @@ from src.config import Config
 
 
 if __name__ == "__main__":
-    config = Config.setup_config()
-    LogInitializer(config).configure_logger()
+    Config.setup_config()
+    LogInitializer(Config).configure_logger()
 
     StatsManager()
 
     log("Application started", "info")
 
-    SetupDownloader().run(config)
+    SetupDownloader().run(Config)
 
 # ------------------------------------------------
 
     UpdateUI()._clear_display()
-    Display(config).print_display(finished = True)
+    Display(Config).print_display(finished = True)
     log("Application finished", "info")
