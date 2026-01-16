@@ -1,15 +1,20 @@
 class GenerateProgressBar:
-    def run(self, current: int, total: int, bar_length = 55) -> str:
-        filled_bar_length = self._calculate_progress(total, current, bar_length)
+    def __init__(self, current: int, total: int, bar_length = 55):
+        self.current = current
+        self.total = total
+        self.bar_length = bar_length
+
+
+    def run(self, ) -> str:
+        filled_bar_length = self._calculate_progress()
         progress_bar_display = (
             '█' * filled_bar_length +
-            '░' * (bar_length - filled_bar_length)
+            '░' * (self.bar_length - filled_bar_length)
         )
         return progress_bar_display
 
 
-    @staticmethod
-    def _calculate_progress(total: int, current: int, bar_length: int) -> int:
-        if total == 0:
+    def _calculate_progress(self) -> int:
+        if self.total == 0:
             return 0
-        return int(bar_length * current / total)
+        return int(self.bar_length * self.current / self.total)

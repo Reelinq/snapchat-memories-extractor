@@ -7,8 +7,7 @@ from src.config import Config
 
 
 class JXLConverter:
-    def __init__(self, config: Config, input_path: Path):
-        self.config = config
+    def __init__(self, input_path: Path):
         self.input_path = input_path
 
 
@@ -22,12 +21,15 @@ class JXLConverter:
 
         output_path = self.input_path.with_suffix('.jxl')
         command = self._build_cjxl_command(cjxl_path, output_path)
-        timeout = self.config.cli_options['cjxl_timeout']
+        timeout = Config.cli_options['cjxl_timeout']
         result = subprocess.run(command, capture_output=True, timeout=timeout)
 
         if result.returncode != 0:
             self._log_cjxl_failure(result)
             return self.input_path
+
+        if output_path.exists() and self.input_path.exists():
+            self.input_path.unlink()
 
         if output_path.exists() and self.input_path.exists():
             self.input_path.unlink()
@@ -68,7 +70,7 @@ class JXLConverter:
         ]
 
 
-    def _log_cjxl_failure(self, result):
+    def _log_cjxl_failure(self, result: subprocess.CompletedProcess) -> None:
         if result.stderr:
             stderr = result.stderr.decode('utf-8', errors='ignore')
         else:

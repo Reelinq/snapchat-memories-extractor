@@ -8,9 +8,9 @@ from requests import Response, Session, adapters
 
 
 class DownloadService:
-    def __init__(self, config: Config, memory: Memory):
-        self.config = config
+    def __init__(self, memory: Memory):
         self.memory = memory
+
 
     def run(self) -> tuple[bool, str | None]:
         file_path = None
@@ -23,13 +23,13 @@ class DownloadService:
         self.memory.is_zip = self._is_zip_response(response)
 
         file_path = self._store_downloaded_memory(response)
-        file_path = process_media(self.memory, file_path, self.config)
+        file_path = process_media(self.memory, file_path)
 
         return file_path, True
 
 
     def _download_memory(self) -> Response:
-        timeout = self.config.cli_options['request_timeout']
+        timeout = Config.cli_options['request_timeout']
         http_response = self._build_session().get(
             self.memory.media_download_url,
             timeout=timeout
@@ -45,7 +45,7 @@ class DownloadService:
 
 
     def _create_http_adapter(self) -> adapters.HTTPAdapter:
-        max_concurrent = self.config.cli_options['max_concurrent_downloads']
+        max_concurrent = Config.cli_options['max_concurrent_downloads']
         adapter = adapters.HTTPAdapter(
             pool_connections=max_concurrent,
             pool_maxsize=max_concurrent * 2,
@@ -64,8 +64,8 @@ class DownloadService:
         return content_type.lower() == "application/zip"
 
 
-    def _store_downloaded_memory(self, download_response: Response) -> Path:
-        file_path = self.config.downloads_folder / self.memory.filename_with_ext
+    def _store_downloaded_memory(self, download_response: Response):
+        file_path = Config.downloads_folder / self.memory.filename_with_ext
 
         if file_path.exists():
             file_path = FileNameResolver(file_path).run()

@@ -5,14 +5,14 @@ from src.converters import JXLConverter
 from src.metadata import ImageMetadataWriter
 
 
-def process_image(memory: Memory, file_path: Path, config: Config):
-    convert_to_jxl = config.cli_options['convert_to_jxl']
-    write_metadata = config.cli_options['write_metadata']
+def process_image(memory: Memory, file_path: Path):
+    convert_to_jxl = Config.cli_options['convert_to_jxl']
+    write_metadata = Config.cli_options['write_metadata']
 
     if write_metadata:
-        ImageMetadataWriter(memory, file_path, config).write_image_metadata()
+        ImageMetadataWriter(memory, file_path).write_image_metadata()
 
     if convert_to_jxl:
-        file_path = JXLConverter(config, file_path).run()
+        file_path = JXLConverter(file_path).run()
 
     return file_path

@@ -5,14 +5,14 @@ from src.logger import log
 
 
 class SetupDownloader:
-    def run(self, config: Config) -> None:
-        max_attempts = config.cli_options['max_attempts']
+    def run(self):
+        max_attempts = Config.cli_options['max_attempts']
 
         for attempt in range(max_attempts):
-            Display(config).print_display(loading=True)
+            Display().print_display(loading=True)
             log(f"Starting attempt {attempt + 1} / {max_attempts}...", "info")
             StatsManager.new_attempt()
-            MemoryDownloader(config).run()
+            MemoryDownloader().run()
 
             if not self._check_for_failures():
                 break

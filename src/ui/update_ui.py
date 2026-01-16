@@ -3,9 +3,9 @@ from src.ui import Display
 
 
 class UpdateUI():
-    def run(self, config):
+    def run(self):
         self._clear_display()
-        Display(config).print_display()
+        Display().print_display()
 
 
     @staticmethod

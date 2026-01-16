@@ -16,8 +16,13 @@ class Config:
 
 
     @classmethod
-    def setup_config(cls) -> 'Config':
+    def initialize_config(cls):
         args = get_cli_args()
-        cli_options = build_cli_options(args)
-        cls.cli_options = cli_options
-        return cls(cli_options=cli_options)
+        cls.cli_options = build_cli_options(args)
+        cls._ensure_directories()
+
+
+    @classmethod
+    def _ensure_directories(cls):
+        cls.downloads_folder.mkdir(parents=True, exist_ok=True)
+        cls.logs_folder.mkdir(parents=True, exist_ok=True)

@@ -8,10 +8,6 @@ from src.ui import StatsManager, UpdateUI
 
 
 class MemoryDownloader:
-    def __init__(self, config: Config):
-        self.config = config
-
-
     def run(self):
         completed_downloads_count = 0
         future_download_tasks = self._gather_future_download_tasks()
@@ -31,14 +27,14 @@ class MemoryDownloader:
 
     def _gather_future_download_tasks(self):
         download_tasks = self._gather_download_tasks()
-        max_workers = self.config.cli_options['max_concurrent_downloads']
+        max_workers = Config.cli_options['max_concurrent_downloads']
         executor = ThreadPoolExecutor(max_workers=max_workers)
 
         # Use dictonary becaude otherwsie index gets lost in 'as_completed'
         futures = {}
 
         for index, memory in enumerate(download_tasks):
-            future = executor.submit(DownloadTask(memory, self.config).run())
+            future = executor.submit(DownloadTask(memory).run)
             futures[future] = (index, memory)
 
         return futures
@@ -62,7 +58,7 @@ class MemoryDownloader:
             self._download_succeeded(memory, file_path)
         else:
             StatsManager.failed_downloads_count += 1
-        UpdateUI().run(self.config)
+        UpdateUI().run()
 
 
     def _download_succeeded(self, memory: Memory, file_path: Path) -> None:

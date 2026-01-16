@@ -8,14 +8,12 @@ from src.ui.format_time import format_time
 display_size = 70
 
 class Display:
-    def __init__(self, config: Config):
-        self.config = config
-
+    def __init__(self):
         total = StatsManager.total_files
         current = StatsManager.successful_downloads_count + \
             StatsManager.failed_downloads_count
         self.remaining = total - current
-        self.progress_bar = GenerateProgressBar().run(current, total)
+        self.progress_bar = GenerateProgressBar(current, total).run()
         self.percent = (current / total * 100) if total > 0 else 0
         self.successful = StatsManager.successful_downloads_count
         self.failed = StatsManager.failed_downloads_count
@@ -46,7 +44,7 @@ class Display:
 
     def _get_first_line(self) -> str:
         attempt = str(StatsManager.current_attempt)
-        total_attempts = self.config.cli_options['max_attempts']
+        total_attempts = Config.cli_options['max_attempts']
         left = " SNAPCHAT MEMORIES DOWNLOADER"
         right = f"ATTEMPT {attempt} / {total_attempts} "
         return left.ljust(display_size - len(right)) + right

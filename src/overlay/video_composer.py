@@ -8,16 +8,15 @@ from src.config import Config
 
 
 class VideoComposer:
-    def __init__(self, video_bytes: bytes, overlay_bytes: bytes, output_path: Path, config: Config):
+    def __init__(self, video_bytes: bytes, overlay_bytes: bytes, output_path: Path):
         self.video_bytes = video_bytes
         self.overlay_bytes = overlay_bytes
         self.output_path = output_path
-        self.config = config
 
 
     def apply_overlay(self):
         # FFMPEG can't read from memory, so we need to write to temp files
-        video_temporary_file_path = self._write_video_to_temp_file()
+        video_temporary_file_path = self._write_video_to_temp_file('.mp4')
         video_width, video_height = self._get_video_dimensions(video_temporary_file_path)
 
         overlay_image = Image.open(BytesIO(self.overlay_bytes))
@@ -26,13 +25,13 @@ class VideoComposer:
         overlay_temporary_file_path = self._write_overlay_to_temp_file(overlay_image)
 
         ffmpeg_command = self._build_ffmpeg_overlay_command(video_temporary_file_path, overlay_temporary_file_path)
-        ffmpeg_timeout = self.config.cli_options['ffmpeg_timeout']
+        ffmpeg_timeout = Config.cli_options['ffmpeg_timeout']
         self._run_ffmpeg_command(ffmpeg_command, ffmpeg_timeout)
         self._cleanup_temp_files(video_temporary_file_path, overlay_temporary_file_path)
 
 
-    def _write_video_to_temp_file(self) -> str:
-        with tempfile.NamedTemporaryFile(delete=False, suffix='.mp4') as temp_file:
+    def _write_video_to_temp_file(self, suffix: str) -> str:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as temp_file:
             temp_file.write(self.video_bytes)
             return temp_file.name
 

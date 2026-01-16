@@ -8,15 +8,14 @@ from src.media_dispatcher.video_processor import ProcessVideo
 
 
 class ZipProcessor:
-    def __init__(self, memory: Memory, file_path: Path, config: Config):
+    def __init__(self, memory: Memory, file_path: Path):
         self.memory = memory
         self.file_path = file_path
-        self.config = config
 
 
     def run(self):
-        apply_overlay = self.config.cli_options['apply_overlay']
-        content, overlay, extention = CoreZipProcessor(self.file_path, self.config).extract_media_from_zip()
+        apply_overlay = Config.cli_options['apply_overlay']
+        content, overlay, extention = CoreZipProcessor(self.file_path).extract_media_from_zip()
         output_path = self.file_path.with_suffix(extention)
         self.file_path.unlink()
         overlay_applied = False
@@ -28,16 +27,16 @@ class ZipProcessor:
             self._bytes_to_path(content, output_path)
 
         if extention == '.jpg':
-            return process_image(self.memory, output_path, self.config)
+            return process_image(self.memory, output_path)
 
-        return ProcessVideo(self.memory, output_path, self.config).run()
+        return ProcessVideo().run(self.memory, output_path)
 
 
     def _apply_overlay(self, content: bytes, overlay: bytes, extention: str, output_path: Path):
         if extention == '.jpg':
-            ImageComposer().apply_overlay(content, overlay, output_path, self.config)
+            ImageComposer(content, overlay, output_path).apply_overlay()
         else:
-            VideoComposer().apply_overlay(content, overlay, output_path, self.config)
+            VideoComposer(content, overlay, output_path).apply_overlay()
 
 
     @staticmethod

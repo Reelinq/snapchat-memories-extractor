@@ -7,17 +7,16 @@ from src.logger import log
 
 
 class VideoMetadataWriter:
-    def __init__(self, memory: Memory, file_path: Path, config: Config):
+    def __init__(self, memory: Memory, file_path: Path):
         self.memory = memory
         self.file_path = file_path
-        self.config = config
 
 
     def write_video_metadata(self) -> Path:
         temporary_video_path = self.file_path.with_suffix('.tmp.mp4')
         command = self._build_ffmpeg_command(temporary_video_path)
 
-        timeout = self.config.cli_options['ffmpeg_timeout']
+        timeout = Config.cli_options['ffmpeg_timeout']
         ffmpeg_run_result = subprocess.run(command, capture_output=True, timeout=timeout)
 
         if ffmpeg_run_result.returncode == 0:

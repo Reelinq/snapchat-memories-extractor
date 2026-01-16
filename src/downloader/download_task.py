@@ -6,19 +6,19 @@ from src.downloader.download_service import DownloadService
 
 
 class DownloadTask:
-    def __init__(self, memory: Memory, config: Config):
+    def __init__(self, memory: Memory):
         self.memory = memory
-        self.config = config
 
 
     def run(self) -> tuple[Path, bool]:
         if not self._ensure_strict_location():
             return None, False
 
-        return DownloadService(self.config, self.memory).run()
+        return DownloadService(self.memory).run()
+
 
     def _ensure_strict_location(self) -> bool:
-        if self.config.cli_options['strict_location'] and self.memory.location_coords is None:
+        if Config.cli_options['strict_location'] and self.memory.location_coords is None:
             log(f"Skipping {self.memory.filename_with_ext}: No location data available", "warning")
             return False
 
