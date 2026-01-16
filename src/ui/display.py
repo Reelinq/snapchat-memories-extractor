@@ -68,7 +68,7 @@ class Display:
 
 
     def _get_finished_display_lines(self):
-        line3 = f"  ✅ All downloads completed!"
+        line3 = f"  ✅ Download process complete."
         line4 = f"  📥 Downloaded: {self.successful}  │  ❌ Failed: {self.failed}  │  🕐 Total Time: {format_time(self.elapsed_time):>10}"
         return line3, line4
 
