@@ -1,5 +1,6 @@
 from pathlib import Path
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor, as_completed, Future
+from typing import Dict, Tuple
 from src.config import Config
 from src.downloader.download_task import DownloadTask
 from src.memories import *
@@ -9,20 +10,31 @@ from src.ui import StatsManager, UpdateUI
 
 class MemoryDownloader:
     def run(self):
-        completed_downloads_count = 0
         future_download_tasks = self._gather_future_download_tasks()
 
         if not future_download_tasks:
             log("No items to download.", "info")
             return
 
-        for future in as_completed(future_download_tasks):
-            _, memory = future_download_tasks[future]
-            completed_downloads_count += 1
+        try:
+            self._execute_downloads(future_download_tasks)
+        except KeyboardInterrupt:
+            self._handle_keyboard_interrupt(future_download_tasks)
 
+
+    def _execute_downloads(self, tasks: Dict[Future, Tuple[int, Memory]]):
+        for future in as_completed(tasks):
+            _, memory = tasks[future]
             file_path, download_succeeded = future.result()
-
             self._check_for_success(download_succeeded, memory, file_path)
+
+
+    def _handle_keyboard_interrupt(self, tasks):
+        log("KeyboardInterrupt received. Converting last files before exit...", "info")
+        unfinished = [f for f in tasks if not f.done()]
+        unfinished_dict = {f: tasks[f] for f in unfinished}
+        self._execute_downloads(unfinished_dict)
+        log("All running downloads/conversions finished. Exiting.", "info")
 
 
     def _gather_future_download_tasks(self):
