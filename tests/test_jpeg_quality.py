@@ -2,11 +2,12 @@ import logging
 from unittest.mock import patch, MagicMock
 import pytest
 from src.config import Config
-from src.downloader.download_service import DownloadService
+from src.memories import Memory
+from src.media_dispatcher import process_media
 
 @pytest.mark.parametrize("jpeg_quality", [50, 77, 95])
-def test_jpeg_quality_behavior(jpeg_quality):
-    cli_options = {
+def test_jpeg_quality_behavior(jpeg_quality, tmp_path):
+    Config.cli_options = {
         'max_concurrent_downloads': 2,
         'apply_overlay': True,
         'write_metadata': True,
@@ -17,17 +18,21 @@ def test_jpeg_quality_behavior(jpeg_quality):
         'log_level': logging.CRITICAL,
         'request_timeout': 30,
         'ffmpeg_timeout': 60,
-        'stream_chunk_size': 1024 * 1024
+        'stream_chunk_size': 1024 * 1024,
+        'cjxl_timeout': 120
     }
-    config = Config(cli_options=cli_options)
-    ds = DownloadService(config, MagicMock())
-    ds.content_processor = MagicMock()
-    ds.content_processor.is_zip.return_value = False
-    memory = MagicMock()
-    memory.media_type = "Image"
-    memory.filename_with_ext = "file.jpg"
-    with patch("src.services.download_service.get_media_processor") as mock_proc:
-        ds._process_regular(b'data', memory)
-        if mock_proc.return_value.write_metadata.called:
-            args, kwargs = mock_proc.return_value.write_metadata.call_args
+    memory = Memory.model_validate({
+        "Date": "2023-12-05 12:34:56 UTC",
+        "Media Download Url": "http://example.com/media.jpg",
+        "Media Type": "Image",
+        "Location": None
+    })
+    file_path = tmp_path / "file.jpg"
+    file_path.write_bytes(b"data")
+    with patch("src.media_dispatcher.image_processor.process_image") as mock_proc_img, \
+         patch("PIL.Image.open") as mock_image_open:
+        mock_image_open.return_value = MagicMock()
+        process_media(memory, file_path)
+        if mock_proc_img.called:
+            args, kwargs = mock_proc_img.call_args
             assert jpeg_quality in args or jpeg_quality in kwargs.values()

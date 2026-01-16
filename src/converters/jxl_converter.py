@@ -55,7 +55,7 @@ class JXLConverter:
 
 
     def _is_convertible_image(self) -> bool:
-        if self.input_path.suffix.lower() in ('.jpg', '.jpeg'):
+        if self.input_path.suffix.lower() in ('.jpg', '.jpeg') and self.input_path.exists():
             return True
         return False
 

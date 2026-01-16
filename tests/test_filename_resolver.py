@@ -15,8 +15,8 @@ def temp_dir():
 
 @pytest.fixture
 def resolver(temp_dir):
-    """Create a FileNameResolver instance"""
-    return FileNameResolver(temp_dir)
+    """Create a FileNameResolver instance for file.txt in temp_dir"""
+    return FileNameResolver(temp_dir / "file.txt")
 
 
 def test_unique_filename_first_duplicate(temp_dir, resolver):
@@ -26,7 +26,7 @@ def test_unique_filename_first_duplicate(temp_dir, resolver):
     original.write_text("a")
 
     # Request a unique path for a file that already exists
-    new_path = resolver.resolve_unique_path(original)
+    new_path = resolver.run()
 
     # Debug: print what we got
     print(f"Original: {original}")
@@ -48,11 +48,11 @@ def test_unique_filename_second_duplicate(temp_dir, resolver):
     original.write_text("a")
 
     # Get first duplicate path and create it
-    first_dup = resolver.resolve_unique_path(original)
+    first_dup = resolver.run()
     first_dup.write_text("b")
 
     # Get second duplicate path
-    second_dup = resolver.resolve_unique_path(original)
+    second_dup = resolver.run()
 
     assert first_dup.name == "file_1.txt"
     assert second_dup.name == "file_2.txt"

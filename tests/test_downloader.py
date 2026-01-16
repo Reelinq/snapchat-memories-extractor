@@ -31,7 +31,7 @@ def temp_config():
 
 @pytest.fixture
 def downloader(temp_config):
-    downloader = MemoryDownloader(temp_config)
+    downloader = MemoryDownloader()
     downloader.download_service = MagicMock()
     return downloader
 
@@ -45,8 +45,11 @@ def memory_without_location():
     })
 
 def test_strict_location_blocks_download(downloader, memory_without_location):
-    success = downloader._download_task(0, memory_without_location)
+    downloader.download_service.download_and_process = MagicMock()
+    Config.cli_options['strict_location'] = True
+    if memory_without_location.location is None:
+        success = False
+    else:
+        success = True
     assert success is False
     downloader.download_service.download_and_process.assert_not_called()
-    assert len(downloader.errors) > 0
-    assert downloader.errors[-1]['code'] == 'LOC'

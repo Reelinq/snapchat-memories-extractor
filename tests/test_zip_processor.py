@@ -3,41 +3,48 @@ from io import BytesIO
 import pytest
 from src.zip_processor import ZipProcessor
 
-@pytest.fixture
-def zip_with_jpg_and_overlay():
-    buf = BytesIO()
-    with zipfile.ZipFile(buf, 'w') as zf:
-        zf.writestr('test.jpg', b'jpgdata')
-        zf.writestr('overlay.png', b'pngdata')
-    return buf.getvalue()
+
+import zipfile
+import tempfile
+import pytest
+from pathlib import Path
+from src.zip_processor import ZipProcessor
+from src.config import Config
 
 @pytest.fixture
-def zip_with_mp4_and_overlay():
-    buf = BytesIO()
-    with zipfile.ZipFile(buf, 'w') as zf:
-        zf.writestr('video.mp4', b'mp4data')
-        zf.writestr('overlay.png', b'pngdata2')
-    return buf.getvalue()
+def make_zip(tmp_path):
+    def _make_zip(media_name, media_data, overlay_name=None, overlay_data=None):
+        zip_path = tmp_path / "test.zip"
+        with zipfile.ZipFile(zip_path, "w") as zf:
+            zf.writestr(media_name, media_data)
+            if overlay_name and overlay_data:
+                zf.writestr(overlay_name, overlay_data)
+        return zip_path
+    return _make_zip
 
-@pytest.mark.parametrize("content,content_type,expected", [
-    (b'PK\x03\x04dummyzipcontent', 'application/zip', True),
-    (b'PK\x03\x04dummyzipcontent', 'something/zip', True),
-    (b'PK\x03\x04dummyzipcontent', 'other', True),  # magic bytes
-    (b'notazip', 'text/plain', False),
-])
-def test_is_zip(content, content_type, expected):
-    assert ZipProcessor.is_zip(content, content_type) == expected
+def test_extract_media_from_zip_jpg(make_zip):
+    Config.cli_options = {"apply_overlay": True}
+    zip_path = make_zip("test.jpg", b"jpgdata", "overlay.png", b"pngdata")
+    zp = ZipProcessor(str(zip_path))
+    media, overlay, ext = zp.extract_media_from_zip()
+    assert media == b"jpgdata"
+    assert ext == ".jpg"
+    assert overlay == b"pngdata"
 
-def test_extract_media_from_zip_jpg(zip_with_jpg_and_overlay):
-    media, ext, overlay = ZipProcessor.extract_media_from_zip(
-        zip_with_jpg_and_overlay)
-    assert media == b'jpgdata'
-    assert ext == '.jpg'
-    assert overlay == b'pngdata'
+def test_extract_media_from_zip_mp4(make_zip):
+    Config.cli_options = {"apply_overlay": True}
+    zip_path = make_zip("video.mp4", b"mp4data", "overlay.png", b"pngdata2")
+    zp = ZipProcessor(str(zip_path))
+    media, overlay, ext = zp.extract_media_from_zip()
+    assert media == b"mp4data"
+    assert ext == ".mp4"
+    assert overlay == b"pngdata2"
 
-def test_extract_media_from_zip_mp4(zip_with_mp4_and_overlay):
-    media, ext, overlay = ZipProcessor.extract_media_from_zip(
-        zip_with_mp4_and_overlay)
-    assert media == b'mp4data'
-    assert ext == '.mp4'
-    assert overlay == b'pngdata2'
+def test_extract_media_from_zip_no_overlay(make_zip):
+    Config.cli_options = {"apply_overlay": False}
+    zip_path = make_zip("test.jpg", b"jpgdata", "overlay.png", b"pngdata")
+    zp = ZipProcessor(str(zip_path))
+    media, overlay, ext = zp.extract_media_from_zip()
+    assert media == b"jpgdata"
+    assert ext == ".jpg"
+    assert overlay is None

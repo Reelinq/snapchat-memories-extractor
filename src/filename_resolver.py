@@ -8,7 +8,7 @@ class FileNameResolver:
 
 
     def run(self) -> Path:
-        used_names = [path.name for path in Config.downloads_folder.iterdir()]
+        used_names = [path.name for path in self.path.parent.iterdir()]
         candidate = self._next_available(used_names)
         used_names.append(candidate.name)
         return candidate

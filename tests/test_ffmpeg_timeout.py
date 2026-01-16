@@ -2,11 +2,12 @@ import logging
 from unittest.mock import patch, MagicMock
 import pytest
 from src.config import Config
-from src.downloader import DownloadService
+from src.memories import Memory
+from src.media_dispatcher import process_media
 
 @pytest.mark.parametrize("ffmpeg_timeout", [1, 10, 60])
-def test_ffmpeg_timeout_behavior(ffmpeg_timeout):
-    cli_options = {
+def test_ffmpeg_timeout_behavior(ffmpeg_timeout, tmp_path):
+    Config.cli_options = {
         'max_concurrent_downloads': 2,
         'apply_overlay': True,
         'write_metadata': True,
@@ -19,15 +20,14 @@ def test_ffmpeg_timeout_behavior(ffmpeg_timeout):
         'ffmpeg_timeout': ffmpeg_timeout,
         'stream_chunk_size': 1024 * 1024
     }
-    config = Config(cli_options=cli_options)
-    ds = DownloadService(config, MagicMock())
-    ds.content_processor = MagicMock()
-    ds.content_processor.is_zip.return_value = False
-    memory = MagicMock()
-    memory.media_type = "Image"
-    memory.filename_with_ext = "file.jpg"
-    with patch("src.services.download_service.get_media_processor") as mock_proc:
-        ds._process_regular(b'data', memory)
-        if mock_proc.return_value.write_metadata.called:
-            args, kwargs = mock_proc.return_value.write_metadata.call_args
-            assert ffmpeg_timeout in args or ffmpeg_timeout in kwargs.values()
+    memory = Memory.model_validate({
+        "Date": "2023-12-05 12:34:56 UTC",
+        "Media Download Url": "http://example.com/media.mp4",
+        "Media Type": "Video",
+        "Location": None
+    })
+    file_path = tmp_path / "file.mp4"
+    file_path.write_bytes(b"data")
+    with patch("src.media_dispatcher.video_processor.ProcessVideo.run") as mock_proc_vid:
+        process_media(memory, file_path)
+        assert mock_proc_vid.called

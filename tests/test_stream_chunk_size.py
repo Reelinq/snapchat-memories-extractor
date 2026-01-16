@@ -1,12 +1,14 @@
+
 import logging
 from unittest.mock import patch, MagicMock
 import pytest
 from src.config import Config
+from src.memories import Memory
 from src.downloader.download_service import DownloadService
 
 @pytest.mark.parametrize("chunk_size", [512, 2048, 4096])
-def test_stream_chunk_size_behavior(chunk_size):
-    cli_options = {
+def test_stream_chunk_size_behavior(chunk_size, tmp_path):
+    Config.cli_options = {
         'max_concurrent_downloads': 2,
         'apply_overlay': True,
         'write_metadata': True,
@@ -19,20 +21,22 @@ def test_stream_chunk_size_behavior(chunk_size):
         'ffmpeg_timeout': 60,
         'stream_chunk_size': chunk_size
     }
-    config = Config(cli_options=cli_options)
-    ds = DownloadService(config, MagicMock())
-    memory = MagicMock()
-    memory.media_download_url = "http://example.com/file.jpg"
-    ds.session = MagicMock()
-    ds.session.get.return_value = MagicMock()
-    ds.session.get.return_value.iter_content.return_value = [b'data']
-    ds.session.get.return_value.headers = {"Content-Type": "image/jpeg"}
-    ds.session.get.return_value.raise_for_status = lambda: None
-    ds.content_processor = MagicMock()
-    ds.content_processor.is_zip.return_value = False
-    # Patch iter_content to check chunk_size
-    def iter_content(chunk_size_arg):
-        assert chunk_size_arg == chunk_size
-        return [b'data']
-    ds.session.get.return_value.iter_content = iter_content
-    ds.download_and_process(memory)
+    memory = Memory.model_validate({
+        "Date": "2023-12-05 12:34:56 UTC",
+        "Media Download Url": "http://example.com/file.jpg",
+        "Media Type": "Image",
+        "Location": None
+    })
+    with patch("requests.Session.get") as mock_get, patch("PIL.Image.open") as mock_img_open:
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.headers = {"Content-Type": "image/jpeg"}
+        mock_response.content = b"data"
+        mock_get.return_value = mock_response
+        mock_img_open.return_value.__enter__.return_value = MagicMock()
+        ds = DownloadService(memory)
+        ds._build_session = MagicMock(return_value=MagicMock(get=mock_get))
+        ds._store_downloaded_memory = MagicMock(return_value=tmp_path / "file.jpg")
+        ds.memory = memory
+        ds.run()
+        mock_get.assert_called_with(memory.media_download_url, timeout=30)

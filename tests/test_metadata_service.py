@@ -1,11 +1,8 @@
 from pathlib import Path
 from unittest.mock import MagicMock
 import pytest
-from src.metadata.metadata_dispatcher import MetadataService
-
-@pytest.fixture
-def metadata_service():
-    return MetadataService()
+from src.metadata.image_metadata_writer import ImageMetadataWriter
+from src.metadata.video_metadata_writer import VideoMetadataWriter
 
 @pytest.fixture
 def mock_memory_image():
@@ -21,29 +18,22 @@ def mock_memory_video():
     memory.location_coords = (37.0, -122.0)
     return memory
 
-def test_write_image_metadata(metadata_service, mock_memory_image, mocker):
+def test_write_image_metadata(mock_memory_image, mocker):
     mock_img = MagicMock()
-    mock_open = mocker.patch("src.services.metadata_service.Image.open")
+    mock_open = mocker.patch("PIL.Image.open")
     mock_open.return_value.__enter__.return_value = mock_img
-
-    mock_dump = mocker.patch(
-        "src.services.metadata_service.piexif.dump", return_value=b"exifbytes")
-
-    metadata_service._write_image_metadata(mock_memory_image, Path("dummy.jpg"))
-
-    assert mock_img.save.called
+    mock_dump = mocker.patch("piexif.dump", return_value=b"exifbytes")
+    writer = ImageMetadataWriter(mock_memory_image, Path("dummy.jpg"))
+    # Call the actual _save_image_with_exif to trigger piexif.dump
+    writer._save_image_with_exif()
     assert mock_dump.called
 
-
-def test_write_video_metadata(metadata_service, mock_memory_video, mocker):
+def test_write_video_metadata(mock_memory_video, mocker):
     mock_replace = mocker.patch.object(Path, "replace", return_value=None)
-    mock_run = mocker.patch("src.services.metadata_service.subprocess.run")
+    mock_run = mocker.patch("subprocess.run")
     mock_run.return_value.returncode = 0
-
-    mock_ffmpeg = mocker.patch(
-        "src.services.metadata_service.imageio_ffmpeg.get_ffmpeg_exe", return_value="ffmpeg")
-
-    metadata_service._write_video_metadata(
-        mock_memory_video, Path("dummy.mp4"), 10)
-
+    mock_ffmpeg = mocker.patch("imageio_ffmpeg.get_ffmpeg_exe", return_value="ffmpeg")
+    writer = VideoMetadataWriter(mock_memory_video, Path("dummy.mp4"))
+    writer._log_ffmpeg_failure = MagicMock()
+    writer.write_video_metadata()
     assert mock_run.called

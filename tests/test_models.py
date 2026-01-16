@@ -29,7 +29,7 @@ def video_memory_data_missing_location():
     }
 
 def test_memory_creation_and_properties(image_memory_data):
-    m = Memory(**image_memory_data)
+    m = Memory.model_validate(image_memory_data)
     assert m.exif_datetime == "2023:12:05 12:34:56"
     assert m.video_creation_time == "2023-12-05T12:34:56"
     assert m.filename == "2023-12-05_12-34-56"
@@ -38,10 +38,10 @@ def test_memory_creation_and_properties(image_memory_data):
     assert m.location_coords == (37.7749, -122.4194)
 
 def test_memory_no_location(video_memory_data_no_location):
-    m = Memory(**video_memory_data_no_location)
+    m = Memory.model_validate(video_memory_data_no_location)
     assert m.location_coords is None
     assert m.extension == ".mp4"
 
 def test_memory_missing_location(video_memory_data_missing_location):
-    m = Memory(**video_memory_data_missing_location)
+    m = Memory.model_validate(video_memory_data_missing_location)
     assert m.location_coords is None

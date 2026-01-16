@@ -1,8 +1,5 @@
 import logging
-import tempfile
-import shutil
-from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 from src.config import Config
 from src.downloader.downloader import MemoryDownloader
 import pytest
@@ -22,6 +19,10 @@ def test_max_concurrent_downloads_sets_threadpool(max_workers):
         'ffmpeg_timeout': 60,
         'stream_chunk_size': 1024 * 1024
     }
-    with patch("concurrent.futures.ThreadPoolExecutor.__init__", return_value=None) as mock_exec:
-        MemoryDownloader(Config(cli_options=cli_options))
+    from src.config import Config
+    Config.cli_options = cli_options
+    with patch("src.downloader.downloader.ThreadPoolExecutor.__init__", return_value=None) as mock_exec:
+        md = MemoryDownloader()
+        md._gather_download_tasks = lambda: []  # Prevent actual download logic
+        md.run()
         mock_exec.assert_called_with(max_workers=max_workers)

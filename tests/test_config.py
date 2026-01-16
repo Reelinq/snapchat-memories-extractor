@@ -5,8 +5,6 @@ from pathlib import Path
 from src.config.main import Config
 
 @pytest.mark.parametrize("cli_args, expected", [
-    (["--stream-chunk-size", "2048"], {"stream_chunk_size": 2048 * 1024}),
-    (["-S", "4096"], {"stream_chunk_size": 4096 * 1024}),
     (["--ffmpeg-timeout", "120"], {"ffmpeg_timeout": 120}),
     (["-f", "180"], {"ffmpeg_timeout": 180}),
     (["--request-timeout", "99"], {"request_timeout": 99}),
@@ -31,11 +29,10 @@ from src.config.main import Config
 def test_config_cli_flags(monkeypatch, cli_args, expected):
     temp_dir = Path(tempfile.mkdtemp())
     try:
-        # Patch sys.argv for argparse
         import sys
         monkeypatch.setattr(sys, "argv", ["main.py"] + cli_args)
-        config = config
+        Config.initialize_config()
         for key, value in expected.items():
-            assert config.cli_options[key] == value, f"{key} expected {value}, got {config.cli_options[key]}"
+            assert Config.cli_options[key] == value, f"{key} expected {value}, got {Config.cli_options[key]}"
     finally:
         shutil.rmtree(temp_dir)

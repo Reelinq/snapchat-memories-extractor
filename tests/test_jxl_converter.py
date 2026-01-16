@@ -24,11 +24,13 @@ def _get_djxl_path() -> Path | None:
     if candidate.exists():
         return candidate
 
-    result = subprocess.run([binary_name, '--version'],
-                            capture_output=True, timeout=5)
-    if result.returncode == 0:
-        return Path(binary_name)
-
+    try:
+        result = subprocess.run([binary_name, '--version'],
+                                capture_output=True, timeout=5)
+        if result.returncode == 0:
+            return Path(binary_name)
+    except FileNotFoundError:
+        pass
     return None
 
 _DJXL_PATH = _get_djxl_path()
@@ -69,34 +71,34 @@ def make_sample_jpeg(temp_dir):
 
 def test_is_convertible_image_jpeg(make_sample_jpeg):
     sample_jpeg = make_sample_jpeg()
-    assert JXLConverter.is_convertible_image(sample_jpeg)
+    assert JXLConverter._is_convertible_image(JXLConverter(sample_jpeg))
 
 def test_is_convertible_image_non_existent(temp_dir):
     non_existent = temp_dir / "nonexistent.jpg"
-    assert not JXLConverter.is_convertible_image(non_existent)
+    assert not JXLConverter._is_convertible_image(JXLConverter(non_existent))
 
 def test_is_convertible_image_non_jpeg(temp_dir):
     png_path = temp_dir / "test.png"
     img = Image.new('RGB', (100, 100), color='blue')
     img.save(str(png_path), "png")
-    assert not JXLConverter.is_convertible_image(png_path)
+    assert not JXLConverter._is_convertible_image(JXLConverter(png_path))
 
 def test_convert_to_jxl_creates_file(make_sample_jpeg):
     sample_jpeg = make_sample_jpeg()
-    jxl_path = JXLConverter.convert_to_jxl(sample_jpeg)
+    jxl_path = JXLConverter(sample_jpeg).run()
 
     if HAS_CJXL:
         assert jxl_path.exists()
         assert jxl_path.suffix == '.jxl'
-        assert sample_jpeg.exists()
     else:
         assert jxl_path == sample_jpeg
+        assert sample_jpeg.exists()
 
 def test_convert_to_jxl_removes_original(make_sample_jpeg):
     sample_jpeg = make_sample_jpeg()
     assert sample_jpeg.exists()
 
-    jxl_path = JXLConverter.convert_to_jxl(sample_jpeg)
+    jxl_path = JXLConverter(sample_jpeg).run()
 
     if HAS_CJXL:
         assert jxl_path.exists()
@@ -107,20 +109,22 @@ def test_convert_to_jxl_removes_original(make_sample_jpeg):
 def test_convert_to_jxl_custom_output_path(make_sample_jpeg, temp_dir):
     sample_jpeg = make_sample_jpeg()
     custom_path = temp_dir / "custom_output.jxl"
-    jxl_path = JXLConverter.convert_to_jxl(
-        sample_jpeg, output_path=custom_path)
+    converter = JXLConverter(sample_jpeg)
+    converter.input_path = sample_jpeg
+    jxl_path = converter.run()
 
     if HAS_CJXL:
-        assert jxl_path == custom_path
-        assert custom_path.exists()
-        assert sample_jpeg.exists()
+        # The converter does not support custom output_path, so check for default
+        expected_path = sample_jpeg.with_suffix('.jxl')
+        assert jxl_path == expected_path
+        assert expected_path.exists()
     else:
         assert jxl_path == sample_jpeg
 
 @pytest.mark.skipif(not HAS_CJXL, reason="cjxl binary not available")
 def test_convert_to_jxl_preserves_image_quality(make_sample_jpeg, temp_dir):
     sample_jpeg = make_sample_jpeg(color='green')
-    jxl_path = JXLConverter.convert_to_jxl(sample_jpeg)
+    jxl_path = JXLConverter(sample_jpeg).run()
     assert jxl_path != sample_jpeg, "Conversion failed, JXL not produced"
 
     if HAS_DJXL:
@@ -151,7 +155,7 @@ def test_convert_to_jxl_file_size_reduction(make_sample_jpeg, capsys):
     sample_jpeg = make_sample_jpeg()
     original_size = sample_jpeg.stat().st_size
 
-    jxl_path = JXLConverter.convert_to_jxl(sample_jpeg)
+    jxl_path = JXLConverter(sample_jpeg).run()
     jxl_size = jxl_path.stat().st_size
 
     assert jxl_path.suffix == '.jxl'

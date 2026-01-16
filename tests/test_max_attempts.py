@@ -19,8 +19,9 @@ def test_max_attempts_behavior(max_attempts):
         'ffmpeg_timeout': 60,
         'stream_chunk_size': 1024 * 1024
     }
-    config = Config(cli_options=cli_options)
-    md = MemoryDownloader(config)
+    from src.config import Config
+    Config.cli_options = cli_options
+    md = MemoryDownloader()
     md.ui_stuff = MagicMock()
     md.failed_downloads_count = 1
     md.ui_stuff.side_effect = lambda: setattr(md, 'failed_downloads_count', 0)
