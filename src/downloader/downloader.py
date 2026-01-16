@@ -6,6 +6,7 @@ from src.downloader.download_task import DownloadTask
 from src.memories import *
 from src.logger import log
 from src.ui import StatsManager, UpdateUI
+from src.ui import Display
 
 
 class MemoryDownloader:
@@ -31,6 +32,7 @@ class MemoryDownloader:
 
     def _handle_keyboard_interrupt(self, tasks):
         log("KeyboardInterrupt received. Converting last files before exit...", "info")
+        UpdateUI().run('interrupted')
         unfinished = [f for f in tasks if not f.done()]
         unfinished_dict = {f: tasks[f] for f in unfinished}
         self._execute_downloads(unfinished_dict)

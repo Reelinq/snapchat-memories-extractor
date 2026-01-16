@@ -67,6 +67,12 @@ class Display:
         return line3, line4
 
 
+    def _get_download_interruption_display_lines(self):
+        line3 = "  ⚠️ Download interrupted by user."
+        line4 = "  ⏳ Processing unfinished downloads, please wait..."
+        return line3, line4
+
+
     def _get_finished_display_lines(self):
         line3 = f"  ✅ Download process complete."
         line4 = f"  📥 Downloaded: {self.successful}  │  ❌ Failed: {self.failed}  │  🕐 Total Time: {format_time(self.elapsed_time):>10}"
@@ -94,6 +100,6 @@ class Display:
 
     @staticmethod
     def _has_double_width(character: str) -> bool:
-        if character in "📥❌📁🕐⏳📋✅":
+        if character in "📥❌📁🕐⏳📋⚠️✅":
             return True
         return False
