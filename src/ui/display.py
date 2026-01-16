@@ -21,13 +21,15 @@ class Display:
         self.eta = self._calculate_eta(current, self.elapsed_time, self.remaining)
 
 
-    def print_display(self, loading = False, finished = False):
+    def print_display(self, state):
         line1 = self._get_first_line()
         line2 = f"  [{self.progress_bar}] {self.percent:5.1f}%"
 
-        if loading:
+        if state == 'loading':
             line3, line4 = self._get_loading_display_lines()
-        elif finished:
+        elif state == 'interrupted':
+            line3, line4 = self._get_download_interruption_display_lines()
+        elif state == 'finished':
             line3, line4 = self._get_finished_display_lines()
         else:
             line3, line4 = self._get_base_display_lines()

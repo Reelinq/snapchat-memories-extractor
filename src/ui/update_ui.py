@@ -3,12 +3,12 @@ from src.ui import Display
 
 
 class UpdateUI():
-    def run(self):
-        self._clear_display()
-        Display().print_display()
+    def run(self, state = None):
+        self.clear_display()
+        Display().print_display(state)
 
 
     @staticmethod
-    def _clear_display(lines = 8):
+    def clear_display(lines = 8):
         for _ in range(lines):
             sys.stdout.write('\033[F\033[K')

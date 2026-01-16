@@ -16,6 +16,5 @@ if __name__ == "__main__":
 
 # ------------------------------------------------
 
-    UpdateUI()._clear_display()
-    Display().print_display(finished = True)
+    UpdateUI().run('finished')
     log("Application finished", "info")
