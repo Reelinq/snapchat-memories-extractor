@@ -1,19 +1,8 @@
 import zipfile
-from io import BytesIO
 import pytest
 from src.zip_processor import ZipProcessor
-
-
-import zipfile
-import tempfile
-import pytest
 from pathlib import Path
-from src.zip_processor import ZipProcessor
 from src.config import Config
-
-@pytest.fixture
-from pathlib import Path
-
 from typing import Callable
 
 @pytest.fixture
