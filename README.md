@@ -25,14 +25,20 @@ Download all your Snapchat memories with metadata (date, location) embedded dire
 
 ## 🚀 Quick Start
 
-### Step 1: Clone the Repository
+### Step 1: Get Your Snapchat Data
+
+1. Login and export your data from Snapchat: https://accounts.snapchat.com/accounts/downloadmydata
+2. Select **both** options: `Export your Memories`, `Export JSON Files`
+3. Extract the ZIP file and place `memories_history.json` into the `data/` folder
+
+### Step 2: Clone the Repository
 
 ```bash
 git clone https://github.com/Reelinq/snapchat-memories-extractor.git
 cd snapchat-memories-extractor
 ```
 
-### Step 2: Create Virtual Environment
+### Step 3: Create Virtual Environment
 
 **Windows (PowerShell):**
 ```powershell
@@ -46,20 +52,11 @@ python3 -m venv .venv
 source .venv/Scripts/activate
 ```
 
-### Step 3: Install Dependencies
+### Step 4: Install Dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
-
-### Step 4: Get Your Snapchat Data
-
-1. Login and export your data from Snapchat: https://accounts.snapchat.com/accounts/downloadmydata
-2. Select **both** options: `Export your Memories`, `Export JSON Files`
-
-   ![export configuration](https://github.com/user-attachments/assets/dfcdb6a0-e554-46e8-bdba-77fe41c88a03)
-
-3. Extract the ZIP file and place `memories_history.json` into the `data/` folder
 
 ### Step 5: Run the Extractor
 
