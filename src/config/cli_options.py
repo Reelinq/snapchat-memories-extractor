@@ -8,6 +8,7 @@ def build_cli_options(args):
         'max_attempts': args.attempts,
         'strict_location': args.strict_location,
         'jpeg_quality': args.jpeg_quality,
+        'logs_amount': args.logs_amount,
         'convert_to_jxl': not args.no_jxl,
         'log_level': parse_log_level(args.log_level),
         'request_timeout': args.request_timeout,

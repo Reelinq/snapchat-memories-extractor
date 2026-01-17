@@ -35,6 +35,8 @@ def get_cli_args():
                         help='Constant Rate Factor for video quality (0-51, lower=better, 0=lossless, 18-28 is typical, default: 23)')
     parser.add_argument('--cjxl-timeout', '-ct', type=int, default=120,
                         help='Timeout in seconds for cjxl conversion (default: 120). Short: -ct')
+    parser.add_argument('--logs-amount', '-la', type=int, default=5,
+                        help='Number of log files to keep, any log files beyond this number will be deleted (default: 5). Short: -la')
     parser.add_argument('--ffmpeg-preset', '-fp', type=str, choices=[
                             'ultrafast', 'superfast', 'veryfast', 'faster', 'fast',
                             'medium', 'slow', 'slower', 'veryslow', 'placebo'

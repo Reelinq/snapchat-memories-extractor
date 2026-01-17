@@ -37,7 +37,7 @@ class LogInitializer:
             key=lambda f: f.stat().st_mtime,
             reverse=True
         )
-        keep = 5
+        keep = Config.cli_options["logs_amount"]
         for old_file in log_files[keep-1:]:
             old_file.unlink()
 
