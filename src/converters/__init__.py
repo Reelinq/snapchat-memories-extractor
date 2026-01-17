@@ -1,4 +1,5 @@
-from .ffmpeg_converter import VideoConverter
-from .jxl_converter import JXLConverter
+
+from src.converters.ffmpeg_converter import VideoConverter
+from src.converters.jxl_converter import JXLConverter
 
 __all__ = ["VideoConverter", "JXLConverter"]
