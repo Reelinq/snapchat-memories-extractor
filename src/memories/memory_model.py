@@ -14,7 +14,7 @@ class Memory(BaseModel):
     video_creation_time: str = ""
 
     @model_validator(mode='after')
-    def parse_datetime(self):
+    def parse_datetime(self) -> 'Memory':
         datetime_object = datetime.strptime(self.date, "%Y-%m-%d %H:%M:%S UTC")
         self.exif_datetime = datetime_object.strftime("%Y:%m:%d %H:%M:%S")
         self.video_creation_time = datetime_object.strftime("%Y-%m-%dT%H:%M:%S")

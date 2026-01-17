@@ -7,7 +7,7 @@ from src.memories import Memory
 from src.downloader.download_service import DownloadService
 
 @pytest.mark.parametrize("chunk_size", [512, 2048, 4096])
-def test_stream_chunk_size_behavior(chunk_size, tmp_path):
+def test_stream_chunk_size_behavior(chunk_size: int, tmp_path) -> None:
     Config.cli_options = {
         'max_concurrent_downloads': 2,
         'apply_overlay': True,

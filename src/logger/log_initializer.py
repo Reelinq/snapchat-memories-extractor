@@ -6,7 +6,7 @@ from src.config import Config
 
 
 class LogInitializer:
-    def configure_logger(self):
+    def configure_logger(self) -> None:
         logger = logging.getLogger()
         logger.setLevel(Config.cli_options["log_level"])
 
@@ -30,7 +30,7 @@ class LogInitializer:
 
 
     @staticmethod
-    def _cleanup_old_logs():
+    def _cleanup_old_logs() -> None:
         logs_folder = Config.logs_folder
         log_files = sorted(
             (logs_folder.glob("*.jsonl")),

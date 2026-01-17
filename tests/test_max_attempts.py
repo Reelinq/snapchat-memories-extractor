@@ -5,7 +5,7 @@ from src.config import Config
 from src.downloader.downloader import MemoryDownloader
 
 @pytest.mark.parametrize("max_attempts", [1, 2, 3])
-def test_max_attempts_behavior(max_attempts):
+def test_max_attempts_behavior(max_attempts: int) -> None:
     cli_options = {
         'max_concurrent_downloads': 2,
         'apply_overlay': True,

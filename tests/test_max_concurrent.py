@@ -5,7 +5,7 @@ from src.downloader.downloader import MemoryDownloader
 import pytest
 
 @pytest.mark.parametrize("max_workers", [1, 3, 5])
-def test_max_concurrent_downloads_sets_threadpool(max_workers):
+def test_max_concurrent_downloads_sets_threadpool(max_workers: int) -> None:
     cli_options = {
         'max_concurrent_downloads': max_workers,
         'apply_overlay': True,

@@ -7,7 +7,7 @@ from src.logger import log
 
 
 class VideoMetadataWriter:
-    def __init__(self, memory: Memory, file_path: Path):
+    def __init__(self, memory: Memory, file_path: Path) -> None:
         self.memory = memory
         self.file_path = file_path
 
@@ -69,7 +69,7 @@ class VideoMetadataWriter:
         ])
 
 
-    def _log_ffmpeg_failure(self, result, temp_path):
+    def _log_ffmpeg_failure(self, result, temp_path) -> None:
         if temp_path.exists():
             temp_path.unlink()
         log(f'ffmpeg failed with code {result.returncode} for {self.file_path}', 'warning')

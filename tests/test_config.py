@@ -26,7 +26,7 @@ from src.config.main import Config
     (["--log-level", "3"], {"log_level": 30}),
     (["-l", "DEBUG"], {"log_level": 10}),
 ])
-def test_config_cli_flags(monkeypatch, cli_args, expected):
+def test_config_cli_flags(monkeypatch, cli_args: list[str], expected: dict) -> None:
     temp_dir = Path(tempfile.mkdtemp())
     try:
         import sys

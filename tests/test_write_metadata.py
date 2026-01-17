@@ -9,7 +9,7 @@ from src.memories import Memory
 from src.media_dispatcher import process_media
 
 @pytest.mark.parametrize("write_metadata", [True, False])
-def test_write_metadata_flag_behavior(write_metadata, tmp_path):
+def test_write_metadata_flag_behavior(write_metadata: bool, tmp_path: Path) -> None:
     Config.cli_options = {
         'max_concurrent_downloads': 2,
         'apply_overlay': True,

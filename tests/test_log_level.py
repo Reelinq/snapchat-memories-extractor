@@ -15,7 +15,7 @@ from src.config.main import Config
     ('4', logging.INFO, ["INFO", "WARNING", "ERROR", "CRITICAL"]),
     ('5', logging.DEBUG, ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]),
 ])
-def test_log_file_levels(level_input, expected_level, expected_levels):
+def test_log_file_levels(level_input: str, expected_level: int, expected_levels: list[str]) -> None:
     temp_dir = Path(tempfile.mkdtemp())
     try:
         cli_options = {

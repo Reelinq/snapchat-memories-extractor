@@ -7,7 +7,7 @@ from src.config import Config
 from src.downloader.download_service import DownloadService
 
 @pytest.mark.parametrize("apply_overlay", [True, False])
-def test_apply_overlay_flag_behavior(apply_overlay):
+def test_apply_overlay_flag_behavior(apply_overlay: bool) -> None:
     cli_options = {
         'max_concurrent_downloads': 2,
         'apply_overlay': apply_overlay,

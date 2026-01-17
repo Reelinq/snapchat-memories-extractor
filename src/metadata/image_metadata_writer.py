@@ -6,19 +6,19 @@ from src.config import Config
 
 
 class ImageMetadataWriter:
-    def __init__(self, memory: Memory, file_path: Path):
+    def __init__(self, memory: Memory, file_path: Path) -> None:
         self.memory = memory
         self.file_path = file_path
 
         self.exif_metadata = {"0th": {}, "Exif": {}, "GPS": {}}
 
 
-    def write_image_metadata(self):
+    def write_image_metadata(self) -> None:
         self._set_datetime_fields()
         self._set_gps_fields()
         self._save_image_with_exif()
 
-    def _set_datetime_fields(self):
+    def _set_datetime_fields(self) -> None:
         datetime_bytes = self.memory.exif_datetime.encode('utf-8')
         exif = self.exif_metadata["Exif"]
         zeroth = self.exif_metadata["0th"]
@@ -28,7 +28,7 @@ class ImageMetadataWriter:
         zeroth[piexif.ImageIFD.DateTime] = datetime_bytes
 
 
-    def _set_gps_fields(self):
+    def _set_gps_fields(self) -> None:
         coordinates = self.memory.location_coords
 
         if not coordinates:

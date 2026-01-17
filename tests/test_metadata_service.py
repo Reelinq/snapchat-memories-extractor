@@ -5,20 +5,20 @@ from src.metadata.image_metadata_writer import ImageMetadataWriter
 from src.metadata.video_metadata_writer import VideoMetadataWriter
 
 @pytest.fixture
-def mock_memory_image():
+def mock_memory_image() -> MagicMock:
     memory = MagicMock()
     memory.exif_datetime = "2023:12:05 12:34:56"
     memory.location_coords = (37.0, -122.0)
     return memory
 
 @pytest.fixture
-def mock_memory_video():
+def mock_memory_video() -> MagicMock:
     memory = MagicMock()
     memory.video_creation_time = "2023-12-05T12:34:56"
     memory.location_coords = (37.0, -122.0)
     return memory
 
-def test_write_image_metadata(mock_memory_image, mocker):
+def test_write_image_metadata(mock_memory_image: MagicMock, mocker) -> None:
     mock_img = MagicMock()
     mock_open = mocker.patch("PIL.Image.open")
     mock_open.return_value.__enter__.return_value = mock_img
@@ -28,7 +28,7 @@ def test_write_image_metadata(mock_memory_image, mocker):
     writer._save_image_with_exif()
     assert mock_dump.called
 
-def test_write_video_metadata(mock_memory_video, mocker):
+def test_write_video_metadata(mock_memory_video: MagicMock, mocker) -> None:
     mock_replace = mocker.patch.object(Path, "replace", return_value=None)
     mock_run = mocker.patch("subprocess.run")
     mock_run.return_value.returncode = 0

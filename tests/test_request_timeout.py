@@ -7,7 +7,7 @@ from src.memories import Memory
 from src.downloader.download_service import DownloadService
 
 @pytest.mark.parametrize("timeout", [5, 30, 99])
-def test_request_timeout_behavior(timeout, tmp_path):
+def test_request_timeout_behavior(timeout: int, tmp_path) -> None:
     Config.cli_options = {
         'max_concurrent_downloads': 2,
         'apply_overlay': True,
