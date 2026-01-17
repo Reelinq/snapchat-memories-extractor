@@ -12,6 +12,7 @@ class LogInitializer:
 
         log_path = self._build_log_path()
         self._ensure_log_dir(log_path)
+        self._cleanup_old_logs()
         logger.addHandler(self._create_file_handler(log_path))
 
 
@@ -26,6 +27,19 @@ class LogInitializer:
 
     def _create_log_filename(self) -> str:
         return f"{datetime.now().strftime('%Y%m%d_%H%M%S')}.jsonl"
+
+
+    @staticmethod
+    def _cleanup_old_logs():
+        logs_folder = Config.logs_folder
+        log_files = sorted(
+            (logs_folder.glob("*.jsonl")),
+            key=lambda f: f.stat().st_mtime,
+            reverse=True
+        )
+        keep = 5
+        for old_file in log_files[keep-1:]:
+            old_file.unlink()
 
 
     def _create_file_handler(self, path: Path) -> logging.Handler:
