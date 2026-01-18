@@ -35,7 +35,10 @@ def test_write_image_metadata(mock_memory_image: MagicMock, mocker) -> None:
 
 
 def test_write_video_metadata(mock_memory_video: MagicMock, mocker) -> None:
-    mocker.patch("imageio_ffmpeg.get_ffmpeg_exe", return_value="ffmpeg")
+    # Patch where get_ffmpeg_exe is actually used (in your video_metadata_writer module)
+    mocker.patch(
+        "src.metadata.video_metadata_writer.get_ffmpeg_exe", return_value="ffmpeg"
+    )
     mocker.patch.object(Path, "replace", return_value=None)
 
     mock_run = mocker.patch("subprocess.run")
