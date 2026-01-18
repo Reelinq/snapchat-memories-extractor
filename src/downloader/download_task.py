@@ -7,7 +7,7 @@ from src.memories import Memory
 
 
 class DownloadTask:
-    def __init__(self, memory: Memory):
+    def __init__(self, memory: Memory) -> None:
         self.memory = memory
 
     def run(self) -> tuple[Path, bool]:

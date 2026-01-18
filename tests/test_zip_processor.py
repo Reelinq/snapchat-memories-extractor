@@ -13,8 +13,8 @@ def make_zip(tmp_path: Path) -> Callable:
     def _make_zip(
         media_name: str,
         media_data: bytes,
-        overlay_name: str = None,
-        overlay_data: bytes = None,
+        overlay_name: str | None = None,
+        overlay_data: bytes | None = None,
     ) -> Path:
         zip_path = tmp_path / "test.zip"
         with zipfile.ZipFile(zip_path, "w") as zf:

@@ -10,12 +10,12 @@ from src.config import Config
 
 
 class VideoComposer:
-    def __init__(self, video_bytes: bytes, overlay_bytes: bytes, output_path: Path):
+    def __init__(self, video_bytes: bytes, overlay_bytes: bytes, output_path: Path) -> None:
         self.video_bytes = video_bytes
         self.overlay_bytes = overlay_bytes
         self.output_path = output_path
 
-    def apply_overlay(self):
+    def apply_overlay(self) -> None:
         # FFMPEG can't read from memory, so we need to write to temp files
         video_temporary_file_path = self._write_video_to_temp_file(".mp4")
         video_width, video_height = self._get_video_dimensions(
@@ -108,6 +108,6 @@ class VideoComposer:
     @staticmethod
     def _cleanup_temp_files(
         video_temporary_file_path: str, overlay_temporary_file_path: str,
-    ):
+    ) -> None:
         Path(video_temporary_file_path).unlink(missing_ok=True)
         Path(overlay_temporary_file_path).unlink(missing_ok=True)

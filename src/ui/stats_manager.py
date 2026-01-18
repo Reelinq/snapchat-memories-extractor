@@ -12,7 +12,7 @@ class StatsManager:
     completed_indices = set()
 
     @classmethod
-    def new_attempt(cls):
+    def new_attempt(cls) -> None:
         cls.current_attempt += 1
         cls.total_files = cls.failed_downloads_count
         cls.start_time = time()

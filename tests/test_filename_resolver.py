@@ -19,7 +19,7 @@ def resolver(temp_dir):
     return FileNameResolver(temp_dir / "file.txt")
 
 
-def test_unique_filename_first_duplicate(temp_dir, resolver):
+def test_unique_filename_first_duplicate(temp_dir, resolver) -> None:
     """Test that first duplicate gets _1 suffix"""
     # Create the original file
     original = temp_dir / "file.txt"
@@ -41,7 +41,7 @@ def test_unique_filename_first_duplicate(temp_dir, resolver):
     new_path.write_text("b")
 
 
-def test_unique_filename_second_duplicate(temp_dir, resolver):
+def test_unique_filename_second_duplicate(temp_dir, resolver) -> None:
     """Test that second duplicate gets _2 suffix"""
     # Create original
     original = temp_dir / "file.txt"

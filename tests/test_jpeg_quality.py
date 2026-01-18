@@ -9,7 +9,7 @@ from src.memories import Memory
 
 
 @pytest.mark.parametrize("jpeg_quality", [50, 77, 95])
-def test_jpeg_quality_behavior(jpeg_quality, tmp_path):
+def test_jpeg_quality_behavior(jpeg_quality, tmp_path) -> None:
     Config.cli_options = {
         "max_concurrent_downloads": 2,
         "apply_overlay": True,

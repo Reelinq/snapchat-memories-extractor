@@ -77,24 +77,24 @@ def make_sample_jpeg(temp_dir):
     return _make
 
 
-def test_is_convertible_image_jpeg(make_sample_jpeg):
+def test_is_convertible_image_jpeg(make_sample_jpeg) -> None:
     sample_jpeg = make_sample_jpeg()
     assert JXLConverter._is_convertible_image(JXLConverter(sample_jpeg))
 
 
-def test_is_convertible_image_non_existent(temp_dir):
+def test_is_convertible_image_non_existent(temp_dir) -> None:
     non_existent = temp_dir / "nonexistent.jpg"
     assert not JXLConverter._is_convertible_image(JXLConverter(non_existent))
 
 
-def test_is_convertible_image_non_jpeg(temp_dir):
+def test_is_convertible_image_non_jpeg(temp_dir) -> None:
     png_path = temp_dir / "test.png"
     img = Image.new("RGB", (100, 100), color="blue")
     img.save(str(png_path), "png")
     assert not JXLConverter._is_convertible_image(JXLConverter(png_path))
 
 
-def test_convert_to_jxl_creates_file(make_sample_jpeg):
+def test_convert_to_jxl_creates_file(make_sample_jpeg) -> None:
     sample_jpeg = make_sample_jpeg()
     jxl_path = JXLConverter(sample_jpeg).run()
 
@@ -106,7 +106,7 @@ def test_convert_to_jxl_creates_file(make_sample_jpeg):
         assert sample_jpeg.exists()
 
 
-def test_convert_to_jxl_removes_original(make_sample_jpeg):
+def test_convert_to_jxl_removes_original(make_sample_jpeg) -> None:
     sample_jpeg = make_sample_jpeg()
     assert sample_jpeg.exists()
 
@@ -119,9 +119,9 @@ def test_convert_to_jxl_removes_original(make_sample_jpeg):
         assert jxl_path == sample_jpeg
 
 
-def test_convert_to_jxl_custom_output_path(make_sample_jpeg, temp_dir):
+def test_convert_to_jxl_custom_output_path(make_sample_jpeg, temp_dir) -> None:
     sample_jpeg = make_sample_jpeg()
-    custom_path = temp_dir / "custom_output.jxl"
+    temp_dir / "custom_output.jxl"
     converter = JXLConverter(sample_jpeg)
     converter.input_path = sample_jpeg
     jxl_path = converter.run()
@@ -136,7 +136,7 @@ def test_convert_to_jxl_custom_output_path(make_sample_jpeg, temp_dir):
 
 
 @pytest.mark.skipif(not HAS_CJXL, reason="cjxl binary not available")
-def test_convert_to_jxl_preserves_image_quality(make_sample_jpeg, temp_dir):
+def test_convert_to_jxl_preserves_image_quality(make_sample_jpeg, temp_dir) -> None:
     sample_jpeg = make_sample_jpeg(color="green")
     jxl_path = JXLConverter(sample_jpeg).run()
     assert jxl_path != sample_jpeg, "Conversion failed, JXL not produced"
@@ -165,7 +165,7 @@ def test_convert_to_jxl_preserves_image_quality(make_sample_jpeg, temp_dir):
 
 
 @pytest.mark.skipif(not HAS_CJXL, reason="cjxl binary not available")
-def test_convert_to_jxl_file_size_reduction(make_sample_jpeg, capsys):
+def test_convert_to_jxl_file_size_reduction(make_sample_jpeg, capsys) -> None:
     sample_jpeg = make_sample_jpeg()
     original_size = sample_jpeg.stat().st_size
 

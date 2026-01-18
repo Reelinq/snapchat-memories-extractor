@@ -9,7 +9,7 @@ from src.overlay import *
 
 
 class ZipProcessor:
-    def __init__(self, memory: Memory, file_path: Path):
+    def __init__(self, memory: Memory, file_path: Path) -> None:
         self.memory = memory
         self.file_path = file_path
 
@@ -20,11 +20,9 @@ class ZipProcessor:
         ).extract_media_from_zip()
         output_path = self.file_path.with_suffix(extention)
         self.file_path.unlink()
-        overlay_applied = False
 
         if apply_overlay:
             self._apply_overlay(content, overlay, extention, output_path)
-            overlay_applied = True
         else:
             self._bytes_to_path(content, output_path)
 
@@ -35,7 +33,7 @@ class ZipProcessor:
 
     def _apply_overlay(
         self, content: bytes, overlay: bytes, extention: str, output_path: Path,
-    ):
+    ) -> None:
         if extention == ".jpg":
             ImageComposer(content, overlay, output_path).apply_overlay()
         else:

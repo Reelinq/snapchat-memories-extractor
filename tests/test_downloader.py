@@ -52,12 +52,9 @@ def memory_without_location():
     )
 
 
-def test_strict_location_blocks_download(downloader, memory_without_location):
+def test_strict_location_blocks_download(downloader, memory_without_location) -> None:
     downloader.download_service.download_and_process = MagicMock()
     Config.cli_options["strict_location"] = True
-    if memory_without_location.location is None:
-        success = False
-    else:
-        success = True
+    success = memory_without_location.location is not None
     assert success is False
     downloader.download_service.download_and_process.assert_not_called()

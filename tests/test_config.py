@@ -37,7 +37,7 @@ def test_config_cli_flags(monkeypatch, cli_args: list[str], expected: dict) -> N
     try:
         import sys
 
-        monkeypatch.setattr(sys, "argv", ["main.py"] + cli_args)
+        monkeypatch.setattr(sys, "argv", ["main.py", *cli_args])
         Config.initialize_config()
         for key, value in expected.items():
             assert Config.cli_options[key] == value, (

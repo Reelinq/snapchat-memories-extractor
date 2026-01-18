@@ -7,7 +7,7 @@ from src.config import Config
 
 
 class ImageComposer:
-    def __init__(self, image_bytes: bytes, overlay_bytes: bytes, output_path: Path):
+    def __init__(self, image_bytes: bytes, overlay_bytes: bytes, output_path: Path) -> None:
         self.image_bytes = image_bytes
         self.overlay_bytes = overlay_bytes
         self.output_path = output_path

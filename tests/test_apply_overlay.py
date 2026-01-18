@@ -36,14 +36,13 @@ def test_apply_overlay_flag_behavior(apply_overlay: bool) -> None:
         with patch(
             "src.media_dispatcher.zip_processor.ImageComposer",
         ) as mock_image_composer:
-            mock_instance = mock_image_composer.return_value
             ds.memory.is_zip = True
             # Patch ZipProcessor._apply_overlay to call the mock's apply_overlay
             with patch(
                 "src.media_dispatcher.zip_processor.ZipProcessor._apply_overlay",
             ) as mock_apply_overlay:
 
-                def apply_overlay_side_effect(content, overlay, extention, output_path):
+                def apply_overlay_side_effect(content, overlay, extention, output_path) -> None:
                     mock_image_composer.return_value.apply_overlay()
 
                 mock_apply_overlay.side_effect = apply_overlay_side_effect

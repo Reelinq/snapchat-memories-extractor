@@ -17,12 +17,12 @@ class Config:
         ensure_directories(self.downloads_folder, self.logs_folder)
 
     @classmethod
-    def initialize_config(cls):
+    def initialize_config(cls) -> None:
         args = get_cli_args()
         cls.cli_options = build_cli_options(args)
         cls._ensure_directories()
 
     @classmethod
-    def _ensure_directories(cls):
+    def _ensure_directories(cls) -> None:
         cls.downloads_folder.mkdir(parents=True, exist_ok=True)
         cls.logs_folder.mkdir(parents=True, exist_ok=True)

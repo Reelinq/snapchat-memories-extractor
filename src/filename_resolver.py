@@ -2,7 +2,7 @@ from pathlib import Path
 
 
 class FileNameResolver:
-    def __init__(self, path: Path):
+    def __init__(self, path: Path) -> None:
         self.path = path
 
     def run(self) -> Path:

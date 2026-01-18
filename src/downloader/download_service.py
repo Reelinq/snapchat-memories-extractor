@@ -8,7 +8,7 @@ from src.memories import Memory
 
 
 class DownloadService:
-    def __init__(self, memory: Memory):
+    def __init__(self, memory: Memory) -> None:
         self.memory = memory
 
     def run(self) -> tuple[bool, str | None]:
@@ -28,11 +28,10 @@ class DownloadService:
 
     def _download_memory(self) -> Response:
         timeout = Config.cli_options["request_timeout"]
-        http_response = self._build_session().get(
+        return self._build_session().get(
             self.memory.media_download_url,
             timeout=timeout,
         )
-        return http_response
 
     def _build_session(self) -> Session:
         http_session = Session()
@@ -42,13 +41,12 @@ class DownloadService:
 
     def _create_http_adapter(self) -> adapters.HTTPAdapter:
         max_concurrent = Config.cli_options["max_concurrent_downloads"]
-        adapter = adapters.HTTPAdapter(
+        return adapters.HTTPAdapter(
             pool_connections=max_concurrent,
             pool_maxsize=max_concurrent * 2,
         )
-        return adapter
 
-    def _log_fetch_failure(self, status_code: int):
+    def _log_fetch_failure(self, status_code: int) -> None:
         file_name = self.memory.filename_with_ext
         log(f"Failed to download {file_name}", "error", status_code)
 

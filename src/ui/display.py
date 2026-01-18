@@ -9,7 +9,7 @@ display_size = 70
 
 
 class Display:
-    def __init__(self):
+    def __init__(self) -> None:
         total = StatsManager.total_files
         current = (
             StatsManager.successful_downloads_count
@@ -23,7 +23,7 @@ class Display:
         self.elapsed_time = int(time() - StatsManager.start_time)
         self.eta = self._calculate_eta(current, self.elapsed_time, self.remaining)
 
-    def print_display(self, state):
+    def print_display(self, state) -> None:
         line1 = self._get_first_line()
         line2 = f"  [{self.progress_bar}] {self.percent:5.1f}%"
 
@@ -95,6 +95,4 @@ class Display:
 
     @staticmethod
     def _has_double_width(character: str) -> bool:
-        if character in "📥❌📁🕐⏳📋⚠️✅":
-            return True
-        return False
+        return character in "📥❌📁🕐⏳📋⚠️✅"

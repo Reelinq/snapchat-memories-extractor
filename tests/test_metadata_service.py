@@ -35,10 +35,10 @@ def test_write_image_metadata(mock_memory_image: MagicMock, mocker) -> None:
 
 
 def test_write_video_metadata(mock_memory_video: MagicMock, mocker) -> None:
-    mock_replace = mocker.patch.object(Path, "replace", return_value=None)
+    mocker.patch.object(Path, "replace", return_value=None)
     mock_run = mocker.patch("subprocess.run")
     mock_run.return_value.returncode = 0
-    mock_ffmpeg = mocker.patch("imageio_ffmpeg.get_ffmpeg_exe", return_value="ffmpeg")
+    mocker.patch("imageio_ffmpeg.get_ffmpeg_exe", return_value="ffmpeg")
     writer = VideoMetadataWriter(mock_memory_video, Path("dummy.mp4"))
     writer._log_ffmpeg_failure = MagicMock()
     writer.write_video_metadata()

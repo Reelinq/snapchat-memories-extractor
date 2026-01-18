@@ -9,7 +9,7 @@ from src.memories import Memory
 
 
 @pytest.mark.parametrize("ffmpeg_timeout", [1, 10, 60])
-def test_ffmpeg_timeout_behavior(ffmpeg_timeout, tmp_path):
+def test_ffmpeg_timeout_behavior(ffmpeg_timeout, tmp_path) -> None:
     Config.cli_options = {
         "max_concurrent_downloads": 2,
         "apply_overlay": True,

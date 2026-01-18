@@ -32,7 +32,7 @@ class VideoMetadataWriter:
     def _build_ffmpeg_command(self, temporary_video_path: Path) -> list[str]:
         metadata_arguments = self._ffmpeg_metadata_arguments()
 
-        command = [
+        return [
             get_ffmpeg_exe(),
             "-i",
             str(self.file_path),
@@ -42,7 +42,6 @@ class VideoMetadataWriter:
             str(temporary_video_path),
         ]
 
-        return command
 
     def _ffmpeg_metadata_arguments(self) -> list[str]:
         meta_args = ["-metadata", f"creation_time={self.memory.video_creation_time}"]

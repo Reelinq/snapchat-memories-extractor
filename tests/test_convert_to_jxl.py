@@ -9,7 +9,7 @@ from src.memories import Memory
 
 
 @pytest.mark.parametrize("convert_to_jxl", [True, False])
-def test_convert_to_jxl_behavior(convert_to_jxl, tmp_path):
+def test_convert_to_jxl_behavior(convert_to_jxl, tmp_path) -> None:
     Config.cli_options = {
         "max_concurrent_downloads": 2,
         "apply_overlay": True,
@@ -34,7 +34,7 @@ def test_convert_to_jxl_behavior(convert_to_jxl, tmp_path):
     file_path = tmp_path / "file.jpg"
     file_path.write_bytes(b"data")
     with (
-        patch("src.media_dispatcher.image_processor.process_image") as mock_proc_img,
+        patch("src.media_dispatcher.image_processor.process_image"),
         patch("src.converters.jxl_converter.JXLConverter.run") as mock_jxl,
         patch("PIL.Image.open") as mock_image_open,
     ):

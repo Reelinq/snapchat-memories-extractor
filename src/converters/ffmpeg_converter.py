@@ -7,7 +7,7 @@ from src.config import Config
 
 
 class VideoConverter:
-    def __init__(self, file_path: Path):
+    def __init__(self, file_path: Path) -> None:
         self.file_path = file_path
 
     def run(self) -> Path:
@@ -42,7 +42,7 @@ class VideoConverter:
     @staticmethod
     def _get_video_crf() -> str:
         user_crf = Config.cli_options.get("crf", None)
-        if user_crf == None:
+        if user_crf is None:
             return "23" if Config.cli_options["video_codec"] == "h264" else "28"
         return str(user_crf)
 

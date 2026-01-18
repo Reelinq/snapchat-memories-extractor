@@ -7,7 +7,7 @@ from src.logger import log
 
 
 class JXLConverter:
-    def __init__(self, input_path: Path):
+    def __init__(self, input_path: Path) -> None:
         self.input_path = input_path
 
     def run(self) -> Path:
@@ -54,12 +54,7 @@ class JXLConverter:
         return cjxl_full_path
 
     def _is_convertible_image(self) -> bool:
-        if (
-            self.input_path.suffix.lower() in (".jpg", ".jpeg")
-            and self.input_path.exists()
-        ):
-            return True
-        return False
+        return bool(self.input_path.suffix.lower() in (".jpg", ".jpeg") and self.input_path.exists())
 
     def _build_cjxl_command(self, cjxl_path: Path, output_path: Path) -> list[str]:
         return [
@@ -71,10 +66,7 @@ class JXLConverter:
         ]
 
     def _log_cjxl_failure(self, result: subprocess.CompletedProcess) -> None:
-        if result.stderr:
-            stderr = result.stderr.decode("utf-8", errors="ignore")
-        else:
-            stderr = ""
+        stderr = result.stderr.decode("utf-8", errors="ignore") if result.stderr else ""
         log(
             f"cjxl failed ({result.returncode}) for {self.input_path}: {stderr.strip()}",
             "warning",

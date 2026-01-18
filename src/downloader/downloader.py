@@ -9,7 +9,7 @@ from src.ui import StatsManager, UpdateUI
 
 
 class MemoryDownloader:
-    def run(self):
+    def run(self) -> None:
         future_download_tasks = self._gather_future_download_tasks()
 
         if not future_download_tasks:
@@ -21,13 +21,13 @@ class MemoryDownloader:
         except KeyboardInterrupt:
             self._handle_keyboard_interrupt(future_download_tasks)
 
-    def _execute_downloads(self, tasks: dict[Future, tuple[int, Memory]]):
+    def _execute_downloads(self, tasks: dict[Future, tuple[int, Memory]]) -> None:
         for future in as_completed(tasks):
             _, memory = tasks[future]
             file_path, download_succeeded = future.result()
             self._check_for_success(download_succeeded, memory, file_path)
 
-    def _handle_keyboard_interrupt(self, tasks):
+    def _handle_keyboard_interrupt(self, tasks) -> None:
         log("KeyboardInterrupt received. Converting last files before exit...", "info")
         UpdateUI().run("interrupted")
         unfinished = [f for f in tasks if not f.done()]
