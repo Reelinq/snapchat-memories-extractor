@@ -1,13 +1,14 @@
-from src.memories import Memory
 from pathlib import Path
+
 from src.config import Config
 from src.converters import JXLConverter
+from src.memories import Memory
 from src.metadata import ImageMetadataWriter
 
 
 def process_image(memory: Memory, file_path: Path):
-    convert_to_jxl = Config.cli_options['convert_to_jxl']
-    write_metadata = Config.cli_options['write_metadata']
+    convert_to_jxl = Config.cli_options["convert_to_jxl"]
+    write_metadata = Config.cli_options["write_metadata"]
 
     if write_metadata:
         ImageMetadataWriter(memory, file_path).write_image_metadata()

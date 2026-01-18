@@ -1,8 +1,9 @@
 import logging
-from pathlib import Path
 from datetime import datetime
-from src.logger.formatter import JSONFormatter
+from pathlib import Path
+
 from src.config import Config
+from src.logger.formatter import JSONFormatter
 
 
 class LogInitializer:
@@ -15,19 +16,15 @@ class LogInitializer:
         self._cleanup_old_logs()
         logger.addHandler(self._create_file_handler(log_path))
 
-
     def _build_log_path(self) -> Path:
         return Path(Config.logs_folder) / self._create_log_filename()
-
 
     @staticmethod
     def _ensure_log_dir(log_path: Path) -> None:
         log_path.parent.mkdir(parents=True, exist_ok=True)
 
-
     def _create_log_filename(self) -> str:
         return f"{datetime.now().strftime('%Y%m%d_%H%M%S')}.jsonl"
-
 
     @staticmethod
     def _cleanup_old_logs() -> None:
@@ -35,12 +32,11 @@ class LogInitializer:
         log_files = sorted(
             (logs_folder.glob("*.jsonl")),
             key=lambda f: f.stat().st_mtime,
-            reverse=True
+            reverse=True,
         )
         keep = Config.cli_options["logs_amount"]
-        for old_file in log_files[keep-1:]:
+        for old_file in log_files[keep - 1 :]:
             old_file.unlink()
-
 
     def _create_file_handler(self, path: Path) -> logging.Handler:
         handler = logging.FileHandler(path, encoding="utf-8", delay=True)

@@ -1,12 +1,11 @@
+from concurrent.futures import Future, ThreadPoolExecutor, as_completed
 from pathlib import Path
-from concurrent.futures import ThreadPoolExecutor, as_completed, Future
-from typing import Dict, Tuple
+
 from src.config import Config
 from src.downloader.download_task import DownloadTask
-from src.memories import *
 from src.logger import log
+from src.memories import *
 from src.ui import StatsManager, UpdateUI
-from src.ui import Display
 
 
 class MemoryDownloader:
@@ -22,26 +21,23 @@ class MemoryDownloader:
         except KeyboardInterrupt:
             self._handle_keyboard_interrupt(future_download_tasks)
 
-
-    def _execute_downloads(self, tasks: Dict[Future, Tuple[int, Memory]]):
+    def _execute_downloads(self, tasks: dict[Future, tuple[int, Memory]]):
         for future in as_completed(tasks):
             _, memory = tasks[future]
             file_path, download_succeeded = future.result()
             self._check_for_success(download_succeeded, memory, file_path)
 
-
     def _handle_keyboard_interrupt(self, tasks):
         log("KeyboardInterrupt received. Converting last files before exit...", "info")
-        UpdateUI().run('interrupted')
+        UpdateUI().run("interrupted")
         unfinished = [f for f in tasks if not f.done()]
         unfinished_dict = {f: tasks[f] for f in unfinished}
         self._execute_downloads(unfinished_dict)
         log("All running downloads/conversions finished. Exiting.", "info")
 
-
     def _gather_future_download_tasks(self):
         download_tasks = self._gather_download_tasks()
-        max_workers = Config.cli_options['max_concurrent_downloads']
+        max_workers = Config.cli_options["max_concurrent_downloads"]
         executor = ThreadPoolExecutor(max_workers=max_workers)
 
         # Use dictonary becaude otherwsie index gets lost in 'as_completed'
@@ -52,7 +48,6 @@ class MemoryDownloader:
             futures[future] = (index, memory)
 
         return futures
-
 
     @staticmethod
     def _gather_download_tasks():
@@ -66,14 +61,14 @@ class MemoryDownloader:
 
         return download_tasks
 
-
-    def _check_for_success(self, download_succeeded: bool, memory: Memory, file_path: Path) -> None:
+    def _check_for_success(
+        self, download_succeeded: bool, memory: Memory, file_path: Path,
+    ) -> None:
         if download_succeeded:
             self._download_succeeded(memory, file_path)
         else:
             StatsManager.failed_downloads_count += 1
         UpdateUI().run()
-
 
     def _download_succeeded(self, memory: Memory, file_path: Path) -> None:
         self._prune_memory_item(memory, file_path)
@@ -81,17 +76,17 @@ class MemoryDownloader:
         StatsManager.successful_downloads_count += 1
         self._log_processed_indices(StatsManager.completed_indices)
 
-
     def _prune_memory_item(self, memory: Memory, file_path: Path) -> None:
         file_size_mb = self._convert_file_size(file_path)
         MemoriesRepository().prune_by_media_download_url(memory.media_download_url)
-        log(f"Downloaded item {memory.filename_with_ext}. File size: {file_size_mb:.2f} MB. Successfully pruned from json.", "info")
-
+        log(
+            f"Downloaded item {memory.filename_with_ext}. File size: {file_size_mb:.2f} MB. Successfully pruned from json.",
+            "info",
+        )
 
     @staticmethod
     def _convert_file_size(file_path: Path) -> float:
         return file_path.stat().st_size / (1024 * 1024)
-
 
     @staticmethod
     def _log_processed_indices(indices: set[int]) -> None:

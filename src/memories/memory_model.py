@@ -1,5 +1,5 @@
-from typing import Optional
 from datetime import datetime
+
 from pydantic import BaseModel, Field, model_validator
 
 
@@ -7,14 +7,14 @@ class Memory(BaseModel):
     date: str = Field(alias="Date")
     media_download_url: str = Field(alias="Media Download Url")
     media_type: str = Field(alias="Media Type")
-    location: Optional[str] = Field(default=None, alias="Location")
+    location: str | None = Field(default=None, alias="Location")
     is_zip: bool = False
 
     exif_datetime: str = ""
     video_creation_time: str = ""
 
-    @model_validator(mode='after')
-    def parse_datetime(self) -> 'Memory':
+    @model_validator(mode="after")
+    def parse_datetime(self) -> "Memory":
         datetime_object = datetime.strptime(self.date, "%Y-%m-%d %H:%M:%S UTC")
         self.exif_datetime = datetime_object.strftime("%Y:%m:%d %H:%M:%S")
         self.video_creation_time = datetime_object.strftime("%Y-%m-%dT%H:%M:%S")
@@ -34,12 +34,12 @@ class Memory(BaseModel):
         return f"{self.filename}{self.extension}"
 
     @property
-    def location_coords(self) -> Optional[tuple[float, float]]:
+    def location_coords(self) -> tuple[float, float] | None:
         if not self.location:
             return None
 
-        location_coords = self.location.replace('Latitude, Longitude: ', '')
-        latitude, longitude = map(float, location_coords.split(', '))
+        location_coords = self.location.replace("Latitude, Longitude: ", "")
+        latitude, longitude = map(float, location_coords.split(", "))
 
         if latitude == 0.0 and longitude == 0.0:
             return None

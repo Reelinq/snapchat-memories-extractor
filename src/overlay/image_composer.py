@@ -1,7 +1,9 @@
-from PIL import Image
 from io import BytesIO
-from src.config import Config
 from pathlib import Path
+
+from PIL import Image
+
+from src.config import Config
 
 
 class ImageComposer:
@@ -9,7 +11,6 @@ class ImageComposer:
         self.image_bytes = image_bytes
         self.overlay_bytes = overlay_bytes
         self.output_path = output_path
-
 
     def apply_overlay(self) -> bytes:
         base_image = Image.open(BytesIO(self.image_bytes))
@@ -21,21 +22,21 @@ class ImageComposer:
         overlay_image = self._resize_to_match(overlay_image, base_image.size)
 
         combined_image = Image.alpha_composite(base_image, overlay_image)
-        combined_rgb_image = combined_image.convert('RGB')
+        combined_rgb_image = combined_image.convert("RGB")
 
-        quality = Config.cli_options['jpeg_quality']
-        combined_rgb_image.save(str(self.output_path), format='JPEG', quality=quality)
-
+        quality = Config.cli_options["jpeg_quality"]
+        combined_rgb_image.save(str(self.output_path), format="JPEG", quality=quality)
 
     @staticmethod
     def _ensure_rgba(image: Image.Image) -> Image.Image:
-        if image.mode != 'RGBA':
-            return image.convert('RGBA')
+        if image.mode != "RGBA":
+            return image.convert("RGBA")
         return image
 
-
     @staticmethod
-    def _resize_to_match(image: Image.Image, target_size: tuple[int, int]) -> Image.Image:
+    def _resize_to_match(
+        image: Image.Image, target_size: tuple[int, int],
+    ) -> Image.Image:
         if image.size != target_size:
             return image.resize(target_size, Image.Resampling.LANCZOS)
         return image

@@ -1,20 +1,30 @@
 import zipfile
-import pytest
-from src.zip_processor import ZipProcessor
+from collections.abc import Callable
 from pathlib import Path
+
+import pytest
+
 from src.config import Config
-from typing import Callable
+from src.zip_processor import ZipProcessor
+
 
 @pytest.fixture
 def make_zip(tmp_path: Path) -> Callable:
-    def _make_zip(media_name: str, media_data: bytes, overlay_name: str = None, overlay_data: bytes = None) -> Path:
+    def _make_zip(
+        media_name: str,
+        media_data: bytes,
+        overlay_name: str = None,
+        overlay_data: bytes = None,
+    ) -> Path:
         zip_path = tmp_path / "test.zip"
         with zipfile.ZipFile(zip_path, "w") as zf:
             zf.writestr(media_name, media_data)
             if overlay_name and overlay_data:
                 zf.writestr(overlay_name, overlay_data)
         return zip_path
+
     return _make_zip
+
 
 def test_extract_media_from_zip_jpg(make_zip: Callable) -> None:
     Config.cli_options = {"apply_overlay": True}
@@ -25,6 +35,7 @@ def test_extract_media_from_zip_jpg(make_zip: Callable) -> None:
     assert ext == ".jpg"
     assert overlay == b"pngdata"
 
+
 def test_extract_media_from_zip_mp4(make_zip: Callable) -> None:
     Config.cli_options = {"apply_overlay": True}
     zip_path = make_zip("video.mp4", b"mp4data", "overlay.png", b"pngdata2")
@@ -33,6 +44,7 @@ def test_extract_media_from_zip_mp4(make_zip: Callable) -> None:
     assert media == b"mp4data"
     assert ext == ".mp4"
     assert overlay == b"pngdata2"
+
 
 def test_extract_media_from_zip_no_overlay(make_zip: Callable) -> None:
     Config.cli_options = {"apply_overlay": False}

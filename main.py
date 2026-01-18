@@ -1,8 +1,7 @@
+from src.config import Config
 from src.downloader import SetupDownloader
 from src.logger import LogInitializer, log
-from src.ui import StatsManager, UpdateUI, Display
-from src.config import Config
-
+from src.ui import StatsManager, UpdateUI
 
 if __name__ == "__main__":
     Config.initialize_config()
@@ -14,7 +13,7 @@ if __name__ == "__main__":
 
     SetupDownloader().run()
 
-# ------------------------------------------------
+    # ------------------------------------------------
 
-    UpdateUI().run('finished')
+    UpdateUI().run("finished")
     log("Application finished", "info")

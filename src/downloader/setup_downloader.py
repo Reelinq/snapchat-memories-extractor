@@ -1,15 +1,15 @@
 from src.config import Config
 from src.downloader.downloader import MemoryDownloader
-from src.ui import Display, StatsManager
 from src.logger import log
+from src.ui import Display, StatsManager
 
 
 class SetupDownloader:
     def run(self) -> None:
-        max_attempts = Config.cli_options['max_attempts']
+        max_attempts = Config.cli_options["max_attempts"]
 
         for attempt in range(max_attempts):
-            Display().print_display('loading')
+            Display().print_display("loading")
             log(f"Starting attempt {attempt + 1} / {max_attempts}...", "info")
             StatsManager.new_attempt()
             MemoryDownloader().run()
@@ -19,7 +19,6 @@ class SetupDownloader:
 
         if StatsManager.failed_downloads_count > 0:
             log(f"Max attempts ({max_attempts}) reached with failures", "info")
-
 
     @staticmethod
     def _check_for_failures() -> bool:

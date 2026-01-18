@@ -1,5 +1,5 @@
 from zipfile import ZipFile
-from typing import Optional
+
 from src.config import Config
 
 
@@ -7,15 +7,13 @@ class ZipProcessor:
     def __init__(self, file_path: str):
         self.file_path = file_path
 
-
-    def extract_media_from_zip(self) -> tuple[Optional[bytes], Optional[str], Optional[bytes]]:
-        with ZipFile(self.file_path, 'r') as zip_file:
+    def extract_media_from_zip(self) -> tuple[bytes | None, str | None, bytes | None]:
+        with ZipFile(self.file_path, "r") as zip_file:
             result = self._read_files(zip_file)
         return result
 
-
     def _read_files(self, zip_file: ZipFile):
-        extract_overlay = Config.cli_options['apply_overlay']
+        extract_overlay = Config.cli_options["apply_overlay"]
 
         overlay_file_name = self._find_file(zip_file, find_png=True)
         media_file_name = self._find_file(zip_file, find_png=False)
@@ -29,23 +27,20 @@ class ZipProcessor:
 
         return media_content, media_overlay, media_extension
 
-
-    def _find_file(self, zip_file: ZipFile, find_png: bool) -> Optional[str]:
+    def _find_file(self, zip_file: ZipFile, find_png: bool) -> str | None:
         for name in zip_file.namelist():
             result = self._is_png_file(name, find_png)
             if result:
                 return result
         return None
 
-
     @staticmethod
     def _is_png_file(filename: str, find_png: bool) -> bool:
-        is_png_extension = filename.lower().endswith('.png')
+        is_png_extension = filename.lower().endswith(".png")
         if is_png_extension == find_png:
             return filename
         return None
 
-
     @staticmethod
     def _get_extension(filename: str) -> str:
-        return '.mp4' if filename.lower().endswith('.mp4') else '.jpg'
+        return ".mp4" if filename.lower().endswith(".mp4") else ".jpg"
