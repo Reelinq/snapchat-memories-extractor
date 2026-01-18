@@ -20,6 +20,7 @@ Download all your Snapchat memories with metadata (date, location) embedded dire
 ## 📋 Prerequisites
 
 - **Python 3.10+**
+- **macOS only**: [Homebrew](https://brew.sh/) with `jpeg-xl` package
 
 ---
 
@@ -54,9 +55,17 @@ source .venv/Scripts/activate
 
 ### Step 4: Install Dependencies
 
+**All platforms:**
 ```bash
 pip install -r requirements.txt
 ```
+
+**macOS only - Install JPEG XL tools:**
+```bash
+brew install jpeg-xl
+```
+
+> **Note:** On macOS, the JPEG XL converter (`cjxl`) is installed via Homebrew. On Windows and Linux, pre-compiled binaries are included in the repository.
 
 ### Step 5: Run the Extractor
 
