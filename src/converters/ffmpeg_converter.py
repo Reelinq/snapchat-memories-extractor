@@ -12,10 +12,10 @@ class VideoConverter:
 
     def run(self) -> Path:
         command = self._build_ffmpeg_command()
-        subprocess.run(command)
+        subprocess.run(command, check=True)
         return self.file_path
 
-    def _build_ffmpeg_command(self) -> list:
+    def _build_ffmpeg_command(self) -> list[str]:
         return [
             get_ffmpeg_exe(),
             "-y",

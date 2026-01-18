@@ -1,7 +1,9 @@
+import argparse
+
 from src.config.logging_config import parse_log_level
 
 
-def build_cli_options(args):
+def build_cli_options(args: argparse.Namespace) -> dict:
     return {
         "max_concurrent_downloads": args.concurrent,
         "apply_overlay": not args.no_overlay,

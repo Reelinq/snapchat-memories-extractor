@@ -19,7 +19,10 @@ class VideoMetadataWriter:
 
         timeout = Config.cli_options["ffmpeg_timeout"]
         ffmpeg_run_result = subprocess.run(
-            command, capture_output=True, timeout=timeout,
+            command,
+            capture_output=True,
+            timeout=timeout,
+            check=False,
         )
 
         if ffmpeg_run_result.returncode == 0:
@@ -42,7 +45,6 @@ class VideoMetadataWriter:
             str(temporary_video_path),
         ]
 
-
     def _ffmpeg_metadata_arguments(self) -> list[str]:
         meta_args = ["-metadata", f"creation_time={self.memory.video_creation_time}"]
 
@@ -61,7 +63,10 @@ class VideoMetadataWriter:
 
     @staticmethod
     def _extend_meta_args(
-        args: list[str], lat: float, lon: float, iso6709: str,
+        args: list[str],
+        lat: float,
+        lon: float,
+        iso6709: str,
     ) -> None:
         args.extend(
             [
@@ -74,7 +79,9 @@ class VideoMetadataWriter:
             ],
         )
 
-    def _log_ffmpeg_failure(self, result, temp_path) -> None:
+    def _log_ffmpeg_failure(
+        self, result: subprocess.CompletedProcess, temp_path: Path
+    ) -> None:
         if temp_path.exists():
             temp_path.unlink()
         log(

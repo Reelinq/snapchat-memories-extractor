@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 from src.config import Config
@@ -24,7 +24,7 @@ class LogInitializer:
         log_path.parent.mkdir(parents=True, exist_ok=True)
 
     def _create_log_filename(self) -> str:
-        return f"{datetime.now().strftime('%Y%m%d_%H%M%S')}.jsonl"
+        return f"{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.jsonl"
 
     @staticmethod
     def _cleanup_old_logs() -> None:

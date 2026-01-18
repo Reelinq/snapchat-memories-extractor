@@ -11,7 +11,9 @@ class ZipProcessor:
         with ZipFile(self.file_path, "r") as zip_file:
             return self._read_files(zip_file)
 
-    def _read_files(self, zip_file: ZipFile):
+    def _read_files(
+        self, zip_file: ZipFile
+    ) -> tuple[bytes | None, bytes | None, str | None]:
         extract_overlay = Config.cli_options["apply_overlay"]
 
         overlay_file_name = self._find_file(zip_file, find_png=True)

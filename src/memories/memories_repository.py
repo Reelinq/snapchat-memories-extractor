@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 
 from src.config import Config
 from src.logger import log
@@ -18,7 +19,7 @@ class MemoriesRepository:
             log(f"Memories JSON file not found at {Config.json_path}", "error", "MISS")
             return {}
 
-        with open(Config.json_path, encoding="utf-8") as file:
+        with Path.open(Config.json_path, encoding="utf-8") as file:
             return json.load(file)
 
     def prune_by_media_download_url(self, media_download_url: str) -> None:
@@ -31,7 +32,8 @@ class MemoriesRepository:
             self._save(data)
             return
         log(
-            f"Media Download Url {media_download_url} not found for pruning.", "warning",
+            f"Media Download Url {media_download_url} not found for pruning.",
+            "warning",
         )
 
     @staticmethod

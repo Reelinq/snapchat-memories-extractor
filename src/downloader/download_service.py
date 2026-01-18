@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from requests import Response, Session, adapters
 
 from src import FileNameResolver
@@ -55,13 +57,13 @@ class DownloadService:
         content_type = response.headers.get("Content-Type", "")
         return content_type.lower() == "application/zip"
 
-    def _store_downloaded_memory(self, download_response: Response):
+    def _store_downloaded_memory(self, download_response: Response) -> Path:
         file_path = Config.downloads_folder / self.memory.filename_with_ext
 
         if file_path.exists():
             file_path = FileNameResolver(file_path).run()
 
-        with open(file_path, "wb") as f:
+        with Path.open(file_path, "wb") as f:
             f.write(download_response.content)
 
         return file_path

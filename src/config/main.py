@@ -13,7 +13,7 @@ class Config:
     logs_folder: Path = Path("logs")
     cli_options: dict = None
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         ensure_directories(self.downloads_folder, self.logs_folder)
 
     @classmethod

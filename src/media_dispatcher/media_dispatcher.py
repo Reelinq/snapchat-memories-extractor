@@ -6,7 +6,7 @@ from src.media_dispatcher.zip_processor import ZipProcessor
 from src.memories import Memory
 
 
-def process_media(memory: Memory, file_path: Path):
+def process_media(memory: Memory, file_path: Path) -> Path:
     if memory.is_zip:
         return ZipProcessor(memory, file_path).run()
     if memory.media_type == "Image":

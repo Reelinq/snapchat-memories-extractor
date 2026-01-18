@@ -2,16 +2,15 @@ import argparse
 
 
 # Validate CRF value there to escape long help messages
-def crf_type(value):
+def crf_type(value: str) -> int:
+    inavlid_crf_message = "CRF must be between 0 (lossless) and 51 (worst quality)"
     ivalue = int(value)
     if not (0 <= ivalue <= 51):
-        raise argparse.ArgumentTypeError(
-            "CRF must be between 0 (lossless) and 51 (worst quality)",
-        )
+        raise argparse.ArgumentTypeError(inavlid_crf_message)
     return ivalue
 
 
-def get_cli_args():
+def get_cli_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Snapchat Memories Downloader")
     parser.add_argument(
         "--ffmpeg-timeout",
@@ -80,7 +79,8 @@ def get_cli_args():
         "-J",
         default=False,
         action="store_true",
-        help="Skip JPGXL conversion and keep original JPEG (default: convert to lossless JPGXL). Short: -J",
+        help="Skip JPGXL conversion and keep original JPEG \
+            (default: convert to lossless JPGXL). Short: -J",
     )
     parser.add_argument(
         "--video-codec",
@@ -88,14 +88,16 @@ def get_cli_args():
         type=str,
         choices=["h264", "h265"],
         default="h264",
-        help="Choose video codec: h264 (default, best compatibility) or h265 (smaller files, less compatible)",
+        help="Choose video codec: h264 (default, best compatibility) or h265 \
+            (smaller files, less compatible)",
     )
     parser.add_argument(
         "--constant-rate-factor",
         "--crf",
         type=crf_type,
         default=23,
-        help="Constant Rate Factor for video quality (0-51, lower=better, 0=lossless, 18-28 is typical, default: 23)",
+        help="Constant Rate Factor for video quality \
+            (0-51, lower=better, 0=lossless, 18-28 is typical, default: 23)",
     )
     parser.add_argument(
         "--cjxl-timeout",
@@ -109,7 +111,8 @@ def get_cli_args():
         "-la",
         type=int,
         default=5,
-        help="Number of log files to keep, any log files beyond this number will be deleted (default: 5). Short: -la",
+        help="Number of log files to keep, any log files beyond this number \
+            will be deleted (default: 5). Short: -la",
     )
     parser.add_argument(
         "--ffmpeg-preset",
@@ -159,6 +162,8 @@ def get_cli_args():
         type=str,
         default="OFF",
         metavar="LEVEL",
-        help="Logging level: 0=OFF, 1=CRITICAL, 2=ERROR, 3=WARNING, 4=INFO, 5=DEBUG. Can also use names: OFF, CRITICAL, ERROR, WARNING, INFO, DEBUG (default: 0/OFF). Short: -l",
+        help="Logging level: 0=OFF, 1=CRITICAL, 2=ERROR, 3=WARNING, 4=INFO, 5=DEBUG. \
+            Can also use names: OFF, CRITICAL, ERROR, WARNING, INFO, DEBUG \
+            (default: 0/OFF). Short: -l",
     )
     return parser.parse_args()

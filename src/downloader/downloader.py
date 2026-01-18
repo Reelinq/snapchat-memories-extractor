@@ -4,7 +4,7 @@ from pathlib import Path
 from src.config import Config
 from src.downloader.download_task import DownloadTask
 from src.logger import log
-from src.memories import *
+from src.memories import MemoriesRepository, Memory
 from src.ui import StatsManager, UpdateUI
 
 
@@ -27,7 +27,9 @@ class MemoryDownloader:
             file_path, download_succeeded = future.result()
             self._check_for_success(download_succeeded, memory, file_path)
 
-    def _handle_keyboard_interrupt(self, tasks) -> None:
+    def _handle_keyboard_interrupt(
+        self, tasks: dict[Future, tuple[int, Memory]]
+    ) -> None:
         log("KeyboardInterrupt received. Converting last files before exit...", "info")
         UpdateUI().run("interrupted")
         unfinished = [f for f in tasks if not f.done()]
@@ -35,7 +37,7 @@ class MemoryDownloader:
         self._execute_downloads(unfinished_dict)
         log("All running downloads/conversions finished. Exiting.", "info")
 
-    def _gather_future_download_tasks(self):
+    def _gather_future_download_tasks(self) -> dict[Future, tuple[int, Memory]]:
         download_tasks = self._gather_download_tasks()
         max_workers = Config.cli_options["max_concurrent_downloads"]
         executor = ThreadPoolExecutor(max_workers=max_workers)
@@ -50,7 +52,7 @@ class MemoryDownloader:
         return futures
 
     @staticmethod
-    def _gather_download_tasks():
+    def _gather_download_tasks() -> list[Memory]:
         download_tasks = []
         raw_memory_items = MemoriesRepository().get_raw_items()
         StatsManager.total_files = len(raw_memory_items)
@@ -62,7 +64,10 @@ class MemoryDownloader:
         return download_tasks
 
     def _check_for_success(
-        self, download_succeeded: bool, memory: Memory, file_path: Path,
+        self,
+        download_succeeded: bool,
+        memory: Memory,
+        file_path: Path,
     ) -> None:
         if download_succeeded:
             self._download_succeeded(memory, file_path)
@@ -80,7 +85,9 @@ class MemoryDownloader:
         file_size_mb = self._convert_file_size(file_path)
         MemoriesRepository().prune_by_media_download_url(memory.media_download_url)
         log(
-            f"Downloaded item {memory.filename_with_ext}. File size: {file_size_mb:.2f} MB. Successfully pruned from json.",
+            f"Downloaded item {memory.filename_with_ext}. \
+            File size: {file_size_mb:.2f} MB. \
+            Successfully pruned from json.",
             "info",
         )
 

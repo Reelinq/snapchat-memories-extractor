@@ -1,4 +1,5 @@
 from time import time
+from typing import ClassVar
 
 
 class StatsManager:
@@ -8,8 +9,8 @@ class StatsManager:
     successful_downloads_count = 0
     failed_downloads_count = 0
     total_bytes = 0
-    errors = []
-    completed_indices = set()
+    errors: ClassVar[list[str]] = []
+    completed_indices: ClassVar[set[int]] = set()
 
     @classmethod
     def new_attempt(cls) -> None:

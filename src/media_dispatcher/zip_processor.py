@@ -5,7 +5,7 @@ from src.config import Config
 from src.media_dispatcher.image_processor import process_image
 from src.media_dispatcher.video_processor import ProcessVideo
 from src.memories import Memory
-from src.overlay import *
+from src.overlay import ImageComposer, VideoComposer
 
 
 class ZipProcessor:
@@ -13,7 +13,7 @@ class ZipProcessor:
         self.memory = memory
         self.file_path = file_path
 
-    def run(self):
+    def run(self) -> Path:
         apply_overlay = Config.cli_options["apply_overlay"]
         content, overlay, extention = CoreZipProcessor(
             self.file_path,
@@ -32,7 +32,11 @@ class ZipProcessor:
         return ProcessVideo().run(self.memory, output_path)
 
     def _apply_overlay(
-        self, content: bytes, overlay: bytes, extention: str, output_path: Path,
+        self,
+        content: bytes,
+        overlay: bytes,
+        extention: str,
+        output_path: Path,
     ) -> None:
         if extention == ".jpg":
             ImageComposer(content, overlay, output_path).apply_overlay()
@@ -41,5 +45,5 @@ class ZipProcessor:
 
     @staticmethod
     def _bytes_to_path(bytes_content: bytes, output_path: Path) -> Path:
-        with open(output_path, "wb") as file:
+        with Path.open(output_path, "wb") as file:
             file.write(bytes_content)

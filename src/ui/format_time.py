@@ -1,4 +1,4 @@
-def format_time(seconds) -> str:
+def format_time(seconds: float) -> str:
     if seconds < 60:
         return f"{seconds:.0f}s"
     if seconds < 3600:

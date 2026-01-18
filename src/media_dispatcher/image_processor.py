@@ -6,7 +6,7 @@ from src.memories import Memory
 from src.metadata import ImageMetadataWriter
 
 
-def process_image(memory: Memory, file_path: Path):
+def process_image(memory: Memory, file_path: Path) -> Path:
     convert_to_jxl = Config.cli_options["convert_to_jxl"]
     write_metadata = Config.cli_options["write_metadata"]
 

@@ -21,7 +21,9 @@ class JXLConverter:
         output_path = self.input_path.with_suffix(".jxl")
         command = self._build_cjxl_command(cjxl_path, output_path)
         timeout = Config.cli_options["cjxl_timeout"]
-        result = subprocess.run(command, capture_output=True, timeout=timeout)
+        result = subprocess.run(
+            command, capture_output=True, timeout=timeout, check=False
+        )
 
         if result.returncode != 0:
             self._log_cjxl_failure(result)
@@ -54,7 +56,10 @@ class JXLConverter:
         return cjxl_full_path
 
     def _is_convertible_image(self) -> bool:
-        return bool(self.input_path.suffix.lower() in (".jpg", ".jpeg") and self.input_path.exists())
+        return bool(
+            self.input_path.suffix.lower() in (".jpg", ".jpeg")
+            and self.input_path.exists()
+        )
 
     def _build_cjxl_command(self, cjxl_path: Path, output_path: Path) -> list[str]:
         return [
@@ -68,6 +73,7 @@ class JXLConverter:
     def _log_cjxl_failure(self, result: subprocess.CompletedProcess) -> None:
         stderr = result.stderr.decode("utf-8", errors="ignore") if result.stderr else ""
         log(
-            f"cjxl failed ({result.returncode}) for {self.input_path}: {stderr.strip()}",
+            f"cjxl failed ({result.returncode}) for {self.input_path}: \
+            {stderr.strip()}",
             "warning",
         )

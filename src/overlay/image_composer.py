@@ -7,7 +7,9 @@ from src.config import Config
 
 
 class ImageComposer:
-    def __init__(self, image_bytes: bytes, overlay_bytes: bytes, output_path: Path) -> None:
+    def __init__(
+        self, image_bytes: bytes, overlay_bytes: bytes, output_path: Path
+    ) -> None:
         self.image_bytes = image_bytes
         self.overlay_bytes = overlay_bytes
         self.output_path = output_path
@@ -35,7 +37,8 @@ class ImageComposer:
 
     @staticmethod
     def _resize_to_match(
-        image: Image.Image, target_size: tuple[int, int],
+        image: Image.Image,
+        target_size: tuple[int, int],
     ) -> Image.Image:
         if image.size != target_size:
             return image.resize(target_size, Image.Resampling.LANCZOS)

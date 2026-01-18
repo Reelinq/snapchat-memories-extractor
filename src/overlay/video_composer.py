@@ -10,7 +10,9 @@ from src.config import Config
 
 
 class VideoComposer:
-    def __init__(self, video_bytes: bytes, overlay_bytes: bytes, output_path: Path) -> None:
+    def __init__(
+        self, video_bytes: bytes, overlay_bytes: bytes, output_path: Path
+    ) -> None:
         self.video_bytes = video_bytes
         self.overlay_bytes = overlay_bytes
         self.output_path = output_path
@@ -25,12 +27,14 @@ class VideoComposer:
         overlay_image = Image.open(BytesIO(self.overlay_bytes))
         # In some cases the overlay image is mismatched by 1 pixel
         overlay_image = self._resize_to_match(
-            overlay_image, (video_width, video_height),
+            overlay_image,
+            (video_width, video_height),
         )
         overlay_temporary_file_path = self._write_overlay_to_temp_file(overlay_image)
 
         ffmpeg_command = self._build_ffmpeg_overlay_command(
-            video_temporary_file_path, overlay_temporary_file_path,
+            video_temporary_file_path,
+            overlay_temporary_file_path,
         )
         ffmpeg_timeout = Config.cli_options["ffmpeg_timeout"]
         self._run_ffmpeg_command(ffmpeg_command, ffmpeg_timeout)
@@ -42,7 +46,7 @@ class VideoComposer:
             return temp_file.name
 
     @staticmethod
-    def _get_video_dimensions(video_path) -> tuple[int, int]:
+    def _get_video_dimensions(video_path: str) -> tuple[int, int]:
         ffprobe_response = subprocess.check_output(
             [
                 "ffprobe",
@@ -62,7 +66,8 @@ class VideoComposer:
 
     @staticmethod
     def _resize_to_match(
-        image: Image.Image, target_size: tuple[int, int],
+        image: Image.Image,
+        target_size: tuple[int, int],
     ) -> Image.Image:
         if image.size != target_size:
             return image.resize(target_size, Image.Resampling.LANCZOS)
@@ -71,12 +76,15 @@ class VideoComposer:
     @staticmethod
     def _write_overlay_to_temp_file(overlay_image: Image.Image) -> str:
         with tempfile.NamedTemporaryFile(
-            delete=False, suffix=".png",
+            delete=False,
+            suffix=".png",
         ) as overlay_temporary_file:
             overlay_image.save(overlay_temporary_file, format="PNG")
             return overlay_temporary_file.name
 
-    def _build_ffmpeg_overlay_command(self, video_path: str, overlay_path: str) -> list:
+    def _build_ffmpeg_overlay_command(
+        self, video_path: str, overlay_path: str
+    ) -> list[str]:
         return [
             get_ffmpeg_exe(),
             "-i",
@@ -90,7 +98,9 @@ class VideoComposer:
             str(self.output_path),
         ]
 
-    def _run_ffmpeg_command(self, command: list, timeout: int):
+    def _run_ffmpeg_command(
+        self, command: list, timeout: int
+    ) -> subprocess.CompletedProcess:
         return subprocess.run(
             command,
             check=True,
@@ -100,14 +110,15 @@ class VideoComposer:
         )
 
     @staticmethod
-    def create_creation_flags():
+    def create_creation_flags() -> int:
         if hasattr(subprocess, "CREATE_NO_WINDOW"):
             return subprocess.CREATE_NO_WINDOW
         return 0
 
     @staticmethod
     def _cleanup_temp_files(
-        video_temporary_file_path: str, overlay_temporary_file_path: str,
+        video_temporary_file_path: str,
+        overlay_temporary_file_path: str,
     ) -> None:
         Path(video_temporary_file_path).unlink(missing_ok=True)
         Path(overlay_temporary_file_path).unlink(missing_ok=True)

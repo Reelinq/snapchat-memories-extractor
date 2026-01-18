@@ -23,7 +23,7 @@ class Display:
         self.elapsed_time = int(time() - StatsManager.start_time)
         self.eta = self._calculate_eta(current, self.elapsed_time, self.remaining)
 
-    def print_display(self, state) -> None:
+    def print_display(self, state: str) -> None:
         line1 = self._get_first_line()
         line2 = f"  [{self.progress_bar}] {self.percent:5.1f}%"
 
@@ -53,7 +53,7 @@ class Display:
         return left.ljust(display_size - len(right)) + right
 
     @staticmethod
-    def _calculate_eta(current: int, elapsed_time: int, remaining: int):
+    def _calculate_eta(current: int, elapsed_time: int, remaining: int) -> str:
         if current == 0:
             return "calculating..."
 
@@ -62,27 +62,38 @@ class Display:
         return format_time(eta)
 
     @staticmethod
-    def _get_loading_display_lines():
+    def _get_loading_display_lines() -> tuple[str, str]:
         line3 = "  ⏳ Initializing, scanning your memories..."
         line4 = "  📋 Preparing download list..."
         return line3, line4
 
-    def _get_download_interruption_display_lines(self):
+    def _get_download_interruption_display_lines(self) -> tuple[str, str]:
         line3 = "  ⚠️ Download interrupted by user."
         line4 = "  ⏳ Processing unfinished downloads, please wait..."
         return line3, line4
 
-    def _get_finished_display_lines(self):
+    def _get_finished_display_lines(self) -> tuple[str, str]:
         line3 = "  ✅ Download process complete."
-        line4 = f"  📥 Downloaded: {self.successful}  │  ❌ Failed: {self.failed}  │  🕐 Total Time: {format_time(self.elapsed_time):>10}"
+        line4 = (
+            f"  📥 Downloaded: {self.successful}  │  "
+            f"❌ Failed: {self.failed}  │  "
+            f"🕐 Total Time: {format_time(self.elapsed_time):>10}"
+        )
         return line3, line4
 
-    def _get_base_display_lines(self):
-        line3 = f"  📥 Downloaded: {self.successful}  │  ❌ Failed: {self.failed}  │  📁 Remaining: {self.remaining}"
-        line4 = f"  🕐  Elapsed: {format_time(self.elapsed_time):>10}  │  ⏳ ETA: {self.eta:>10}"
+    def _get_base_display_lines(self) -> tuple[str, str]:
+        line3 = (
+            f"  📥 Downloaded: {self.successful}  │  "
+            f"❌ Failed: {self.failed}  │  "
+            f"📁 Remaining: {self.remaining}"
+        )
+        line4 = (
+            f"  🕐  Elapsed: {format_time(self.elapsed_time):>10}  │  "
+            f"⏳ ETA: {self.eta:>10}"
+        )
         return line3, line4
 
-    def _padding_line(self, content, total_width=display_size):
+    def _padding_line(self, content: str, total_width: int = display_size) -> str:
         visible_width = self._display_width(content)
         padding_needed = total_width - visible_width
         return content + (" " * max(0, padding_needed))

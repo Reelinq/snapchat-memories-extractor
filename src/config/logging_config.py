@@ -19,6 +19,6 @@ def parse_log_level(level_input: str) -> int:
     level_upper = level_input.upper()
     if level_upper in level_map:
         return level_map[level_upper]
-    raise argparse.ArgumentTypeError(
-        f"Invalid log level: {level_input}. Use 0-5 or OFF/CRITICAL/ERROR/WARNING/INFO/DEBUG",
-    )
+    error_message = f"Invalid log level: {level_input}. \
+        Use 0-5 or OFF/CRITICAL/ERROR/WARNING/INFO/DEBUG"
+    raise argparse.ArgumentTypeError(error_message)
