@@ -23,9 +23,7 @@ select = [
     "ERA",  # eradicate (finds commented-out code)
     "PL",   # Pylint (comprehensive linting)
     "TRY",  # tryceratops (exception handling best practices)
-    "FBT",  # flake8-boolean-trap (avoid boolean flags in functions)
     "A",    # flake8-builtins (don't shadow Python builtins)
-    "COM",  # flake8-commas (trailing commas)
     "RSE",  # flake8-raise (better exception raising)
     "TCH",  # flake8-type-checking (optimize type checking imports)
     "PERF", # Perflint (performance anti-patterns)
@@ -34,8 +32,6 @@ select = [
 ]
 
 ignore = [
-    "ANN101",  # Missing type annotation for self in method
-    "ANN102",  # Missing type annotation for cls in classmethod
     "T201",    # Allow print statements (remove this if you want to ban prints)
     "PLR0913", # Too many arguments to function call
     "PLR2004", # Magic value used in comparison
