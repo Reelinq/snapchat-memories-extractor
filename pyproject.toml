@@ -53,3 +53,6 @@ max-branches = 12
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["FBT001", "FBT002", "FBT003"]
