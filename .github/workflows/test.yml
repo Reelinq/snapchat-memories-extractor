@@ -30,5 +30,10 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
+    - name: Make binaries executable
+      if: runner.os != 'Windows'
+      run: |
+        chmod +x libjxl-binaries/linux/cjxl
+
     - name: Run tests
       run: pytest tests/ -v
