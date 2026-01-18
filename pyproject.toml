@@ -1,0 +1,55 @@
+[tool.ruff]
+line-length = 88
+target-version = "py310"
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "I",    # isort (import sorting)
+    "N",    # pep8-naming
+    "UP",   # pyupgrade
+    "ANN",  # flake8-annotations (type hints!)
+    "B",    # flake8-bugbear (catches common bugs)
+    "C4",   # flake8-comprehensions (better list/dict comprehensions)
+    "DTZ",  # flake8-datetimez (safer datetime usage)
+    "T20",  # flake8-print (catches print statements)
+    "RET",  # flake8-return (better return statements)
+    "SIM",  # flake8-simplify (simplifies code)
+    "ARG",  # flake8-unused-arguments
+    "PTH",  # flake8-use-pathlib (modern path handling)
+    "C90",  # mccabe (complexity checking)
+    "ERA",  # eradicate (finds commented-out code)
+    "PL",   # Pylint (comprehensive linting)
+    "TRY",  # tryceratops (exception handling best practices)
+    "FBT",  # flake8-boolean-trap (avoid boolean flags in functions)
+    "A",    # flake8-builtins (don't shadow Python builtins)
+    "COM",  # flake8-commas (trailing commas)
+    "RSE",  # flake8-raise (better exception raising)
+    "TCH",  # flake8-type-checking (optimize type checking imports)
+    "PERF", # Perflint (performance anti-patterns)
+    "FURB", # refurb (modernization and refactoring)
+    "RUF",  # Ruff-specific rules
+]
+
+ignore = [
+    "ANN101",  # Missing type annotation for self in method
+    "ANN102",  # Missing type annotation for cls in classmethod
+    "T201",    # Allow print statements (remove this if you want to ban prints)
+    "PLR0913", # Too many arguments to function call
+    "PLR2004", # Magic value used in comparison
+]
+
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
+[tool.ruff.lint.pylint]
+max-args = 5
+max-branches = 12
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
