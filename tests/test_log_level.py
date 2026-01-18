@@ -23,10 +23,13 @@ from src.logger.log_initializer import LogInitializer
     ],
 )
 def test_log_file_levels(
+    level_input: str,  # noqa: ARG001
     expected_level: int,
     expected_levels: list[str],
 ) -> None:
     temp_dir = Path(tempfile.mkdtemp())
+    logger = logging.getLogger()
+
     try:
         cli_options = {
             "log_level": expected_level,
@@ -34,6 +37,7 @@ def test_log_file_levels(
             "max_concurrent_downloads": 5,
             "apply_overlay": True,
             "write_metadata": True,
+            "logs_amount": 5,
             "max_attempts": 3,
             "strict_location": False,
             "jpeg_quality": 95,
@@ -42,11 +46,9 @@ def test_log_file_levels(
             "ffmpeg_timeout": 60,
             "stream_chunk_size": 1024 * 1024,
         }
-
         Config.cli_options = cli_options
         Config.logs_folder = temp_dir
         LogInitializer().configure_logger()
-        logger = logging.getLogger()
 
         logger.debug("debug message")
         logger.info("info message")
@@ -55,9 +57,13 @@ def test_log_file_levels(
         logger.critical("critical message")
 
         # Find the latest log file in temp_dir
-        log_files = sorted(temp_dir.glob("*.jsonl"), key=os.path.getmtime, reverse=True)
+        log_files = sorted(
+            temp_dir.glob("*.jsonl"),
+            key=os.path.getmtime,
+            reverse=True,
+        )
         if not log_files:
-            # If no log file was created, manually create an empty file for consistency
+            # If no log file was created, manually create an empty file
             log_file = temp_dir / "manual_created.jsonl"
             log_file.touch()
         else:
@@ -77,7 +83,6 @@ def test_log_file_levels(
         assert set(found_levels) == set(expected_levels), (
             f"Expected {expected_levels}, found {found_levels}"
         )
-
     finally:
         for handler in logger.handlers[:]:
             handler.close()
