@@ -25,15 +25,18 @@ jobs:
         python-version: ${{ matrix.python-version }}
         cache: 'pip'
 
+    - name: Install libjxl on macOS
+      if: runner.os == 'macOS'
+      run: brew install jpeg-xl
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    - name: Make binaries executable
-      if: runner.os != 'Windows'
-      run: |
-        chmod +x libjxl-binaries/linux/cjxl
+    - name: Make binaries executable on Linux
+      if: runner.os == 'Linux'
+      run: chmod +x libjxl-binaries/linux/cjxl
 
     - name: Run tests
       run: pytest tests/ -v
