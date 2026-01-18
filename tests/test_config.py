@@ -1,4 +1,5 @@
 import shutil
+import sys
 import tempfile
 from pathlib import Path
 
@@ -35,8 +36,6 @@ from src.config.main import Config
 def test_config_cli_flags(monkeypatch, cli_args: list[str], expected: dict) -> None:
     temp_dir = Path(tempfile.mkdtemp())
     try:
-        import sys
-
         monkeypatch.setattr(sys, "argv", ["main.py", *cli_args])
         Config.initialize_config()
         for key, value in expected.items():

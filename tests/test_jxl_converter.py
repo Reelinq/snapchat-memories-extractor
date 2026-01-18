@@ -28,7 +28,10 @@ def _get_djxl_path() -> Path | None:
 
     try:
         result = subprocess.run(
-            [binary_name, "--version"], capture_output=True, timeout=5,
+            [binary_name, "--version"],
+            capture_output=True,
+            timeout=5,
+            check=True,
         )
         if result.returncode == 0:
             return Path(binary_name)
@@ -147,6 +150,7 @@ def test_convert_to_jxl_preserves_image_quality(make_sample_jpeg, temp_dir) -> N
             [str(_DJXL_PATH), str(jxl_path), str(decoded_path)],
             capture_output=True,
             timeout=120,
+            check=True,
         )
         stderr = result.stderr.decode("utf-8", errors="ignore") if result.stderr else ""
         assert result.returncode == 0, f"djxl failed to decode: {stderr}"
@@ -157,7 +161,7 @@ def test_convert_to_jxl_preserves_image_quality(make_sample_jpeg, temp_dir) -> N
             diff = ImageChops.difference(original, decoded_rgb)
             assert diff.getbbox() is None, "Round-trip JXL changed pixel data"
     else:
-        with open(jxl_path, "rb") as f:
+        with Path.open(jxl_path, "rb") as f:
             header = f.read(8)
         is_jxl = header[4:8] == b"JXL "
         assert is_jxl, f"File is not a valid JXL format. Header: {header.hex()}"
@@ -165,7 +169,7 @@ def test_convert_to_jxl_preserves_image_quality(make_sample_jpeg, temp_dir) -> N
 
 
 @pytest.mark.skipif(not HAS_CJXL, reason="cjxl binary not available")
-def test_convert_to_jxl_file_size_reduction(make_sample_jpeg, capsys) -> None:
+def test_convert_to_jxl_file_size_reduction(make_sample_jpeg) -> None:
     sample_jpeg = make_sample_jpeg()
     original_size = sample_jpeg.stat().st_size
 

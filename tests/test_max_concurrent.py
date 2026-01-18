@@ -24,7 +24,8 @@ def test_max_concurrent_downloads_sets_threadpool(max_workers: int) -> None:
     }
     Config.cli_options = cli_options
     with patch(
-        "src.downloader.downloader.ThreadPoolExecutor.__init__", return_value=None,
+        "src.downloader.downloader.ThreadPoolExecutor.__init__",
+        return_value=None,
     ) as mock_exec:
         md = MemoryDownloader()
         md._gather_download_tasks = lambda: []  # Prevent actual download logic

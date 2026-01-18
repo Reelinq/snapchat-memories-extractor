@@ -34,7 +34,7 @@ def temp_config():
 
 
 @pytest.fixture
-def downloader(temp_config):
+def downloader():
     downloader = MemoryDownloader()
     downloader.download_service = MagicMock()
     return downloader

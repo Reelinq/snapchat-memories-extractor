@@ -7,6 +7,9 @@ from pathlib import Path
 
 import pytest
 
+from src.config import Config
+from src.logger.log_initializer import LogInitializer
+
 
 @pytest.mark.parametrize(
     "level_input,expected_level,expected_levels",
@@ -20,7 +23,8 @@ import pytest
     ],
 )
 def test_log_file_levels(
-    level_input: str, expected_level: int, expected_levels: list[str],
+    expected_level: int,
+    expected_levels: list[str],
 ) -> None:
     temp_dir = Path(tempfile.mkdtemp())
     try:
@@ -38,8 +42,6 @@ def test_log_file_levels(
             "ffmpeg_timeout": 60,
             "stream_chunk_size": 1024 * 1024,
         }
-        from src.config import Config
-        from src.logger.log_initializer import LogInitializer
 
         Config.cli_options = cli_options
         Config.logs_folder = temp_dir
@@ -55,14 +57,14 @@ def test_log_file_levels(
         # Find the latest log file in temp_dir
         log_files = sorted(temp_dir.glob("*.jsonl"), key=os.path.getmtime, reverse=True)
         if not log_files:
-            # If no log file was created, manually create an empty log file for consistency
+            # If no log file was created, manually create an empty file for consistency
             log_file = temp_dir / "manual_created.jsonl"
             log_file.touch()
         else:
             log_file = log_files[0]
 
         # Read log file and collect levels
-        with open(log_file, encoding="utf-8") as f:
+        with Path.open(log_file, encoding="utf-8") as f:
             log_lines = [json.loads(line) for line in f if line.strip()]
 
         found_levels = [
